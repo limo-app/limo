@@ -1,4 +1,4 @@
-<p align="center" style="font-size: 36px">
+<p align="center" style="font-size: 48px">
 <strong>Limo</strong> <img src="resources/logo.png" alt="logo" width="40"/>
 </p>
 
