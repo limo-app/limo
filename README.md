@@ -1,6 +1,4 @@
-<p align="center" style="font-size: 48px">
-<strong>Limo</strong> <img src="resources/logo.png" alt="logo" width="40"/>
-</p>
+<center><h1>Limo <img src="resources/logo.png" alt="logo" width="40"/></h1></center>
 
 General purpose mod manager primarily developed for Linux with support for the [NexusMods](https://www.nexusmods.com/) API and [LOOT](https://loot.github.io/).
 
