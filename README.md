@@ -5,6 +5,7 @@ General purpose mod manager primarily developed for Linux with support for the [
 <p align="center">
 <img src="resources/showcase.png" alt="logo" width="800"/>
 </p>
+
 ## Features
 
 - Multiple target directories per application
