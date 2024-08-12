@@ -1,4 +1,6 @@
-# Limo <img align="right" src="resources/logo.png" alt="logo" width="40"/>
+<p align="center" style="font-size: 36px">
+<strong>Limo</strong> <img src="resources/logo.png" alt="logo" width="40"/>
+</p>
 
 General purpose mod manager primarily developed for Linux with support for the [NexusMods](https://www.nexusmods.com/) API and [LOOT](https://loot.github.io/).
 
@@ -70,6 +72,7 @@ sudo apt install \
 
 ```
 git clone https://github.com/limo-app/limo.git
+cd limo
 ```
 
 #### Build Limo:
