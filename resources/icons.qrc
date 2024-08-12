@@ -1,0 +1,7 @@
+<RCC>
+	<qresource prefix="/">
+		<file>filter_accept.svg</file>
+		<file>filter_reject.svg</file>
+		<file>logo.png</file>
+	</qresource>
+</RCC>

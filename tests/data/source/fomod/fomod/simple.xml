@@ -1,0 +1,24 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
+
+    <moduleName>Example Mod</moduleName>
+
+    <moduleDependencies operator="And">
+        <fileDependency file="depend1.plugin" state="Active"/>
+        <flagDependency flag="some_flag" value="Set"/>
+        <dependencies operator="Or">
+            <fileDependency file="depend2v1.plugin" state="Active"/>
+            <fileDependency file="depend2v2.plugin" state="Active"/>
+            <dependencies operator="And">
+                <gameDependency version="2.0"/>
+                <fommDependency version="1.2.3"/>
+            </dependencies>
+        </dependencies>
+    </moduleDependencies>
+
+    <requiredInstallFiles>
+        <file source="example.plugin"/>
+        <file source="another_example.plugin"/>
+    </requiredInstallFiles>
+
+</config> 

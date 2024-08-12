@@ -1,0 +1,5 @@
+Morrowind.esm
+p.esp
+a.esp
+b.esp
+c.esp

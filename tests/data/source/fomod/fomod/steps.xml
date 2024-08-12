@@ -1,0 +1,126 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://qconsulting.ca/fo3/ModConfig5.0.xsd">
+
+    <moduleName>Example Mod</moduleName>
+
+    <moduleDependencies operator="And">
+        <fileDependency file="depend1.plugin" state="Active"/>
+        <dependencies operator="Or">
+            <fileDependency file="depend2v1.plugin" state="Active"/>
+            <fileDependency file="depend2v2.plugin" state="Active"/>
+        </dependencies>
+    </moduleDependencies>
+
+    <installSteps order="Explicit">
+
+        <installStep name="Choose Option">
+            <optionalFileGroups order="Explicit">
+                <group name="Select an option:" type="SelectExactlyOne">
+                    <plugins order="Explicit">
+
+                        <plugin name="Option A">
+                            <description>Select this to install Option A!</description>
+                            <image path="fomod/option_a.png"/>
+                            <files>
+                                <folder source="option_a"/>
+                            </files>
+                            <conditionFlags>
+                                <flag name="option_a">selected</flag>
+                            </conditionFlags>
+                            <typeDescriptor>
+                                <type name="Recommended"/>
+                            </typeDescriptor>
+                        </plugin>
+
+                        <plugin name="Option B">
+                            <description>Select this to install Option B!</description>
+                            <image path="fomod/option_b.png"/>
+                            <files>
+                                <folder source="option_b"/>
+                            </files>
+                            <conditionFlags>
+                                <flag name="option_b">selected</flag>
+                            </conditionFlags>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
+
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+
+        <installStep name="Choose Texture">
+            <visible>
+                <flagDependency flag="option_a" value="selected"/>
+            </visible>
+            <optionalFileGroups order="Explicit">
+                <group name="Select a texture:" type="SelectExactlyOne">
+                    <plugins order="Explicit">
+
+                        <plugin name="Texture Blue">
+                            <description>Select this to install Texture Blue!</description>
+                            <image path="fomod/texture_blue.png"/>
+                            <files>
+                                <folder source="texture_blue_a"/>
+                            </files>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
+
+                        <plugin name="Texture Red">
+                            <description>Select this to install Texture Red!</description>
+                            <image path="fomod/texture_red.png"/>
+                            <files>
+                                <folder source="texture_red_a"/>
+                            </files>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
+
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+
+        <installStep name="Choose Texture">
+            <visible>
+                <flagDependency flag="option_b" value="selected"/>
+            </visible>
+            <optionalFileGroups order="Explicit">
+                <group name="Select a texture:" type="SelectExactlyOne">
+                    <plugins order="Explicit">
+
+                        <plugin name="Texture Blue">
+                            <description>Select this to install Texture Blue!</description>
+                            <image path="fomod/texture_blue.png"/>
+                            <files>
+                                <folder source="texture_blue_b"/>
+                            </files>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
+
+                        <plugin name="Texture Red">
+                            <description>Select this to install Texture Red!</description>
+                            <image path="fomod/texture_red.png"/>
+                            <files>
+                                <folder source="texture_red_b"/>
+                            </files>
+                            <typeDescriptor>
+                                <type name="Optional"/>
+                            </typeDescriptor>
+                        </plugin>
+
+                    </plugins>
+                </group>
+            </optionalFileGroups>
+        </installStep>
+
+    </installSteps>
+
+</config>

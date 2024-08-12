@@ -1,0 +1,27 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "words": [
+        "deployer",
+        "deployers",
+        "Deployer",
+        "Deployers",
+        "flatpak",
+        "unrar",
+        "fomod",
+        "Fomod",
+        "loadorder",
+        "LOADORDER",
+        "Skyrim",
+        "Morrowind",
+        "Fallout",
+        "fomm",
+        "SIMPLEDEPLOYER",
+        "CASEMATCHINGDEPLOYER",
+        "LOOTDEPLOYER",
+        "Kibi",
+        "depl",
+        "pugi"
+    ],
+    "allowCompoundWords": true
+}

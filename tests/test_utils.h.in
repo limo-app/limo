@@ -1,0 +1,17 @@
+#pragma once
+
+#define BASE_PATH sfs::path("@PROJECT_SOURCE_DIR@")
+
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_vector.hpp>
+#include <filesystem>
+#include <vector>
+
+namespace sfs = std::filesystem;
+
+
+const sfs::path DATA_DIR = BASE_PATH / "data";
+void verifyDirsAreEqual(sfs::path first_dir, sfs::path second_dir, bool test_content = false);
+void resetAppDir();
+void resetStagingDir();
+void verifyFilesAreEqual(sfs::path first_file, sfs::path second_file);
