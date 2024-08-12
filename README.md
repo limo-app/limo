@@ -1,5 +1,4 @@
 # Limo <img align="right" src="resources/logo.png" alt="logo" width="40"/>
----
 
 General purpose mod manager primarily developed for Linux with support for the [NexusMods](https://www.nexusmods.com/) API and [LOOT](https://loot.github.io/).
 
@@ -7,7 +6,6 @@ General purpose mod manager primarily developed for Linux with support for the [
 <img src="resources/showcase.png" alt="logo" width="800"/>
 </p>
 ## Features
----
 
 - Multiple target directories per application
 - Automatic adaptation of mod file names to prevent issues with case mismatches
@@ -27,7 +25,6 @@ General purpose mod manager primarily developed for Linux with support for the [
 ***For a guide on how to use Limo, refer to the wiki.***
 
 ## Installation
----
 
 ### Build from source
 
