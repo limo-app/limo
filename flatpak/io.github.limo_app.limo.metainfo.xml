@@ -53,15 +53,19 @@
   <screenshots>
     <screenshot type="default">
       <image>https://limo-app.github.io/limo/deployer.png</image>
+      <caption>Deployer with conflicts</caption>
     </screenshot>
     <screenshot>
       <image>https://limo-app.github.io/limo/mods.png</image>
+      <caption>Installed mods</caption>
     </screenshot>
     <screenshot>
       <image>https://limo-app.github.io/limo/app.png</image>
+      <caption>App overview</caption>
     </screenshot>
     <screenshot>
       <image>https://limo-app.github.io/limo/plugins.png</image>
+      <caption>Deployer using LOOT</caption>
     </screenshot>
   </screenshots>
 </component>
