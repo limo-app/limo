@@ -252,6 +252,6 @@ if(IS_FLATPAK)
             DESTINATION /app/share/icons/hicolor/512x512/apps)
     install(FILES flathub/io.github.limo_app.limo.metainfo.xml
             DESTINATION /app/share/metainfo)
-    install(FILES flathub/io.github.limo_app.desktop
+    install(FILES flathub/io.github.limo_app.limo.desktop
             DESTINATION /app/share/applications)
 endif()
