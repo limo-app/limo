@@ -27,6 +27,16 @@ General purpose mod manager primarily developed for Linux with support for the [
 
 ## Installation
 
+## (Optional) Unrar
+Limo uses libarchive in order to extract compressed mods. Because this currently does not work for certain RAR5 archives,
+you can optionally install the unrar package and enter the path to its binary into the Limo settings dialog (if not detected automatically).
+Unfortunately unrar is not open source software and seems to be the only reliable way to unpack those archives.
+
+On Debian based systems unrar can be installed like this:
+```
+sudo apt install unrar
+```
+
 ### Build from source
 
 ####  Install the dependencies

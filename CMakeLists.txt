@@ -11,6 +11,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(IS_FLATPAK "Whether this is being built for a flatpak." OFF)
+
 # jsoncpp
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(JSONCPP jsoncpp)
@@ -244,3 +246,8 @@ target_link_libraries(Limo
 install(TARGETS Limo
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+if(IS_FLATPAK)
+    install(FILES resources/io.github.limo_app.limo.png
+            DESTINATION /app/share/icons/hicolor/512x512/apps)
+endif()
