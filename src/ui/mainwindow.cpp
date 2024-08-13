@@ -1706,8 +1706,12 @@ void MainWindow::onExtractionComplete(int app_id,
   setBusyStatus(false);
   if(!success)
   {
+    if(!mod_import_queue_.empty())
+      mod_import_queue_.pop();
+    if(!mod_import_queue_.empty())
+      importMod();
     setStatusMessage("Import failed", 3000);
-    Log::error("Could not import mod \"" + local_source.toStdString() + "\"");
+    Log::error("Failed to import mod \"" + local_source.toStdString() + "\"");
     return;
   }
   setStatusMessage("Mod imported", 3000);
@@ -1897,8 +1901,11 @@ void MainWindow::setupFilters()
 
 void MainWindow::setupIcons()
 {
-  ui->edit_manual_tags_button->setIcon(QIcon::fromTheme("tag-edit"));
-  ui->edit_auto_tags_button->setIcon(QIcon::fromTheme("tag-edit"));
+  QIcon edit_tag_icon = QIcon::fromTheme("tag-edit");
+  if(edit_tag_icon.isNull())
+    edit_tag_icon = QIcon::fromTheme("editor");
+  ui->edit_manual_tags_button->setIcon(edit_tag_icon);
+  ui->edit_auto_tags_button->setIcon(edit_tag_icon);
   ui->settings_button->setIcon(QIcon::fromTheme("configure"));
   ui->edit_app_button->setIcon(QIcon::fromTheme("editor"));
   ui->filters_button->setIcon(QIcon::fromTheme("view-filter"));
