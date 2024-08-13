@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2024 Limo -->
+<component type="desktop-application">
+  <id>io.github.limo_app.limo</id>
+  
+  <developer id="io.github.limo-app">
+    <name>Limo</name>
+  </developer>
+  
+  <name>Limo</name>
+  <summary>Mod manager with LOOT integration</summary>
+  
+  <metadata_license>MIT</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  
+  <description>
+    <p>
+      Limo is a general-purpose mod manager for games and other applications.
+      Built-in support for the Load Order Optimization Tool (LOOT) allows modding various Bethesda titles such as Skyrim or Fallout 4.
+    </p>
+    <p>
+      <p>Features:</p> 
+      <ul>
+      <li>Multiple target directories per application</li>
+      <li>Automatic adaptation of mod file names to prevent issues with case mismatches</li>
+      <li>Auto-Tagging system for filtering</li>
+      <li>Sort load order according to conflicts</li>
+      <li>Import installed games from Steam</li>
+      <li>Simple backup system</li>
+      <li>LOOT integration</li>
+      <li>NexusMods API support</li>
+    </ul>
+    </p>
+    <p>
+      For a guide on how to set up Limo, refer to the GitHub wiki page.
+    </p>
+  </description>
+  
+  <url type="homepage">https://github.com/limo-app/limo</url>
+  <url type="vcs-browser">https://github.com/limo-app/limo</url>
+  
+  <content_rating type="oars-1.1" />
+  
+  <releases>
+    <release version="1.0" date="2024-08-13">
+      <description>
+        Initial release
+      </description>
+    </release>
+  </releases>
+  
+  <launchable type="desktop-id">io.github.limo_app.limo.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://github.com/limo-app/limo/blob/554a12996c27dbfe7a3ffb9b0d61532ab58de270/screenshots/deployer.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/limo-app/limo/blob/554a12996c27dbfe7a3ffb9b0d61532ab58de270/screenshots/mods.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/limo-app/limo/blob/554a12996c27dbfe7a3ffb9b0d61532ab58de270/screenshots/app.png</image>
+    </screenshot>
+    <screenshot>
+      <image>https://github.com/limo-app/limo/blob/554a12996c27dbfe7a3ffb9b0d61532ab58de270/screenshots/plugins.png</image>
+    </screenshot>
+  </screenshots>
+</component>

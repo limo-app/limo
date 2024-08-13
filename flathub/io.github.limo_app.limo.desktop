@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Comment=Mod manager with LOOT integration
+Name=Limo
+Categories=Utility;FileTools;
+Icon=io.github.limo_app.limo
+Exec=Limo
+Terminal=false

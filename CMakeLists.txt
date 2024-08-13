@@ -248,6 +248,10 @@ install(TARGETS Limo
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 if(IS_FLATPAK)
-    install(FILES resources/io.github.limo_app.limo.png
+    install(FILES flathub/io.github.limo_app.limo.png
             DESTINATION /app/share/icons/hicolor/512x512/apps)
+    install(FILES flathub/io.github.limo_app.limo.metainfo.xml
+            DESTINATION /app/share/metainfo)
+    install(FILES flathub/io.github.limo_app.desktop
+            DESTINATION /app/share/applications)
 endif()
