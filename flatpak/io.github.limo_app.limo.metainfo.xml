@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2024 Limo -->
+<!-- Copyright 2024 Christian Münkel -->
 <component type="desktop-application">
   <id>io.github.limo_app.limo</id>
   
   <developer id="io.github.limo-app">
-    <name>Limo</name>
+    <name>Christian Münkel</name>
   </developer>
   
   <name>Limo</name>
