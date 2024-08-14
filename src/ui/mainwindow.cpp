@@ -64,6 +64,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
   setupLog();
   setupProgressBar();
   app_manager_ = new ApplicationManager();
+  checkForContainers();
   setupLists();
   setupButtons();
   setupMenus();
@@ -79,7 +80,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
   setupIcons();
   setupIpcServer();
   addAction(ui->actionSelect_All);
-  checkForContainers();
   setWindowTitle("Limo");
   Log::info("Startup complete");
 }
@@ -560,7 +560,7 @@ void MainWindow::setupDialogs()
           &AddToGroupDialog::modAddedToGroup,
           this,
           &MainWindow::onModAddedToGroup);
-  settings_dialog_ = std::make_unique<SettingsDialog>();
+  settings_dialog_ = std::make_unique<SettingsDialog>(is_a_flatpak_);
   connect(settings_dialog_.get(),
           &SettingsDialog::settingsDialogAccepted,
           this,

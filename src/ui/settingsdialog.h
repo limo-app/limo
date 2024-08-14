@@ -27,8 +27,9 @@ public:
   /*!
    * \brief Initializes the UI.
    * \param parent Parent for this widget, this is passed to the constructor of QDialog.
+   * \param is_flatpak Whether or not this application is running as a flatpak.
    */
-  explicit SettingsDialog(QWidget* parent = nullptr);
+  explicit SettingsDialog(bool is_flatpak, QWidget* parent = nullptr);
   /*! \brief Deletes the UI. */
   ~SettingsDialog();
 
@@ -144,6 +145,8 @@ private:
   const QIcon hide_icon = QIcon::fromTheme("view-hidden");
   /*! \brief Text shown instead of an API key when the visibility is set to hidden. */
   const QString api_key_hidden_string = "API Key: ***";
+  /*! \brief Whether or not this application is running as a flatpak. */
+  bool is_flatpak_ = false;
 
 signals:
   /*! \brief Signals dialog completion. */

@@ -18,22 +18,18 @@
       Limo is a general-purpose mod manager for games and other applications.
       Built-in support for the Load Order Optimization Tool (LOOT) allows modding various Bethesda titles such as Skyrim or Fallout 4.
     </p>
-    <p>
-      <p>Features:</p> 
+    <p>Features:</p>
       <ul>
-      <li>Multiple target directories per application</li>
-      <li>Automatic adaptation of mod file names to prevent issues with case mismatches</li>
-      <li>Auto-Tagging system for filtering</li>
-      <li>Sort load order according to conflicts</li>
-      <li>Import installed games from Steam</li>
-      <li>Simple backup system</li>
-      <li>LOOT integration</li>
-      <li>NexusMods API support</li>
+        <li>Multiple target directories per application</li>
+        <li>Automatic adaptation of mod file names to prevent issues with case mismatches</li>
+        <li>Auto-Tagging system for filtering</li>
+        <li>Sort load order according to conflicts</li>
+        <li>Import installed games from Steam</li>
+        <li>Simple backup system</li>
+        <li>LOOT integration</li>
+        <li>NexusMods API support</li>
     </ul>
-    </p>
-    <p>
-      For a guide on how to set up Limo, refer to the GitHub wiki page.
-    </p>
+    <p>For a guide on how to set up Limo, refer to the GitHub wiki page.</p>
   </description>
   
   <url type="homepage">https://github.com/limo-app/limo</url>

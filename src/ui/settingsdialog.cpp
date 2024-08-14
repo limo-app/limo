@@ -19,12 +19,18 @@
 namespace str = std::ranges;
 
 
-SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::SettingsDialog)
+SettingsDialog::SettingsDialog(bool is_flatpak, QWidget* parent) :
+  QDialog(parent), is_flatpak_(is_flatpak), ui(new Ui::SettingsDialog)
 {
   ui->setupUi(this);
   ui->show_api_key_button->setIcon(show_icon);
   ui->show_api_key_button->setToolTip("Show API Key");
   ui->api_key_label->setText(api_key_hidden_string);
+  if(is_flatpak)
+  {
+    ui->unrar_path_button->setEnabled(false);
+    ui->unrar_path_field->setEnabled(false);
+  }
 }
 
 SettingsDialog::~SettingsDialog()
