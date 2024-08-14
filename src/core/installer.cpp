@@ -410,6 +410,8 @@ void Installer::extractBrokenRarArchive(const sfs::path& source_path, const sfs:
   sfs::current_path(dest_path);
   std::string output;
   std::array<char, 128> buffer;
+  if(is_a_flatpak_)
+    UNRAR_PATH = "/app/bin/unrar";
   std::string command = "\"" + UNRAR_PATH.string() + "\" x \"" + source_path.string() + "\"";
   auto pipe =
     popen(command.c_str(), "r");
