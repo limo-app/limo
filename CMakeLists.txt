@@ -34,6 +34,23 @@ find_package(OpenSSL REQUIRED)
 find_package(QT NAMES Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt5 REQUIRED COMPONENTS Widgets Svg Network)
 
+# libunrar
+if(NOT DEFINED LIBUNRAR_INCLUDE_DIR)
+    if(IS_FLATPAK)
+        set(LIBUNRAR_INCLUDE_DIR "/app/include/unrar")
+    else()
+        set(LIBUNRAR_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/unrar")
+    endif()
+endif()
+if(NOT DEFINED LIBUNRAR_PATH)
+    if(IS_FLATPAK)
+        set(LIBUNRAR_PATH "/app/lib/libunrar.so")
+    else()
+        set(LIBUNRAR_PATH "${PROJECT_SOURCE_DIR}/unrar/libunrar.so")
+    endif()
+endif()
+
+
 set(PROJECT_SOURCES
         resources/icons.qrc
         src/core/addmodinfo.h
@@ -230,7 +247,8 @@ target_include_directories(Limo
     PRIVATE "${PROJECT_SOURCE_DIR}/src"
     PRIVATE ${LibArchive_INCLUDE_DIRS}
     PRIVATE /usr/include/loot
-    PRIVATE ${JSONCPP_INCLUDE_DIRS})
+    PRIVATE ${JSONCPP_INCLUDE_DIRS}
+    PRIVATE ${LIBUNRAR_INCLUDE_DIR})
 
 target_link_libraries(Limo
     PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
@@ -241,7 +259,8 @@ target_link_libraries(Limo
     PRIVATE Qt${QT_VERSION_MAJOR}::Svg
     PRIVATE cpr::cpr
     PRIVATE OpenSSL::SSL
-    PRIVATE Qt${QT_VERSION_MAJOR}::Network)
+    PRIVATE Qt${QT_VERSION_MAJOR}::Network
+    PRIVATE ${LIBUNRAR_PATH})
 
 install(TARGETS Limo
     BUNDLE DESTINATION .
@@ -254,6 +273,4 @@ if(IS_FLATPAK)
             DESTINATION /app/share/metainfo)
     install(FILES flatpak/io.github.limo_app.limo.desktop
             DESTINATION /app/share/applications)
-    install(FILES unrar/unrar
-            DESTINATION /app/bin)
 endif()

@@ -560,7 +560,7 @@ void MainWindow::setupDialogs()
           &AddToGroupDialog::modAddedToGroup,
           this,
           &MainWindow::onModAddedToGroup);
-  settings_dialog_ = std::make_unique<SettingsDialog>(is_a_flatpak_);
+  settings_dialog_ = std::make_unique<SettingsDialog>();
   connect(settings_dialog_.get(),
           &SettingsDialog::settingsDialogAccepted,
           this,
@@ -984,7 +984,6 @@ void MainWindow::loadSettings()
     Log::log_level = Log::LOG_DEBUG;
   ask_remove_backup_target_ = settings.value("ask_remove_backup_target", true).toBool();
   ask_remove_backup_ = settings.value("ask_remove_backup", true).toBool();
-  Installer::UNRAR_PATH = settings.value("unrar_path", "/bin/unrar").toString().toStdString();
   settings.beginGroup("nexus");
   const bool has_nexus_account = settings.value("info_is_valid", false).toBool();
   ui->check_mod_updates_button->setVisible(has_nexus_account);

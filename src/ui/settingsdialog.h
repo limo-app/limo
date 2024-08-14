@@ -29,7 +29,7 @@ public:
    * \param parent Parent for this widget, this is passed to the constructor of QDialog.
    * \param is_flatpak Whether or not this application is running as a flatpak.
    */
-  explicit SettingsDialog(bool is_flatpak, QWidget* parent = nullptr);
+  explicit SettingsDialog(QWidget* parent = nullptr);
   /*! \brief Deletes the UI. */
   ~SettingsDialog();
 
@@ -91,13 +91,6 @@ private slots:
    * Emits \ref settingsDialogAccepted.
    */
   void on_buttonBox_accepted();
-  /*! \brief Shows a file dialog to pick the unrar path. */
-  void on_unrar_path_button_clicked();
-  /*!
-   * \brief Updates the current unrar path to the given one.
-   * \param path New unrar path.
-   */
-  void onUnrarPathSelected(const QString& path);
   /*! \brief Opens a AddApiKeyDialog to add a new api key. */
   void on_set_api_key_button_clicked();
   /*! \brief Initializes and executes a ChangeApiPwDialog. */
@@ -145,8 +138,6 @@ private:
   const QIcon hide_icon = QIcon::fromTheme("view-hidden");
   /*! \brief Text shown instead of an API key when the visibility is set to hidden. */
   const QString api_key_hidden_string = "API Key: ***";
-  /*! \brief Whether or not this application is running as a flatpak. */
-  bool is_flatpak_ = false;
 
 signals:
   /*! \brief Signals dialog completion. */

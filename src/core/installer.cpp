@@ -4,9 +4,10 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include <filesystem>
-#include <iostream>
 #include <ranges>
 #include <regex>
+#define _UNIX
+#include <unrar/dll.hpp>
 
 namespace sfs = std::filesystem;
 namespace pu = path_utils;
@@ -32,11 +33,16 @@ void Installer::extract(const sfs::path& source_path,
   }
   catch(CompressionError& error)
   {
-    if(source_path.extension().string() == ".rar")
+    std::string extension = source_path.extension().string();
+    std::transform(extension.begin(),
+                   extension.end(),
+                   extension.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+    if(extension == ".rar")
     {
       if(sfs::exists(dest_path))
         sfs::remove_all(dest_path);
-      extractBrokenRarArchive(source_path, dest_path);
+      extractRarArchive(source_path, dest_path);
     }
     else
       throw error;
@@ -90,11 +96,6 @@ unsigned long Installer::install(const sfs::path& source,
       pu::moveFilesWithDepth(tmp_dir, tmp_move_dir, root_level);
       sfs::rename(tmp_move_dir, tmp_dir);
     }
-    //    for(const auto& [source_file, dest_file] : fomod_files)
-    //    {
-    //      std::cout << std::format("'{}'\n -> '{}'", source_file.string(), dest_file.string())
-    //                << std::endl;
-    //    }
     for(auto iter = fomod_files.begin(); iter != fomod_files.end(); iter++)
     {
       const auto& [source_file, dest_file] = *iter;
@@ -402,32 +403,43 @@ void Installer::extractWithProgress(const sfs::path& source_path,
   sfs::current_path(working_dir);
 }
 
-void Installer::extractBrokenRarArchive(const sfs::path& source_path, const sfs::path& dest_path)
+void Installer::extractRarArchive(const sfs::path& source_path, const sfs::path& dest_path)
 {
-  sfs::path working_dir = sfs::current_path();
-  if(!sfs::exists(dest_path))
-    sfs::create_directories(dest_path);
-  sfs::current_path(dest_path);
-  std::string output;
-  std::array<char, 128> buffer;
-  if(is_a_flatpak_)
-    UNRAR_PATH = "/app/bin/unrar";
-  std::string command = "\"" + UNRAR_PATH.string() + "\" x \"" + source_path.string() + "\"";
-  if(is_a_flatpak_)
-    command = "flatpak-spawn " + command;
-  auto pipe =
-    popen(command.c_str(), "r");
-  while(!feof(pipe))
+  const auto source_str = source_path.string();
+  const auto dest_str = dest_path.string();
+  char input_path[source_str.size() + 1];
+  for(int i = 0; i < source_str.size(); i++)
+    input_path[i] = source_str[i];
+  input_path[source_str.size()] = '\0';
+  char output_path[dest_str.size() + 1];
+  for(int i = 0; i < dest_str.size(); i++)
+    output_path[i] = dest_str[i];
+  output_path[dest_str.size()] = '\0';
+
+  RAROpenArchiveDataEx archive {
+    input_path,
+    nullptr,
+    RAR_OM_EXTRACT,
+    0,
+    nullptr,
+    0,
+    0,
+    0,
+    0
+  };
+  HANDLE hArcData = RAROpenArchiveEx(&archive);
+  if (archive.OpenResult != 0)
+    throw CompressionError("Failed to open RAR archive.");
+
+  RARHeaderDataEx headerData;
+  int header_state = RARReadHeaderEx(hArcData, &headerData);
+  while (header_state == 0)
   {
-    if(fgets(buffer.data(), buffer.size(), pipe) != nullptr)
-      output += buffer.data();
+    if (RARProcessFile(hArcData, RAR_EXTRACT, output_path, nullptr) != 0)
+      throw CompressionError("Failed to extract RAR archive.");
+    header_state = RARReadHeaderEx(hArcData, &headerData);
   }
-  int ret_code = pclose(pipe);
-  sfs::current_path(working_dir);
-  if(ret_code == 127)
-    throw std::runtime_error(
-      "Invalid path to unrar. Try setting a different path in the settings.");
-  if(ret_code != 0)
-    throw std::runtime_error("Failed to extract archive using unrar. "
-                             "Try setting a different path in the settings.");
+  if(header_state != ERAR_END_ARCHIVE)
+    throw CompressionError("Failed to extract RAR archive.");
+  RARCloseArchive(hArcData);
 }

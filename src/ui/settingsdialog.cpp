@@ -5,7 +5,6 @@
 #include "addapikeydialog.h"
 #include "changeapipwdialog.h"
 #include "core/cryptography.h"
-#include "core/installer.h"
 #include "core/parseerror.h"
 #include "enterapipwdialog.h"
 #include "ui_settingsdialog.h"
@@ -19,18 +18,12 @@
 namespace str = std::ranges;
 
 
-SettingsDialog::SettingsDialog(bool is_flatpak, QWidget* parent) :
-  QDialog(parent), is_flatpak_(is_flatpak), ui(new Ui::SettingsDialog)
+SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent), ui(new Ui::SettingsDialog)
 {
   ui->setupUi(this);
   ui->show_api_key_button->setIcon(show_icon);
   ui->show_api_key_button->setToolTip("Show API Key");
   ui->api_key_label->setText(api_key_hidden_string);
-  if(is_flatpak)
-  {
-    ui->unrar_path_button->setEnabled(false);
-    ui->unrar_path_field->setEnabled(false);
-  }
 }
 
 SettingsDialog::~SettingsDialog()
@@ -89,7 +82,6 @@ void SettingsDialog::init()
   ui->show_error_cb->setCheckState(settings.value("log_on_error", true).toBool() ? Qt::Checked
                                                                                   : Qt::Unchecked);
   ui->deploy_for_box->setCurrentIndex(settings.value("deploy_for_all", true).toBool() ? 0 : 1);
-  ui->unrar_path_field->setText(Installer::UNRAR_PATH.c_str());
 
   settings.beginGroup("nexus");
   ui->premium_user_label->setText(
@@ -169,9 +161,6 @@ void SettingsDialog::on_buttonBox_accepted()
 
   ask_remove_backup_ = ui->remove_bak_cb->isChecked();
   settings.setValue("ask_remove_backup", ask_remove_backup_);
-
-  Installer::UNRAR_PATH = ui->unrar_path_field->text().toStdString();
-  settings.setValue("unrar_path", ui->unrar_path_field->text());
 
   emit settingsDialogAccepted();
 }
@@ -295,24 +284,6 @@ bool SettingsDialog::askRemoveFromDeployer() const
 bool SettingsDialog::askRemoveMod() const
 {
   return ask_remove_mod_;
-}
-
-void SettingsDialog::on_unrar_path_button_clicked()
-{
-  QString starting_dir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-  QString current_path = ui->unrar_path_field->text();
-  if(!current_path.isEmpty() && std::filesystem::exists(current_path.toStdString()))
-    starting_dir = std::filesystem::path(current_path.toStdString()).parent_path().c_str();
-  auto dialog = new QFileDialog;
-  dialog->setFileMode(QFileDialog::ExistingFile);
-  dialog->setWindowTitle("Select unrar Executable");
-  connect(dialog, &QFileDialog::fileSelected, this, &SettingsDialog::onUnrarPathSelected);
-  dialog->exec();
-}
-
-void SettingsDialog::onUnrarPathSelected(const QString& path)
-{
-  ui->unrar_path_field->setText(path);
 }
 
 void SettingsDialog::on_set_api_key_button_clicked()

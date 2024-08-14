@@ -104,6 +104,6 @@ set(TEST_SOURCES
 configure_file(test_utils.h.in test_utils.h)
      
 add_executable(tests ${TEST_SOURCES})
-target_include_directories(tests PUBLIC "${PROJECT_BINARY_DIR}" PRIVATE ${LibArchive_INCLUDE_DIRS} PRIVATE /usr/include/loot PRIVATE ${JSONCPP_INCLUDE_DIRS})
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain PRIVATE ${JSONCPP_LIBRARIES} PRIVATE ${LibArchive_LIBRARIES} PRIVATE pugixml PRIVATE libloot.so
-                      PRIVATE cpr::cpr PRIVATE OpenSSL::SSL)
+target_include_directories(tests PUBLIC "${PROJECT_BINARY_DIR}" PRIVATE ${LibArchive_INCLUDE_DIRS} PRIVATE /usr/include/loot PRIVATE ${JSONCPP_INCLUDE_DIRS} PRIVATE ${PROJECT_SOURCE_DIR}/../unrar)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain PRIVATE ${JSONCPP_LIBRARIES} PRIVATE ${LibArchive_LIBRARIES} PRIVATE pugixml PRIVATE libloot.so PRIVATE
+                      PRIVATE cpr::cpr PRIVATE OpenSSL::SSL PRIVATE ${PROJECT_SOURCE_DIR}/../unrar/libunrar.so)

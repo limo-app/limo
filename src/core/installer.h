@@ -60,11 +60,6 @@ public:
    * \brief Contains all available installer types.
    */
   inline static const std::vector<std::string> INSTALLER_TYPES{ SIMPLEINSTALLER, FOMODINSTALLER };
-  /*!
-   * \brief Path to the unrar binary. When set, this is used to extract certain rar
-   * archives.
-   */
-  inline static std::filesystem::path UNRAR_PATH = "/bin/unrar";
 
   /*!
    * \brief Extracts the given archive to the given directory.
@@ -152,11 +147,9 @@ private:
   /*!
    * \brief Extracts the given archive to the given directory. Informs about
    * extraction progress using the provided node.
-   * \param source Path to the archive.
-   * \param destination Destination directory for extraction.
+   * \param source_path Path to the archive.
+   * \param dest_path Destination directory for extraction.
    * \param progress_node Used to inform about extraction progress.
-   * \return Int indicating success(0), a filesystem error(-2) or an error
-   * during extraction(-1).
    */
   static void extractWithProgress(const std::filesystem::path& source_path,
                                   const std::filesystem::path& dest_path,
@@ -164,13 +157,10 @@ private:
   /*!
    * \brief Libarchive sometime fails to extract certain rar archives when
    * using the method implemented in \ref extractWithProgress. This function
-   * uses the unrar binary instead of libarchive to extract a given rar archive.
-   * \param source Path to the archive.
-   * \param destination Destination directory for extraction.
-   * \param progress_node Used to inform about extraction progress.
-   * \return Int indicating success(0), a filesystem error(-2) or an error
-   * during extraction(-1).
+   * uses libunrar instead of libarchive to extract a given rar archive.
+   * \param source_path Path to the archive.
+   * \param dest_path Destination directory for extraction.
    */
-  static void extractBrokenRarArchive(const std::filesystem::path& source_path,
-                                      const std::filesystem::path& dest_path);
+  static void extractRarArchive(const std::filesystem::path& source_path,
+                                const std::filesystem::path& dest_path);
 };
