@@ -207,9 +207,9 @@ bool AddModDialog::setupDialog(const QString& name,
   }
 
   int fomod_target_deployer = settings.value("fomod_target_deployer", -1).toInt();
-  if(fomod_target_deployer > 0 && fomod_target_deployer < ui->fomod_deployer_box->count())
+  if(fomod_target_deployer >= 0 && fomod_target_deployer < ui->fomod_deployer_box->count())
     ui->fomod_deployer_box->setCurrentIndex(fomod_target_deployer);
-  else if(cur_deployer > 0 && cur_deployer < ui->fomod_deployer_box->count())
+  else if(cur_deployer >= 0 && cur_deployer < ui->fomod_deployer_box->count())
     ui->fomod_deployer_box->setCurrentIndex(cur_deployer);
   settings.endGroup();
 

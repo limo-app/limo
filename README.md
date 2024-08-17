@@ -11,6 +11,7 @@ General purpose mod manager primarily developed for Linux with support for the [
 - Multiple target directories per application
 - Automatic adaptation of mod file names to prevent issues with case mismatches
 - Auto-Tagging system for filtering
+- FOMOD support
 - Sort load order according to conflicts
 - Import installed games from Steam
 - Simple backup system
@@ -73,7 +74,7 @@ git clone https://github.com/limo-app/limo.git
 cd limo
 ```
 
-#### Build libunrar
+#### Build libunrar:
 
 ```
 git clone https://github.com/aawc/unrar.git

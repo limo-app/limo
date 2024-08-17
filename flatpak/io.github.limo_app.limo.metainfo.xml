@@ -23,6 +23,7 @@
         <li>Multiple target directories per application</li>
         <li>Automatic adaptation of mod file names to prevent issues with case mismatches</li>
         <li>Auto-Tagging system for filtering</li>
+        <li>FOMOD support</li>
         <li>Sort load order according to conflicts</li>
         <li>Import installed games from Steam</li>
         <li>Simple backup system</li>
