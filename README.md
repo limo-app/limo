@@ -28,6 +28,12 @@ General purpose mod manager primarily developed for Linux with support for the [
 
 ## Installation
 
+### Flatpak
+
+<a href='https://flathub.org/apps/io.github.limo_app.limo'>
+    <img width='240' alt='Download on Flathub' src='https://flathub.org/api/badge?locale=en'/>
+</a>
+
 ### Build from source
 
 ####  Install the dependencies
