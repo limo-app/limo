@@ -7,7 +7,7 @@
 #include <ranges>
 #include <regex>
 #define _UNIX
-#include <unrar/dll.hpp>
+#include <dll.hpp>
 
 namespace sfs = std::filesystem;
 namespace pu = path_utils;

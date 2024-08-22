@@ -1020,7 +1020,8 @@ std::vector<bool> MainWindow::getAutonomousDeployers()
 void MainWindow::enableModifyApps(bool enabled)
 {
   for(auto action : mod_list_menu_->actions())
-    action->setEnabled(enabled);
+    if(action != ui->actionbrowse_mod_files || enabled)
+      action->setEnabled(enabled);
 
   add_app_action_->setEnabled(enabled);
   edit_app_action_->setEnabled(enabled);
@@ -1035,7 +1036,8 @@ void MainWindow::enableModifyApps(bool enabled)
 void MainWindow::enableModifyDeployers(bool enabled)
 {
   for(auto action : deployer_list_menu_->actions())
-    action->setEnabled(enabled);
+    if(action != ui->actionbrowse_mod_files || enabled)
+      action->setEnabled(enabled);
 
   ui->deploy_button->setEnabled(enabled);
   ui->info_deployer_list->setEnabled(enabled);
@@ -1044,6 +1046,10 @@ void MainWindow::enableModifyDeployers(bool enabled)
   add_deployer_action_->setEnabled(enabled);
   edit_deployer_action_->setEnabled(enabled);
   remove_deployer_action_->setEnabled(enabled);
+  if(!enabled)
+    ui->deployer_tool_button->setDefaultAction(ui->actionbrowse_deployer_files);
+  else
+    ui->deployer_tool_button->setDefaultAction(add_deployer_action_);
 }
 
 void MainWindow::enableModifyBackups(bool enabled)
