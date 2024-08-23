@@ -65,7 +65,7 @@ sudo apt install \
 		qt5-qmake \
 		qtbase5-dev-tools \
 		libqt5svg5-dev \
-		libbost-all-dev \
+		libboost-all-dev \
 		libtbb-dev \
 		cargo \
 		cbindgen \
