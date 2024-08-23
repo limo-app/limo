@@ -39,12 +39,17 @@
   <content_rating type="oars-1.1" />
   
   <releases>
-    <release version="1.0.2" date="2024-08-14">
+    <release version="1.0.3" date="2024-08-14">
       <description>
         Initial release
       </description>
     </release>
   </releases>
+  
+  <branding>
+    <color type="primary" scheme_preference="light">#a8e600</color>
+    <color type="primary" scheme_preference="dark">#709900</color>
+  </branding>
   
   <launchable type="desktop-id">io.github.limo_app.limo.desktop</launchable>
   <screenshots>
