@@ -39,12 +39,25 @@
   <content_rating type="oars-1.1" />
   
   <releases>
+    <release version="1.0.4" date="2024-08-24">
+      <description>
+        <p>Minor fixes</p>
+        <ul>
+          <li>Added nxm mime type to desktop file</li>
+          <li>Fixed typos</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.3" date="2024-08-14">
       <description>
         Initial release
       </description>
     </release>
   </releases>
+  
+  <provides>
+    <mediatype>x-scheme-handler/nxm</mediatype>
+  </provides>
   
   <branding>
     <color type="primary" scheme_preference="light">#a8e600</color>
