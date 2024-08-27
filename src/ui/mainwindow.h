@@ -411,6 +411,18 @@ private:
   void initUiWithoutApps(bool has_apps);
   /*! \brief Checks the environmet for signs that Limo is running in a container, like flatpak. */
   void checkForContainers();
+  /*! \brief Checks the current settings for outdated entries and adepts those as needed. */
+  void updateOutdatedSettings();
+  /*!
+   * \brief Compares two version strings by priority according to their position in the string.
+   * Version strings must contain only numbers and ".". Earlier numbers have higher priority,
+   * separated by "." chatacers. Example: 20.5.4 > 2.1.4
+   * \param current_version Version for comparison.
+   * \param target_version Current version has to be <= this.
+   * \return True if current_version <= target_version, else false. False if target_version
+   * is invalid, true if current_version is invalid.
+   */
+  bool versionIsLessOrEqual(QString current_version, QString target_version);
 
 public slots:
   /*!

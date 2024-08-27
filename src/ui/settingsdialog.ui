@@ -71,9 +71,9 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>0</y>
+            <y>-336</y>
             <width>444</width>
-            <height>492</height>
+            <height>540</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -176,6 +176,16 @@
            </item>
            <item>
             <widget class="QLineEdit" name="starfield_url_field"/>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_11">
+             <property name="text">
+              <string>Prelude List</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="prelude_list_url_field"/>
            </item>
           </layout>
          </widget>

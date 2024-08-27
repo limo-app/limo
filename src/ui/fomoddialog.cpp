@@ -1,5 +1,6 @@
 #include "fomoddialog.h"
 #include "colors.h"
+#include "core/log.h"
 #include "fomodcheckbox.h"
 #include "fomodradiobutton.h"
 #include "ui_fomoddialog.h"
@@ -239,6 +240,15 @@ void FomodDialog::updateNextButton()
     next_button_->setText("Finish");
 }
 
+void FomodDialog::closeEvent(QCloseEvent* event)
+{
+  if(dialog_completed_)
+    return;
+  dialog_completed_ = true;
+  emit addModAborted();
+  QDialog::closeEvent(event);
+}
+
 void FomodDialog::onNextButtonPressed()
 {
   /*
@@ -257,7 +267,10 @@ void FomodDialog::onNextButtonPressed()
     dialog_completed_ = true;
     result_ = installer_->getInstallationFiles(getSelection());
     if(result_.empty())
-      reject();
+    {
+      Log::error("No files to install!");
+      emit addModAborted();
+    }
     else
     {
       add_mod_info_.files = result_;

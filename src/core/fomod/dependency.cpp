@@ -1,4 +1,5 @@
 #include "dependency.h"
+#include "../log.h"
 #include "../pathutils.h"
 
 using namespace fomod;
@@ -24,18 +25,18 @@ Dependency::Dependency(pugi::xml_node source)
       {
         const std::string target = child.attribute("file").value();
         if(!file_dependencies.contains(target))
-          file_dependencies[target] = {child.attribute("state").value(), child};
+          file_dependencies[target] = { child.attribute("state").value(), child };
         else
         {
           const std::string child_state = child.attribute("state").value();
           if(child_state == "Active" && file_dependencies[target].first != "Active")
-            file_dependencies[target] = {"Active", child};
+            file_dependencies[target] = { "Active", child };
         }
       }
       else
         children_.emplace_back(child);
     }
-    for(const auto& [target, pair]: file_dependencies)
+    for(const auto& [target, pair] : file_dependencies)
       children_.emplace_back(pair.second);
   }
   else if(name == "fileDependency")
@@ -104,7 +105,19 @@ bool Dependency::evaluate(const sfs::path& target_path,
   else if(type_ == flag_leaf)
   {
     if(!flags.contains(target_))
+    {
+      // Default values for unset flags are not defined in the FOMOD spec. This assumes that
+      // a test against an empty string attempts to check if a flag is not set.
+      if(state_.empty())
+      {
+        Log::warning(
+          "The FOMOD file attempted to compare the value of a flag to an empty string. "
+          "This installer assumes that the mod author meant to check if the flag was not set. "
+          "Please ensure that the mod is installed correctly.");
+        return true;
+      }
       return false;
+    }
     return flags.at(target_) == state_;
   }
   else if(type_ == game_version_leaf)

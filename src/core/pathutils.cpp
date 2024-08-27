@@ -14,7 +14,7 @@ std::optional<sfs::path> pathExists(const sfs::path& path_to_check,
 {
   if(sfs::exists(base_path / path_to_check))
     return path_to_check;
-  if(!case_insensitive)
+  if(!case_insensitive || base_path != "" && !sfs::exists(base_path))
     return {};
   const sfs::path target =
     path_to_check.string().ends_with("/") ? path_to_check.parent_path() : path_to_check;

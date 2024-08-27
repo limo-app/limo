@@ -4,6 +4,7 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include <filesystem>
+#include <iostream>
 #include <ranges>
 #include <regex>
 #define _UNIX
@@ -96,6 +97,10 @@ unsigned long Installer::install(const sfs::path& source,
       pu::moveFilesWithDepth(tmp_dir, tmp_move_dir, root_level);
       sfs::rename(tmp_move_dir, tmp_dir);
     }
+
+    for(const auto&[source, dest] : fomod_files)
+      std::cout << source.string() << " -> " << dest.string() << std::endl;
+
     for(auto iter = fomod_files.begin(); iter != fomod_files.end(); iter++)
     {
       const auto& [source_file, dest_file] = *iter;

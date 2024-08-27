@@ -174,9 +174,11 @@ public:
   int getProfile() const;
   /*!
    * \brief Checks if writing to the deployment directory is possible.
-   * \return A code indicating success(0), an IO error(1) or an error during link creation(2).
+   * \return A pair containing:
+   * A code indicating success(0), an IO error(1) or an error during link creation(2).
+   * A string with additional debug information.
    */
-  int verifyDirectories();
+  std::pair<int, std::string> verifyDirectories();
   /*!
    * \brief Replaces the given id in the load order with a new id.
    * \param old_id The mod to be replaced.
@@ -262,6 +264,25 @@ public:
    * \return The tag map.
    */
   virtual std::map<std::string, int> getAutoTagMap();
+  /*!
+   * \brief Currently only supports hard link deployment.
+   * Checks if hard links of deployed files have been overwritten with new files.
+   * \param progress_node Used to inform about the current progress.
+   * \return Path to every file that has been created via hard linking a mod and later overwritten
+   * externally and the id of the mod currently responsible for that file.
+   */
+  virtual std::vector<std::pair<std::filesystem::path, int>> getExternallyModifiedFiles(
+    std::optional<ProgressNode*> progress_node = {}) const;
+  /*!
+   * \brief Currently only supports hard link deployment.
+   * For every given file: Moves the modified file into the source mods directory and links
+   * it back in, if the changes are to be kept. Else: Deletes that file and restores the original link.
+   * \param modified_files Tuples of paths to modified files, the id of the mod currently
+   * responsible for that file and a bool which indicates whether or not changes to
+   * that file should be kept.
+   */
+  virtual void keepOrRevertFileModifications(
+    std::vector<std::tuple<std::filesystem::path, int, bool>> modified_files) const;
 
 protected:
   /*! \brief Type of this deployer, e.g. Simple Deployer. */
@@ -340,6 +361,12 @@ protected:
   /*! \brief Callback for logging. */
   std::function<void(Log::LogLevel, const std::string&)> log_ = [](Log::LogLevel a,
                                                                    const std::string& b) {};
+  /*!
+   * \brief modPathExists Checks if the directory containing the given mod exists.
+   * \param mod_id If of the mod to check.
+   * \return True if the directory exists, else false.
+   */
+  bool modPathExists(int mod_id) const;
   /*!
    * \brief Checks if the directory containing the given mod exists, if not logs an error.
    * \param mod_id If of the mod to check.

@@ -76,7 +76,7 @@ private:
   /*! \brief Value for comparison, e.g. file path for a file dependency. */
   std::string target_;
   /*! \brief State of file or flag. */
-  std::string state_;
+  std::string state_ = "";
   /*! \brief Children of this node. */
   std::vector<Dependency> children_;
 };

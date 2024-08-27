@@ -12,6 +12,7 @@
 #include "backuplistview.h"
 #include "colors.h"
 #include "core/cryptography.h"
+#include "core/current_version.h"
 #include "core/installer.h"
 #include "deployerlistview.h"
 #include "editmanualtagsdialog.h"
@@ -35,6 +36,7 @@
 #include <regex>
 
 namespace str = std::ranges;
+namespace stv = std::views;
 
 
 Q_DECLARE_METATYPE(std::vector<ModInfo>);
@@ -62,6 +64,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
 {
   ui->setupUi(this);
   setupLog();
+  updateOutdatedSettings();
   setupProgressBar();
   app_manager_ = new ApplicationManager();
   checkForContainers();
@@ -975,6 +978,10 @@ void MainWindow::loadSettings()
     settings.value("tes5vr_url", LootDeployer::DEFAULT_LIST_URLS.at(loot::GameType::tes5vr).c_str())
       .toString()
       .toStdString();
+  LootDeployer::PRELUDE_URL =
+    settings.value("prelude_url", LootDeployer::DEFAULT_PRELUDE_URL.c_str())
+      .toString()
+      .toStdString();
   deploy_for_all_ = settings.value("deploy_for_all", true).toBool();
   show_log_on_error_ = settings.value("log_on_error", true).toBool();
   show_log_on_warning_ = settings.value("log_on_warning", true).toBool();
@@ -1155,6 +1162,71 @@ void MainWindow::checkForContainers()
   Log::debug(is_a_flatpak_ ? "Running as a flatpak" : "Running natively");
 }
 
+void MainWindow::updateOutdatedSettings()
+{
+  auto settings = QSettings(QCoreApplication::applicationName());
+  QString app_version = settings.value("app_version", "1.0.4").toString();
+
+  if(versionIsLessOrEqual(app_version, "1.0.4"))
+  {
+    const std::map<std::string, std::string> old_urls = {
+      { "fo3_url", "https://raw.githubusercontent.com/loot/fallout3/master/masterlist.yaml" },
+      { "fo4_url", "https://raw.githubusercontent.com/loot/fallout4/master/masterlist.yaml" },
+      { "fo4vr_url", "https://raw.githubusercontent.com/loot/fallout4vr/master/masterlist.yaml" },
+      { "fonv_url", "https://raw.githubusercontent.com/loot/falloutnv/master/masterlist.yaml" },
+      { "starfield_url",
+        "https://raw.githubusercontent.com/loot/starfield/master/masterlist.yaml" },
+      { "tes3_url", "https://raw.githubusercontent.com/loot/morrowind/master/masterlist.yaml" },
+      { "tes4_url", "https://raw.githubusercontent.com/loot/oblivion/master/masterlist.yaml" },
+      { "tes5_url", "https://raw.githubusercontent.com/loot/skyrim/master/masterlist.yaml" },
+      { "tes5se_url", "https://raw.githubusercontent.com/loot/skyrimse/master/masterlist.yaml" },
+      { "tes5vr_url", "https://raw.githubusercontent.com/loot/skyrimvr/master/masterlist.yaml" }
+    };
+    // clang-format off
+    const std::map<std::string, loot::GameType> game_types = {
+       { "fo3_url", loot::GameType::fo3 },
+       { "fo4_url", loot::GameType::fo4 },
+       { "fo4vr_url", loot::GameType::fo4vr},
+       { "fonv_url", loot::GameType::fonv },
+       { "starfield_url", loot::GameType::starfield },
+       { "tes3_url", loot::GameType::tes3 },
+       { "tes4_url", loot::GameType::tes4 },
+       { "tes5_url", loot::GameType::tes5 },
+       { "tes5se_url", loot::GameType::tes5se },
+       { "tes5vr_url", loot::GameType::tes5vr }
+    };
+    // clang-format on
+    for(const auto& [key, old_url] : old_urls)
+    {
+      if(settings.value(key.c_str()).toString().toStdString() == old_url)
+        settings.setValue(key.c_str(),
+                          LootDeployer::DEFAULT_LIST_URLS.at(game_types.at(key)).c_str());
+    }
+    Log::info("Default LOOT masterlist URLs have been updated");
+  }
+
+  settings.setValue("app_version", QString(APP_VERSION));
+}
+
+bool MainWindow::versionIsLessOrEqual(QString current_version, QString target_version)
+{
+  std::regex regex(R"([^\d\.])");
+  if(std::regex_search(current_version.toStdString(), regex))
+    return true;
+  if(std::regex_search(target_version.toStdString(), regex))
+    return false;
+
+  for(const auto& [cur_sub, cur_target] :
+      stv::zip(current_version.split("."), target_version.split(".")))
+  {
+    if(cur_sub.isEmpty() || cur_target.isEmpty())
+      continue;
+    if(cur_sub.toInt() > cur_target.toInt())
+      return false;
+  }
+  return true;
+}
+
 void MainWindow::onModAdded(QList<QUrl> paths)
 {
   const bool was_empty = mod_import_queue_.empty();
@@ -1219,7 +1291,7 @@ void MainWindow::onGetDeployerInfo(DeployerInfo depl_info)
   {
     auto cb = new TagCheckBox(tag.c_str(), num_mods);
     cb->setToolTip(QString("Filter for mods with tag '") + tag.c_str() + "'");
-    auto iter = str::find_if(tag_filters, [tag](auto& pair){return pair.first == tag.c_str();});
+    auto iter = str::find_if(tag_filters, [tag](auto& pair) { return pair.first == tag.c_str(); });
     if(iter != str::end(tag_filters))
       cb->setCheckState(iter->second ? Qt::PartiallyChecked : Qt::Checked);
     connect(cb, &TagCheckBox::tagBoxChecked, this, &MainWindow::onDeplTagFilterChanged);
@@ -1446,7 +1518,7 @@ void MainWindow::onGetAppInfo(AppInfo app_info)
   {
     auto cb = new TagCheckBox(tag.c_str(), num_mods);
     cb->setToolTip(QString("Filter for mods with tag '") + tag.c_str() + "'");
-    auto iter = str::find_if(tag_filters, [tag](auto& pair){return pair.first == tag.c_str();});
+    auto iter = str::find_if(tag_filters, [tag](auto& pair) { return pair.first == tag.c_str(); });
     if(iter != str::end(tag_filters))
       cb->setCheckState(iter->second ? Qt::PartiallyChecked : Qt::Checked);
     connect(cb, &TagCheckBox::tagBoxChecked, this, &MainWindow::onModManualTagFilterChanged);
@@ -1463,7 +1535,7 @@ void MainWindow::onGetAppInfo(AppInfo app_info)
   {
     auto cb = new TagCheckBox(tag.c_str(), num_mods);
     cb->setToolTip(QString("Filter for mods with tag '") + tag.c_str() + "'");
-    auto iter = str::find_if(tag_filters, [tag](auto& pair){return pair.first == tag.c_str();});
+    auto iter = str::find_if(tag_filters, [tag](auto& pair) { return pair.first == tag.c_str(); });
     if(iter != str::end(tag_filters))
       cb->setCheckState(iter->second ? Qt::PartiallyChecked : Qt::Checked);
     connect(cb, &TagCheckBox::tagBoxChecked, this, &MainWindow::onModManualTagFilterChanged);

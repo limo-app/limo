@@ -22,12 +22,12 @@ TEST_CASE("State is read", "[.loot]")
   resetFiles();
   LootDeployer depl(
     DATA_DIR / "target" / "loot" / "source", DATA_DIR / "target" / "loot" / "target", "", false);
-  REQUIRE(depl.getNumMods() == 3);
+  REQUIRE(depl.getNumMods() == 4);
   REQUIRE_THAT(depl.getModNames(),
-               Catch::Matchers::Equals(std::vector<std::string>{ "a.esp", "c.esp", "d.esp" }));
+               Catch::Matchers::Equals(std::vector<std::string>{ "a.esp", "c.esp", "Morrowind.esm", "d.esp" }));
   REQUIRE_THAT(depl.getLoadorder(),
                Catch::Matchers::Equals(
-                 std::vector<std::tuple<int, bool>>{ { 0, true }, { 1, false }, { 2, true } }));
+                 std::vector<std::tuple<int, bool>>{ { 0, true }, { 1, false }, { 2, true }, { 3, true } }));
 }
 
 TEST_CASE("Load order can be edited", "[.loot]")
@@ -40,10 +40,10 @@ TEST_CASE("Load order can be edited", "[.loot]")
   depl.setModStatus(0, false);
   depl.changeLoadorder(2, 1);
   REQUIRE_THAT(depl.getModNames(),
-               Catch::Matchers::Equals(std::vector<std::string>{ "c.esp", "a.esp", "d.esp" }));
+               Catch::Matchers::Equals(std::vector<std::string>{ "c.esp", "a.esp", "Morrowind.esm", "d.esp" }));
   REQUIRE_THAT(depl.getLoadorder(),
                Catch::Matchers::Equals(
-                 std::vector<std::tuple<int, bool>>{ { 0, false }, { 1, true }, { 2, true } }));
+                 std::vector<std::tuple<int, bool>>{ { 0, false }, { 1, true }, { 2, true }, { 3, true } }));
   LootDeployer depl2(
     DATA_DIR / "target" / "loot" / "source", DATA_DIR / "target" / "loot" / "target", "", false);
   REQUIRE_THAT(depl.getModNames(), Catch::Matchers::Equals(depl2.getModNames()));
@@ -60,16 +60,16 @@ TEST_CASE("Profiles are managed", "[.loot]")
   depl.setModStatus(0, false);
   REQUIRE_THAT(depl.getLoadorder(),
                Catch::Matchers::Equals(
-                 std::vector<std::tuple<int, bool>>{ { 0, false }, { 1, false }, { 2, true } }));
+                 std::vector<std::tuple<int, bool>>{ { 0, false }, { 1, false }, { 2, true }, { 3, true } }));
   depl.setProfile(1);
   REQUIRE_THAT(depl.getLoadorder(),
                Catch::Matchers::Equals(
-                 std::vector<std::tuple<int, bool>>{ { 0, true }, { 1, false }, { 2, true } }));
+                 std::vector<std::tuple<int, bool>>{ { 0, true }, { 1, false }, { 2, true }, { 3, true } }));
   depl.addProfile(0);
   depl.setProfile(2);
   REQUIRE_THAT(depl.getLoadorder(),
                Catch::Matchers::Equals(
-                 std::vector<std::tuple<int, bool>>{ { 0, false }, { 1, false }, { 2, true } }));
+                 std::vector<std::tuple<int, bool>>{ { 0, false }, { 1, false }, { 2, true }, { 3, true } }));
   verifyDirsAreEqual(
     DATA_DIR / "target" / "loot" / "target", DATA_DIR / "target" / "loot" / "profiles", true);
 }

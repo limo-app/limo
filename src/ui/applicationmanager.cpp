@@ -175,7 +175,10 @@ void ApplicationManager::handleAddAppError(int code, sfs::path staging_dir)
                    "Could not parse config file in " + QString(staging_dir.string().c_str()) + "!");
 }
 
-void ApplicationManager::handleAddDeployerError(int code, sfs::path staging_dir, sfs::path dest_dir)
+void ApplicationManager::handleAddDeployerError(int code,
+                                                sfs::path staging_dir,
+                                                sfs::path dest_dir,
+                                                const std::string& error_message)
 {
   if(code == 1)
     emit sendError("Error",
@@ -183,12 +186,14 @@ void ApplicationManager::handleAddDeployerError(int code, sfs::path staging_dir,
   else if(code == 2)
     emit sendError("Error",
                    "Could not create hard link from\n\"" + QString(staging_dir.string().c_str()) +
-                     "\"\nto\n\"" + QString(dest_dir.string().c_str()) + "\"\n" +
-                     ". Ensure that both directories are on the same partition!");
+                     "\"\nto\n\"" + QString(dest_dir.string().c_str()) + "\".\n" +
+                     "Ensure that both directories are on the same partition!");
   else if(code == 3)
     emit sendError("Error",
                    "Could no copy files\n\"" + QString(staging_dir.string().c_str()) +
                      "\"\nto\n\"" + QString(dest_dir.string().c_str()) + "\"!");
+  if(code != 0)
+    emit logMessage(Log::LOG_ERROR, error_message.c_str());
 }
 
 void ApplicationManager::handleParseError(std::string path, std::string message)
@@ -286,8 +291,8 @@ void ApplicationManager::deployMods(int app_id)
     auto ret_val = handleExceptions(&ModdedApplication::verifyDeployerDirectories, apps_[app_id]);
     if(ret_val)
     {
-      auto [code, path] = *ret_val;
-      handleAddDeployerError(code, apps_[app_id].getStagingDir(), path);
+      auto [code, path, message] = *ret_val;
+      handleAddDeployerError(code, apps_[app_id].getStagingDir(), path, message);
       if(code == 0)
         handleExceptions<&ModdedApplication::deployMods>(app_id);
     }
@@ -310,8 +315,8 @@ void ApplicationManager::deployModsFor(int app_id, std::vector<int> deployer_ids
     auto ret_val = handleExceptions(&ModdedApplication::verifyDeployerDirectories, apps_[app_id]);
     if(ret_val)
     {
-      auto [code, path] = *ret_val;
-      handleAddDeployerError(code, apps_[app_id].getStagingDir(), path);
+      auto [code, path, message] = *ret_val;
+      handleAddDeployerError(code, apps_[app_id].getStagingDir(), path, message);
       if(code == 0)
         handleExceptions<&ModdedApplication::deployModsFor>(app_id, deployer_ids);
     }

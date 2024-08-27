@@ -33,28 +33,33 @@ public:
   /*! \brief Maps game type to a URL pointing to the masterlist.yaml for that type. */
   static inline const std::map<loot::GameType, std::string> DEFAULT_LIST_URLS = {
     { loot::GameType::fo3,
-      "https://raw.githubusercontent.com/loot/fallout3/master/masterlist.yaml" },
+      "https://raw.githubusercontent.com/loot/fallout3/v0.21/masterlist.yaml" },
     { loot::GameType::fo4,
-      "https://raw.githubusercontent.com/loot/fallout4/master/masterlist.yaml" },
+      "https://raw.githubusercontent.com/loot/fallout4/v0.21/masterlist.yaml" },
     { loot::GameType::fo4vr,
-      "https://raw.githubusercontent.com/loot/fallout4vr/master/masterlist.yaml" },
+      "https://raw.githubusercontent.com/loot/fallout4vr/v0.21/masterlist.yaml" },
     { loot::GameType::fonv,
-      "https://raw.githubusercontent.com/loot/falloutnv/master/masterlist.yaml" },
+      "https://raw.githubusercontent.com/loot/falloutnv/v0.21/masterlist.yaml" },
     { loot::GameType::starfield,
-      "https://raw.githubusercontent.com/loot/starfield/master/masterlist.yaml" },
+      "https://raw.githubusercontent.com/loot/starfield/v0.21/masterlist.yaml" },
     { loot::GameType::tes3,
-      "https://raw.githubusercontent.com/loot/morrowind/master/masterlist.yaml" },
+      "https://raw.githubusercontent.com/loot/morrowind/v0.21/masterlist.yaml" },
     { loot::GameType::tes4,
-      "https://raw.githubusercontent.com/loot/oblivion/master/masterlist.yaml" },
+      "https://raw.githubusercontent.com/loot/oblivion/v0.21/masterlist.yaml" },
     { loot::GameType::tes5,
-      "https://raw.githubusercontent.com/loot/skyrim/master/masterlist.yaml" },
+      "https://raw.githubusercontent.com/loot/skyrim/v0.21/masterlist.yaml" },
     { loot::GameType::tes5se,
-      "https://raw.githubusercontent.com/loot/skyrimse/master/masterlist.yaml" },
+      "https://raw.githubusercontent.com/loot/skyrimse/v0.21/masterlist.yaml" },
     { loot::GameType::tes5vr,
-      "https://raw.githubusercontent.com/loot/skyrimvr/master/masterlist.yaml" }
+      "https://raw.githubusercontent.com/loot/skyrimvr/v0.21/masterlist.yaml" }
   };
-
+  /*! \brief Has to be initialized with the URLs actually used for downloading masterlists. */
   static inline std::map<loot::GameType, std::string> LIST_URLS;
+  /*! \brief Default URL used to download the masterlist prelude. */
+  static inline const std::string DEFAULT_PRELUDE_URL =
+    "https://raw.githubusercontent.com/loot/prelude/v0.21/prelude.yaml";
+  /*! \brief URL actually used to download the prelude.yaml file. Has to be initialized. */
+  static inline std::string PRELUDE_URL;
 
   /*!
    * \brief Reloads all deployed plugins. Does NOT save current load order to disk.
@@ -193,8 +198,6 @@ public:
   virtual std::map<std::string, int> getAutoTagMap() override;
 
 private:
-  /*! \brief Name of the file containing plugin activation status. */
-  static constexpr std::string PLUGIN_FILE_NAME = "plugins.txt";
   /*! \brief Name of the file containing plugin load order. */
   static constexpr std::string LOADORDER_FILE_NAME = "loadorder.txt";
   /*! \brief Appended to profile file names. */
@@ -222,10 +225,24 @@ private:
   static constexpr std::string MASTER_PLUGIN = "Master";
   /*! \brief Name of a standard plugin tag. */
   static constexpr std::string STANDARD_PLUGIN = "Standard";
+  /*! \brief Maps loot game types to the default name used to store plugins. */
+  static inline const std::map<loot::GameType, std::string> PLUGIN_FILE_NAMES =
+  {
+    { loot::GameType::fo3, "plugins.txt" },
+    { loot::GameType::fo4, "plugins.txt" },
+    { loot::GameType::fo4vr, "plugins.txt" },
+    { loot::GameType::fonv, "plugins.txt" },
+    { loot::GameType::starfield, "plugins.txt" },
+    { loot::GameType::tes3, "plugins.txt" },
+    { loot::GameType::tes4, "Plugins.txt" },
+    { loot::GameType::tes5, "plugins.txt" },
+    { loot::GameType::tes5se, "plugins.txt" },
+    { loot::GameType::tes5vr, "plugins.txt" }
+  };
+  /*! \brief Name of the file containing plugin activation status. */
+  std::string plugin_file_name_ = "plugins.txt";
   /*! \brief Contains names of all plugins and their activation status. */
   std::vector<std::pair<std::string, bool>> plugins_;
-  /*! \brief Contains names of plugins which are in loadorder.txt but not in plugins.txt. */
-  std::vector<std::string> prefix_plugins_;
   /*! \brief Current number of profiles. */
   int num_profiles_ = 0;
   /*! \brief Type of game to be managed. */
@@ -273,4 +290,6 @@ private:
   void writePluginTags() const;
   /*! \brief Reads tags_ from disk. */
   void readPluginTags();
+  /*! \brief Downloads the file from the given URL and stores it at dest_path_/file_name. */
+  void downloadList(std::string url, const std::string& file_name);
 };

@@ -1,0 +1,12 @@
+{
+	"command" : "",
+	"icon_path" : "",
+	"name" : "test",
+	"profiles" : 
+	[
+		{
+			"app_version" : "",
+			"name" : "Default"
+		}
+	]
+}

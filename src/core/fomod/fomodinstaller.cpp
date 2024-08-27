@@ -256,18 +256,12 @@ void FomodInstaller::parseInstallList()
                                return file.source.string() == other.source.string() &&
                                       file.destination.string() == other.destination.string();
                              });
-      if(duplicate_iter != files_.end())
-        continue;
-      auto iter = std::ranges::find(files_, file);
-      if(iter == files_.end() || file.destination.empty() ||
-         file.destination.string().ends_with("/") ||
-         sfs::is_directory(mod_base_path_ / file.source) &&
-           sfs::is_directory(mod_base_path_ / iter->source))
+
+      if(duplicate_iter == files_.end())
         files_.push_back(file);
-      else if(*(iter) < file)
-        *iter = file;
     }
   }
+  std::stable_sort(files_.begin(), files_.end());
 }
 
 void FomodInstaller::initPlugin(const pugi::xml_node& xml_node, Plugin& plugin)
@@ -347,27 +341,14 @@ void FomodInstaller::updateState(const std::vector<std::vector<bool>>& selection
                                  return file.source.string() == other.source.string() &&
                                         file.destination.string() == other.destination.string();
                                });
-        if(duplicate_iter != files_.end())
-          continue;
-        auto iter = std::ranges::find(files_, file);
-        if(iter == files_.end() || file.destination.empty() ||
-           file.destination.string().ends_with("/") ||
-           sfs::is_directory(mod_base_path_ / file.source) &&
-             sfs::is_directory(mod_base_path_ / iter->source))
+        if(duplicate_iter == files_.end())
           files_.push_back(file);
-        else if(*(iter) < file)
-          *iter = file;
-        else
-          Log::warning(
-            std::format("Ignoring file '{}' because '{}' points to the same destination '{}'",
-                        file.source.string(),
-                        iter->source.string(),
-                        file.destination.string()));
       }
       plugin_idx++;
     }
     group_idx++;
   }
+  std::stable_sort(files_.begin(), files_.end());
 }
 
 std::pair<std::string, std::string> FomodInstaller::getFomodPath(const sfs::path& source,

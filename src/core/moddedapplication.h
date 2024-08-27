@@ -270,12 +270,14 @@ public:
    */
   void editTool(int tool, std::string name, std::string command);
   /*!
-   * \brief Checks if writing to the deployment directory is possible for every Deployer.
-   * Creates a vector of tuples containing a code (index 0) indicating success(0),
-   * an IO error(1) or an error during link creation(2) and the deployers name (index 1).
-   * \return The vector.
+   * \brief Checks if files can be deployed.
+   * \return A tuple containing:
+   * A return code: 0: No error, 1: Error while writing to a deployer's source directory,
+   *  2: Error while creating a hard link, 3: Error while writing to a deployer's target directory.
+   * The deployer's target path (if an error occured, else "").
+   * A more detailed error message (if an error occured, else "").
    */
-  std::tuple<int, std::string> verifyDeployerDirectories();
+  std::tuple<int, std::string, std::string> verifyDeployerDirectories();
   /*!
    * \brief Adds a mod to an existing group and makes the mod the active member of that group.
    * \param mod_id The mod's id.

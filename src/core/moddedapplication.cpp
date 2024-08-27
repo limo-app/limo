@@ -551,15 +551,15 @@ void ModdedApplication::editTool(int tool, std::string name, std::string command
   updateSettings(true);
 }
 
-std::tuple<int, std::string> ModdedApplication::verifyDeployerDirectories()
+std::tuple<int, std::string, std::string> ModdedApplication::verifyDeployerDirectories()
 {
-  std::tuple<int, std::string> ret{ 0, "" };
+  std::tuple<int, std::string, std::string> ret{ 0, "", "" };
   for(const auto& depl : deployers_)
   {
-    int cur_code = depl->verifyDirectories();
+    auto [cur_code, message] = depl->verifyDirectories();
     if(cur_code)
     {
-      ret = std::tuple<int, std::string>{ cur_code, depl->destPath() };
+      ret = { cur_code, depl->destPath(), message };
     }
   }
   return ret;

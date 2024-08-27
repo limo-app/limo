@@ -122,6 +122,11 @@ private:
   std::vector<std::vector<bool>> getSelection();
   /*! \brief Updates text and enabled status of next_button_, depending on the step. */
   void updateNextButton();
+  /*!
+   * \brief Closes the dialog and emits a signal indicating installation has been canceled.
+   * \param event The close even sent upon closing the application.
+   */
+  void closeEvent(QCloseEvent* event) override;
 
 private slots:
   /*! \brief Advances the dialog by one step. */

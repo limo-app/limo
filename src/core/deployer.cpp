@@ -10,6 +10,7 @@
 #include <unordered_set>
 
 namespace str = std::ranges;
+namespace stv = std::views;
 namespace sfs = std::filesystem;
 namespace pu = path_utils;
 
@@ -273,7 +274,7 @@ int Deployer::getProfile() const
   return current_profile_;
 }
 
-int Deployer::verifyDirectories()
+std::pair<int, std::string> Deployer::verifyDirectories()
 {
   std::string file_name = "_lmm_write_test_file_";
   try
@@ -284,7 +285,11 @@ int Deployer::verifyDirectories()
   }
   catch(const std::ios_base::failure& f)
   {
-    return 1;
+    return { 1,
+             std::format("The error was: '{}'. (Code: {}. Message: '{}')",
+                         f.what(),
+                         f.code().value(),
+                         f.code().message()) };
   }
   try
   {
@@ -297,15 +302,41 @@ int Deployer::verifyDirectories()
   }
   catch(sfs::filesystem_error& e)
   {
-    sfs::remove(source_path_ / file_name);
     if(use_copy_deployment_)
-      return 3;
+    {
+      sfs::remove(source_path_ / file_name);
+      return { 3,
+               std::format("The error was: '{}'.\n(Code: {}. Message: '{}')",
+                           e.what(),
+                           e.code().value(),
+                           e.code().message()) };
+    }
     else
-      return 2;
+    {
+      try
+      {
+        sfs::copy_file(source_path_ / file_name, dest_path_ / file_name);
+      }
+      catch(sfs::filesystem_error& e)
+      {
+        sfs::remove(source_path_ / file_name);
+        return { 3,
+                 std::format("The error was: '{}'.\n(Code: {}. Message: '{}')",
+                             e.what(),
+                             e.code().value(),
+                             e.code().message()) };
+      }
+      sfs::remove(source_path_ / file_name);
+      return { 2,
+               std::format("The error was: '{}'.\n(Code: {}. Message: '{}')",
+                           e.what(),
+                           e.code().value(),
+                           e.code().message()) };
+    }
   }
   sfs::remove(source_path_ / file_name);
   sfs::remove(dest_path_ / file_name);
-  return 0;
+  return { 0, "" };
 }
 
 bool Deployer::swapMod(int old_id, int new_id)
@@ -459,6 +490,7 @@ void Deployer::deployFiles(const std::map<sfs::path, int>& source_files,
 {
   if(progress_node)
     (*progress_node)->setTotalSteps(source_files.size());
+
   for(const auto& [path, id] : source_files)
   {
     sfs::path dest_path = dest_path_ / path;
@@ -478,6 +510,7 @@ void Deployer::deployFiles(const std::map<sfs::path, int>& source_files,
       sfs::copy_file(source_path, dest_path);
     else
       sfs::create_hard_link(source_path, dest_path);
+
     if(progress_node)
       (*progress_node)->advance();
   }
@@ -558,9 +591,14 @@ std::unordered_set<std::string> Deployer::getModFiles(int mod_id, bool include_d
   return mod_files;
 }
 
+bool Deployer::modPathExists(int mod_id) const
+{
+  return sfs::exists(source_path_ / std::to_string(mod_id));
+}
+
 bool Deployer::checkModPathExistsAndMaybeLogError(int mod_id) const
 {
-  if(sfs::exists(source_path_ / std::to_string(mod_id)))
+  if(modPathExists(mod_id))
     return true;
 
   log_(Log::LOG_ERROR, std::format("No installation directory exists for mod with id {}", mod_id));
@@ -693,4 +731,62 @@ std::vector<std::vector<std::string>> Deployer::getAutoTags()
 std::map<std::string, int> Deployer::getAutoTagMap()
 {
   return {};
+}
+
+std::vector<std::pair<sfs::path, int>> Deployer::getExternallyModifiedFiles(
+  std::optional<ProgressNode*> progress_node) const
+{
+  if(use_copy_deployment_)
+    return {};
+
+  log_(Log::LOG_INFO, std::format("Deployer '{}' checking for external changes...", name_));
+
+  std::vector<std::pair<sfs::path, int>> modified_files;
+  const auto deployed_files = loadDeployedFiles();
+
+  if(progress_node)
+    (*progress_node)->setTotalSteps(deployed_files.size());
+
+  for(const auto& [path, mod_id] : deployed_files)
+  {
+    const auto target_path = dest_path_ / path;
+    const auto mod_file_path = source_path_ / std::to_string(mod_id) / path;
+    if(modPathExists(mod_id) && sfs::exists(target_path) && sfs::exists(mod_file_path) &&
+       !sfs::is_directory(target_path) && !sfs::equivalent(mod_file_path, target_path))
+      modified_files.emplace_back(path, mod_id);
+
+    if(progress_node)
+      (*progress_node)->advance();
+  }
+
+  if(modified_files.empty())
+    log_(Log::LOG_INFO, "No changes found");
+  else
+    log_(Log::LOG_INFO, std::format("Found {} modified files", modified_files.size()));
+
+  return modified_files;
+}
+
+void Deployer::keepOrRevertFileModifications(
+  std::vector<std::tuple<std::filesystem::path, int, bool>> modified_files) const
+{
+  if(use_copy_deployment_)
+    return;
+
+  for(const auto& [path, mod_id, keep_change] : modified_files)
+  {
+    const auto target_path = dest_path_ / path;
+    const auto mod_file_path = source_path_ / std::to_string(mod_id) / path;
+    if(!checkModPathExistsAndMaybeLogError(mod_id) || !sfs::exists(target_path))
+      continue;
+    if(keep_change)
+    {
+      if(sfs::exists(mod_file_path))
+        sfs::remove(mod_file_path);
+      sfs::rename(target_path, mod_file_path);
+    }
+    else
+      sfs::remove(target_path);
+    sfs::create_hard_link(mod_file_path, target_path);
+  }
 }

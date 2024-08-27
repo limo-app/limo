@@ -2,6 +2,8 @@
 #include "../src/core/deployer.h"
 #include "test_utils.h"
 #include <catch2/catch_test_macros.hpp>
+#include <set>
+#include <ranges>
 
 
 TEST_CASE("Mods are added and removed", "[.deployer]")
@@ -198,4 +200,49 @@ TEST_CASE("Case matching deployer", "[.deployer]")
   verifyDirsAreEqual(DATA_DIR / "source" / "case_matching" / "1",
                      DATA_DIR / "target" / "case_matching" / "1",
                      false);
+}
+
+TEST_CASE("External changes are handeld", "[.deployer]")
+{
+  resetAppDir();
+  resetStagingDir();
+  sfs::copy(DATA_DIR / "source" / "0", DATA_DIR / "staging" / "0", sfs::copy_options::recursive);
+  sfs::copy(DATA_DIR / "source" / "1", DATA_DIR / "staging" / "1", sfs::copy_options::recursive);
+  sfs::copy(DATA_DIR / "source" / "2", DATA_DIR / "staging" / "2", sfs::copy_options::recursive);
+  
+  Deployer depl = Deployer(DATA_DIR / "staging", DATA_DIR / "app", "");
+  depl.addProfile();
+  depl.addMod(0, true);
+  depl.addMod(1, true);
+  depl.addMod(2, true);
+  depl.deploy();
+  
+  // mod - file - keep
+  // 0 - b/3aBc - true
+  // 1 - 6 - false
+  // 2 - 0.txt - true
+  
+  sfs::remove(DATA_DIR / "app" / "0.txt");
+  sfs::copy(DATA_DIR / "source" / "external_changes" / "0.txt", DATA_DIR / "app");
+  sfs::remove(DATA_DIR / "app" / "6");
+  sfs::copy(DATA_DIR / "source" / "external_changes" / "6", DATA_DIR / "app");
+  sfs::remove(DATA_DIR / "app" / "b" / "3aBc");
+  sfs::copy(DATA_DIR / "source" / "external_changes" / "3aBc", DATA_DIR / "app" / "b");
+  
+  auto detected_changes = depl.getExternallyModifiedFiles();
+  std::set<std::pair<std::string, int>> actual_changes = {{"0.txt", 2}, {"6", 1}, {(std::filesystem::path("b") / "3aBc").string(), 0}};
+  REQUIRE(detected_changes.size() == actual_changes.size());
+  for(const auto& [path, id] : detected_changes)
+    REQUIRE(actual_changes.contains({path.string(), id}));
+  
+  std::vector<std::tuple<std::filesystem::path, int, bool>> changes_to_keep;
+  for(const auto& [path, id] : detected_changes)
+    changes_to_keep.emplace_back(path, id, true);
+  std::get<2>(changes_to_keep[1]) = false;
+  depl.keepOrRevertFileModifications(changes_to_keep);
+  
+  verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "external_changes", true);
+  REQUIRE(sfs::equivalent(DATA_DIR / "staging" / "0" / "b" / "3aBc", DATA_DIR / "app" / "b" / "3aBc"));
+  REQUIRE(sfs::equivalent(DATA_DIR / "staging" / "1" / "6", DATA_DIR / "app" / "6"));
+  REQUIRE(sfs::equivalent(DATA_DIR / "staging" / "2" / "0.txt", DATA_DIR / "app" / "0.txt"));
 }

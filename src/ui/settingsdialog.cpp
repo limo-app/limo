@@ -77,10 +77,12 @@ void SettingsDialog::init()
   ui->tes5vr_url_field->setText(
     settings.value("tes5vr_url", LootDeployer::DEFAULT_LIST_URLS.at(loot::GameType::tes5vr).c_str())
       .toString());
+  ui->prelude_list_url_field->setText(
+    settings.value("prelude_url", LootDeployer::DEFAULT_PRELUDE_URL.c_str()).toString());
   ui->show_warning_cb->setCheckState(
     settings.value("log_on_warning", true).toBool() ? Qt::Checked : Qt::Unchecked);
   ui->show_error_cb->setCheckState(settings.value("log_on_error", true).toBool() ? Qt::Checked
-                                                                                  : Qt::Unchecked);
+                                                                                 : Qt::Unchecked);
   ui->deploy_for_box->setCurrentIndex(settings.value("deploy_for_all", true).toBool() ? 0 : 1);
 
   settings.beginGroup("nexus");
@@ -134,6 +136,8 @@ void SettingsDialog::on_buttonBox_accepted()
   LootDeployer::LIST_URLS[loot::GameType::tes5se] = ui->tes5se_url_field->text().toStdString();
   settings.setValue("tes5vr_url", ui->tes5vr_url_field->text());
   LootDeployer::LIST_URLS[loot::GameType::tes5vr] = ui->tes5vr_url_field->text().toStdString();
+  settings.setValue("prelude_url", ui->prelude_list_url_field->text());
+  LootDeployer::PRELUDE_URL = ui->prelude_list_url_field->text().toStdString();
 
   Log::log_level = static_cast<Log::LogLevel>(ui->log_level_box->currentIndex() + 2);
   settings.setValue("log_level", Log::log_level);

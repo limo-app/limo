@@ -270,10 +270,12 @@ private:
    * \param code The error code.
    * \param staging_dir The \ref ModdedApplication "application's" staging directory.
    * \param dest_dir The Deployer's target directory.
+   * \param error_message A more detailed error message (if an error occured).
    */
   void handleAddDeployerError(int code,
                               std::filesystem::path staging_dir,
-                              std::filesystem::path dest_dir);
+                              std::filesystem::path dest_dir,
+                              const std::string& error_message);
   /*!
    * \brief Emits an error message indicating a parsing error using \ref sendError.
    * \param path Path to the file causing this error.
