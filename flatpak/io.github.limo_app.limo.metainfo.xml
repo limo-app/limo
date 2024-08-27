@@ -39,6 +39,19 @@
   <content_rating type="oars-1.1" />
   
   <releases>
+    <release version="1.0.5" date="2024-08-27">
+      <description>
+        <p>Various fixes</p>
+        <ul>
+          <li>FOMOD installer now always merges conflicting directories according to priority</li>
+          <li>FOMOD installer will no longer block the UI when no files have been installed</li>
+          <li>Moved all LOOT masterlist repositories to v0.21 branch</li>
+          <li>LOOT now uses the prelude file</li>
+          <li>Oblivion's Plugins.txt file is now capitalized</li>
+          <li>Error messages for failed hard links are now more detailed</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.4" date="2024-08-24">
       <description>
         <p>Minor fixes</p>
