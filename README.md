@@ -24,7 +24,25 @@ General purpose mod manager primarily developed for Linux with support for the [
     - View description, changelogs and available files
     - Download mods through Limo
     
-***For a guide on how to use Limo, refer to the wiki.***
+## How Limo works
+
+There are two basic concepts you should know in order to understand how Limo works:
+The *Staging Directory* and *Deployers*.
+
+### Staging Directory
+Whenever you install a mod, Limo does not change any file of the game you wish to mod immediately.
+It instead stores all of the mod's files inside of the so called *Staging Directory*. This has the advantage of allowing
+you to quickly change which mods should be enabled or win conflicts, should there be any.
+
+### Deployers
+In order to actually change the game you are trying to mod, there needs to be a mechanism which takes mods from the
+*Staging Directory* and puts them into the game's directory. This is what *Deployers* do. Each *Deployer* manages
+however many mods you assign to it and then links them into its *Target Directory*, which is the game's directory.
+If there are any conflicts between mods, the mod lower in the *Deployer's* load order will win. Should any files in 
+the *Target Directory* need to be overwritten, a backup is automatically created and restored when the mod is no
+longer active.
+    
+***For a guide on how to use Limo, refer to the [wiki](https://github.com/limo-app/limo/wiki). This will help you even if you are not modding Skyrim.***
 
 ## Installation
 
