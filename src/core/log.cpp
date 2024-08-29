@@ -22,7 +22,7 @@ std::string getTimestamp(Log::LogLevel log_level)
 
 void writeLog(const std::string& message, Log::LogLevel log_level)
 {
-  if(log_level >= Log::log_level)
+  if(Log::log_level >= log_level)
     Log::log_printer(message, log_level);
 
   if(Log::log_file_path.empty())
