@@ -74,6 +74,16 @@ Thumbs.db
 # Builds
 build
 tests/build
+CMakeLists.txt.user
 
 # docs
 doc
+
+# this is a local makefile used to automate some testing
+makefile
+
+# unrar files for non flatpak build
+unrar
+
+# flatpak building
+fp-build

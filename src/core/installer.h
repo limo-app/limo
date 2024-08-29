@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "log.h"
 #include "progressnode.h"
 #include <filesystem>
 #include <functional>
@@ -122,6 +123,9 @@ public:
    * \param is_a_flatpak If true: The application is running as a flatpak.
    */
   static void setIsAFlatpak(bool is_a_flatpak);
+  /*! \brief Callback for logging. */
+  static inline std::function<void(Log::LogLevel, const std::string&)> log =
+    [](Log::LogLevel a, const std::string& b) {};
 
 private:
   /*! \brief Directory name used to temporary storage of files during installation. */

@@ -1,5 +1,6 @@
 #include "applicationmanager.h"
 #include "../core/deployerfactory.h"
+#include "../core/installer.h"
 #include <QCoreApplication>
 #include <QDebug>
 #include <QMessageBox>
@@ -15,6 +16,8 @@ ApplicationManager::ApplicationManager(QObject* parent) : QObject{ parent }
   if(number_of_instances_ > 0)
     throw std::runtime_error("Do not instantiate more than one ApplicationManager!");
   number_of_instances_++;
+  Installer::log = [app_mgr = this](Log::LogLevel log_level, const std::string& message)
+  { app_mgr->sendLogMessage(log_level, message); };
 }
 
 ApplicationManager::~ApplicationManager()

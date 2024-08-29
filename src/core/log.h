@@ -4,8 +4,8 @@
  */
 #pragma once
 
+#include <filesystem>
 #include <functional>
-#include <iostream>
 #include <string>
 
 
@@ -30,8 +30,19 @@ enum LogLevel
 inline LogLevel log_level = LOG_INFO;
 /*! \brief Callback function used to output log messages. */
 inline std::function<void(std::string, LogLevel)> log_printer = [](std::string, LogLevel) {};
+/*! \brief Directory to which log files should be written. Empty string means no log files. */
+inline std::filesystem::path log_dir = "";
+/*! \brief Path to a log file. If this is != "" and exists, the log will be appended to that file. */
+inline std::filesystem::path log_file_path = "";
+/*! \brief Numberof log files to keep. One file is written per init() call. */
+inline int num_log_files = 10;
 
-
+/*!
+ * \brief init Initializes the logger by setting the current log_file_path and renaming or deleting
+ * old log files if needed.
+ * \param log_dir_path Path to the logging directory.
+ */
+void init(std::filesystem::path log_dir_path = "");
 /*!
  * \brief Prints the current time and date followed by a debug message.
  * \param message Message to be printed.

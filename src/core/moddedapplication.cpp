@@ -5,7 +5,6 @@
 #include "pathutils.h"
 #include <algorithm>
 #include <fstream>
-#include <iostream>
 #include <ranges>
 #include <regex>
 

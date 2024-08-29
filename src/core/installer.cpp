@@ -4,7 +4,6 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include <filesystem>
-#include <iostream>
 #include <ranges>
 #include <regex>
 #define _UNIX
@@ -18,6 +17,8 @@ void Installer::extract(const sfs::path& source_path,
                         const sfs::path& dest_path,
                         std::optional<ProgressNode*> progress_node)
 {
+  log(Log::LOG_DEBUG, "Beginning extraction");
+
   if(sfs::is_directory(source_path))
   {
     sfs::create_directories(dest_path);
@@ -65,6 +66,8 @@ unsigned long Installer::install(const sfs::path& source,
                                  int root_level,
                                  const std::vector<std::pair<sfs::path, sfs::path>> fomod_files)
 {
+  log(Log::LOG_DEBUG, "Beginning mod installation");
+
   if(type != SIMPLEINSTALLER && type != FOMODINSTALLER)
     throw std::runtime_error("Error: Unknown Installer type \"" + type + "\"!");
   unsigned tmp_id = 0;
@@ -97,9 +100,6 @@ unsigned long Installer::install(const sfs::path& source,
       pu::moveFilesWithDepth(tmp_dir, tmp_move_dir, root_level);
       sfs::rename(tmp_move_dir, tmp_dir);
     }
-
-    for(const auto&[source, dest] : fomod_files)
-      std::cout << source.string() << " -> " << dest.string() << std::endl;
 
     for(auto iter = fomod_files.begin(); iter != fomod_files.end(); iter++)
     {
@@ -303,6 +303,8 @@ void Installer::extractWithProgress(const sfs::path& source_path,
                                     const sfs::path& dest_path,
                                     std::optional<ProgressNode*> progress_node)
 {
+  log(Log::LOG_DEBUG, "Beginning extraction with progress");
+
   constexpr int buffer_size = 10240;
   struct archive* source;
   struct archive* dest;
@@ -410,6 +412,8 @@ void Installer::extractWithProgress(const sfs::path& source_path,
 
 void Installer::extractRarArchive(const sfs::path& source_path, const sfs::path& dest_path)
 {
+  log(Log::LOG_DEBUG, "Using fallback rar extraction");
+
   const auto source_str = source_path.string();
   const auto dest_str = dest_path.string();
   char input_path[source_str.size() + 1];
@@ -435,14 +439,14 @@ void Installer::extractRarArchive(const sfs::path& source_path, const sfs::path&
   HANDLE hArcData = RAROpenArchiveEx(&archive);
   if (archive.OpenResult != 0)
     throw CompressionError("Failed to open RAR archive.");
-
-  RARHeaderDataEx headerData;
-  int header_state = RARReadHeaderEx(hArcData, &headerData);
+  auto header_data = std::make_unique<RARHeaderDataEx>();
+  int i = 0;
+  int header_state = RARReadHeaderEx(hArcData, header_data.get());
   while (header_state == 0)
   {
     if(RARProcessFile(hArcData, RAR_EXTRACT, output_path, nullptr) != 0)
       throw CompressionError("Failed to extract RAR archive.");
-    header_state = RARReadHeaderEx(hArcData, &headerData);
+    header_state = RARReadHeaderEx(hArcData, header_data.get());
   }
   if(header_state != ERAR_END_ARCHIVE)
     throw CompressionError("Failed to extract RAR archive.");

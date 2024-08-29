@@ -877,6 +877,9 @@ void MainWindow::setupLog()
     if(*show_error && level <= Log::LOG_ERROR || *show_warning && level <= Log::LOG_WARNING)
       log_container->setVisible(true);
   };
+  QStringList config_paths = QStandardPaths::standardLocations(QStandardPaths::AppConfigLocation);
+  if(!config_paths.empty())
+    Log::init(std::filesystem::path(config_paths[0].toStdString()) / "logs");
   ui->log_container->setVisible(false);
   ui->log_frame->setMaximumBlockCount(1000);
   auto button = new QPushButton(this);
