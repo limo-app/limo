@@ -39,6 +39,16 @@
   <content_rating type="oars-1.1" />
   
   <releases>
+    <release version="1.0.5.1" date="2024-08-29">
+      <description>
+        <p>Added log files</p>
+        <ul>
+          <li>Logs are now being written to files</li>
+          <li>Fixed source directories not being displayed when editing a Loot Deployer</li>
+          <li>Fixed a crash when extracting large rar archives</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.5" date="2024-08-27">
       <description>
         <p>Various fixes</p>
