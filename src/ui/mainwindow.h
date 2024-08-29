@@ -272,6 +272,10 @@ private:
   bool debug_mode_ = false;
   /*! \brief Indicates if Limo is running as a flatpak. */
   bool is_a_flatpak_ = false;
+  /*! \brief For every current deployer: The source path it uses. */
+  std::vector<QString> deployer_source_paths_;
+  /*! \brief For every current deployer: The target path it uses. */
+  std::vector<QString> deployer_target_paths_;
 
   /*! \brief Creates signal/ slot connections between this and the ApplicationManager. */
   void setupConnections();

@@ -28,6 +28,11 @@ std::string Deployer::getDestPath() const
   return dest_path_;
 }
 
+std::string Deployer::getSourcePath() const
+{
+  return source_path_;
+}
+
 std::string Deployer::getName() const
 {
   return name_;

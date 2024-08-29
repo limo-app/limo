@@ -69,4 +69,9 @@ struct AppInfo
   std::map<std::string, std::pair<std::string, std::vector<TagCondition>>> auto_tags;
   /*! \brief Version of the target application. */
   std::string app_version = "";
+  /*!
+   *  \brief For every deployer: The source directory used. This is equivalent to the staging directory
+   *  for non-autonomous deployers.
+   */
+  std::vector<std::string> deployer_source_dirs{};
 };

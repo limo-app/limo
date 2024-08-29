@@ -420,6 +420,7 @@ AppInfo ModdedApplication::getAppInfo() const
     info.deployers.push_back(deployer->getName());
     info.deployer_types.push_back(deployer->getType());
     info.target_dirs.push_back(deployer->getDestPath());
+    info.deployer_source_dirs.push_back(deployer->getSourcePath());
     info.deployer_mods.push_back(deployer->getNumMods());
     info.uses_copy_deployment.push_back(deployer->usesCopyDeployment());
   }

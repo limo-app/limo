@@ -71,15 +71,17 @@ void AddDeployerDialog::setAddMode(int app_id)
   dialog_completed_ = false;
 }
 
-void AddDeployerDialog::setEditMode(QString type,
-                                    QString name,
-                                    QString path,
+void AddDeployerDialog::setEditMode(const QString& type,
+                                    const QString& name,
+                                    const QString& target_path,
+                                    const QString& source_path,
                                     bool use_copy_deployment,
                                     int app_id,
                                     int deployer_id)
 {
   name_ = name;
-  path_ = path;
+  target_path_ = target_path;
+  source_path_ = source_path;
   type_ = type;
   app_id_ = app_id;
   deployer_id_ = deployer_id;
@@ -92,12 +94,15 @@ void AddDeployerDialog::setEditMode(QString type,
   setWindowTitle("Edit " + name);
   edit_mode_ = true;
   ui->name_field->setText(name);
-  ui->path_field->setText(path);
+  ui->path_field->setText(target_path);
   for(int i = 0; i < ui->type_box->count(); i++)
   {
     if(ui->type_box->itemText(i) == type)
       ui->type_box->setCurrentIndex(i);
   }
+  if(DeployerFactory::AUTONOMOUS_DEPLOYERS.at(ui->type_box->currentText().toStdString()))
+    ui->source_path_field->setText(source_path);
+  else ui->source_path_field->clear();
   updateSourceFields();
   ui->name_field->updateValidation();
   ui->path_field->updateValidation();

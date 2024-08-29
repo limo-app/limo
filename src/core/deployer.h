@@ -39,6 +39,11 @@ public:
    */
   std::string getDestPath() const;
   /*!
+   * \brief Getter for the path to the deployer's source directory.
+   * \return The path.
+   */
+  std::string getSourcePath() const;
+  /*!
    * \brief Getter for deployer name.
    * \return The name.
    */

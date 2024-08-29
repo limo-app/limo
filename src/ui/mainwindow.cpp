@@ -758,8 +758,8 @@ void MainWindow::showEditDeployerDialog(int deployer)
   add_deployer_dialog_->setEditMode(
     ui->info_deployer_list->item(deployer, getColumnIndex(ui->info_deployer_list, "Type"))->text(),
     ui->info_deployer_list->item(deployer, getColumnIndex(ui->info_deployer_list, "Name"))->text(),
-    ui->info_deployer_list->item(deployer, getColumnIndex(ui->info_deployer_list, "Target"))
-      ->text(),
+    deployer_target_paths_[deployer],
+    deployer_source_paths_[deployer],
     ui->info_deployer_list->item(deployer, getColumnIndex(ui->info_deployer_list, "Mode"))
         ->text() == "Copy",
     currentApp(),
@@ -1549,8 +1549,12 @@ void MainWindow::onGetAppInfo(AppInfo app_info)
   ui->info_mods_label->setText(QString::number(app_info.num_mods));
   ui->info_command_label->setText(app_info.command.c_str());
   ui->info_deployer_list->setRowCount(0);
+  deployer_source_paths_.clear();
+  deployer_target_paths_.clear();
   for(int i = 0; i < app_info.deployers.size(); i++)
   {
+    deployer_source_paths_.push_back(app_info.deployer_source_dirs[i].c_str());
+    deployer_target_paths_.push_back(app_info.target_dirs[i].c_str());
     ui->info_deployer_list->setRowCount(i + 1);
     QPushButton* button = new QPushButton();
     button->setIcon(QIcon::fromTheme("editor"));

@@ -29,6 +29,29 @@ public:
   explicit AddDeployerDialog(QWidget* parent = nullptr);
   /*! \brief Deletes the UI. */
   ~AddDeployerDialog();
+  /*!
+   *  \brief Initializes this dialog to allow creating a new Deployer.
+   *  \param app_id Id of the ModdedApplication owning the edited Deployer.
+   */
+  void setAddMode(int app_id);
+  /*!
+   * \brief setEditMode Initializes this dialog to allow editing an existing Deployer.
+   * \param type Current type of the edited Deployer.
+   * \param name Current name of the edited Deployer.
+   * \param target_path Current target directory of the edited Deployer.
+   * \param source_path Current source directory of the edited Deployer.
+   * \param app_id Id of the ModdedApplication owning the edited Deployer.
+   * \param deployer_id Id of the edited Deployer.
+   */
+  void setEditMode(const QString& type,
+                   const QString& name,
+                   const QString& target_path,
+                   const QString& source_path,
+                   bool use_copy_deployment,
+                   int app_id,
+                   int deployer_id);
+  /*! \brief Enables/ Disables the ui elements responsible for setting a source directory. */
+  void updateSourceFields();
 
 private:
   /*! \brief Contains auto-generated UI elements. */
@@ -38,7 +61,7 @@ private:
   /*! \brief Current name of the edited Deployer. */
   QString name_;
   /*! \brief Current target directory of the edited Deployer. */
-  QString path_;
+  QString target_path_;
   /*! \brief Current type of the edited Deployer. */
   QString type_;
   /*! \brief  Id of the ModdedApplication owning the edited Deployer. */
@@ -47,6 +70,8 @@ private:
   int deployer_id_;
   /*! \brief Indicates whether the dialog has been completed. */
   bool dialog_completed_ = false;
+  /*! \brief Current target directory of the edited Deployer. */
+  QString source_path_;
 
   /*!
    * \brief Set the enabled state of this dialog's OK button.
@@ -60,29 +85,6 @@ private:
   /*! \brief Updates the state of this dialog's OK button to only be enabled when all inputs are
    * valid. */
   void updateOkButton();
-
-public:
-  /*!
-   *  \brief Initializes this dialog to allow creating a new Deployer.
-   *  \param app_id Id of the ModdedApplication owning the edited Deployer.
-   */
-  void setAddMode(int app_id);
-  /*!
-   * \brief setEditMode Initializes this dialog to allow editing an existing Deployer.
-   * \param type Current type of the edited Deployer.
-   * \param name Current name of the edited Deployer.
-   * \param path Current target directory of the edited Deployer.
-   * \param app_id Id of the ModdedApplication owning the edited Deployer.
-   * \param deployer_id Id of the edited Deployer.
-   */
-  void setEditMode(QString type,
-                   QString name,
-                   QString path,
-                   bool use_copy_deployment,
-                   int app_id,
-                   int deployer_id);
-  /*! \brief Enables/ Disables the ui elements responsible for setting a source directory. */
-  void updateSourceFields();
 
 private slots:
   /*! \brief Shows a file dialog for the target directory path. */

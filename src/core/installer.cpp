@@ -440,7 +440,7 @@ void Installer::extractRarArchive(const sfs::path& source_path, const sfs::path&
   int header_state = RARReadHeaderEx(hArcData, &headerData);
   while (header_state == 0)
   {
-    if (RARProcessFile(hArcData, RAR_EXTRACT, output_path, nullptr) != 0)
+    if(RARProcessFile(hArcData, RAR_EXTRACT, output_path, nullptr) != 0)
       throw CompressionError("Failed to extract RAR archive.");
     header_state = RARReadHeaderEx(hArcData, &headerData);
   }
