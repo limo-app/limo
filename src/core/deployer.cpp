@@ -159,10 +159,10 @@ std::vector<ConflictInfo> Deployer::getFileConflicts(
   std::optional<ProgressNode*> progress_node) const
 {
   std::vector<ConflictInfo> conflicts;
-  std::unordered_set<std::string> unique_files;
-  std::unordered_set<std::string> mod_files = getModFiles(mod_id, false);
   if(!checkModPathExistsAndMaybeLogError(mod_id))
     return conflicts;
+  std::map<std::string, int> conflict_map;
+  std::unordered_set<std::string> mod_files = getModFiles(mod_id, false);
   sfs::path mod_base_path = source_path_ / std::to_string(mod_id);
   std::vector<int> loadorder;
   for(auto const& [id, enabled] : loadorders_[current_profile_])
@@ -187,18 +187,21 @@ std::vector<ConflictInfo> Deployer::getFileConflicts(
     for(const auto& dir_entry : sfs::recursive_directory_iterator(mod_base_path))
     {
       const auto relative_path = pu::getRelativePath(dir_entry.path(), mod_base_path);
-      if(mod_files.contains(relative_path) && !unique_files.contains(relative_path))
+      if(mod_files.contains(relative_path))
       {
-        unique_files.insert(relative_path);
         if(mod_found)
-          conflicts.emplace_back(relative_path, cur_id, "");
+          conflict_map[relative_path] = cur_id;
         else
-          conflicts.emplace_back(relative_path, mod_id, "");
+          conflict_map[relative_path] = mod_id;
       }
     }
     if(progress_node)
       (*progress_node)->advance();
   }
+
+  for(const auto& [path, mod_id] : conflict_map)
+    conflicts.emplace_back(path, mod_id, "");
+
   return conflicts;
 }
 

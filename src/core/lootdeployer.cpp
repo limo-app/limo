@@ -30,6 +30,8 @@ LootDeployer::LootDeployer(const sfs::path& source_path,
     loadSettings();
   if(init_tags)
     readPluginTags();
+  // make sure no hard link related checks are performed
+  use_copy_deployment_ = true;
 }
 
 std::map<int, unsigned long> LootDeployer::deploy(std::optional<ProgressNode*> progress_node)
