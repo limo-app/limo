@@ -167,7 +167,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
    <item row="2" column="0" colspan="3">
     <widget class="QLabel" name="sym_link_label">
      <property name="text">
-      <string>Sym link deployment may cause issues in rare cases, but can, unlike hard link deployment, be used across filesystems. If possible, prefer hard links.</string>
+      <string>Sym link deployment works across filesystems, unlike hard like deployment. If this causes issues, try hard links instead.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

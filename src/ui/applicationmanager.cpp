@@ -190,7 +190,8 @@ void ApplicationManager::handleAddDeployerError(int code,
     emit sendError("Error",
                    "Could not create hard link from\n\"" + QString(staging_dir.string().c_str()) +
                      "\"\nto\n\"" + QString(dest_dir.string().c_str()) + "\".\n" +
-                     "Ensure that both directories are on the same partition!");
+                     "Ensure that both directories are on the same partition!\n"
+                     "Alternatively: Switch to sym link deployment.");
   else if(code == 3)
     emit sendError("Error",
                    "Could no copy files\n\"" + QString(staging_dir.string().c_str()) +

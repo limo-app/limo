@@ -8,7 +8,7 @@
   </developer>
   
   <name>Limo</name>
-  <summary>Mod manager with LOOT integration</summary>
+  <summary>Mod Manager</summary>
   
   <metadata_license>MIT</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
@@ -39,6 +39,17 @@
   <content_rating type="oars-1.1" />
   
   <releases>
+    <release version="1.0.6" date="2024-09-04">
+      <description>
+        <p>Added sym link support</p>
+        <ul>
+          <li>Added sym link deployment type</li>
+          <li>Added check for external changes before deployment</li>
+          <li>Fixed file conflicts window displaying incorrect winner</li>
+          <li>Reinstall from local now remembers mod name and version</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.5.1" date="2024-08-29">
       <description>
         <p>Added log files</p>
