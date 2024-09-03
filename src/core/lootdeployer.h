@@ -196,6 +196,18 @@ public:
    * \return The tag names.
    */
   virtual std::map<std::string, int> getAutoTagMap() override;
+  /*!
+   * \brief Not supported by this Deployer type.
+   * \param progress_node Ignored
+   * \return An empty vector
+   */
+  virtual std::vector<std::pair<std::filesystem::path, int>> getExternallyModifiedFiles(
+    std::optional<ProgressNode*> progress_node = {}) const override;
+  /*!
+   * \brief Not supported by this Deployer type.
+   * \param changes_to_keep Ignored.
+   */
+  virtual void keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) const override;
 
 private:
   /*! \brief Name of the file containing plugin load order. */

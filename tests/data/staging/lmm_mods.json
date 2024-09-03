@@ -65,26 +65,26 @@
 	[
 		{
 			"id" : 1,
-			"install_time" : 1725043396,
+			"install_time" : 1725381160,
 			"installer" : "Simple Installer",
 			"local_source" : "",
 			"name" : "mod 1",
 			"remote_source" : "",
-			"remote_update_time" : 1725043396,
+			"remote_update_time" : 1725381160,
 			"size_on_disk" : 20,
-			"suppress_update_time" : 1725043396,
+			"suppress_update_time" : 1725381160,
 			"version" : "1.0"
 		},
 		{
 			"id" : 2,
-			"install_time" : 1725043396,
+			"install_time" : 1725381160,
 			"installer" : "Simple Installer",
 			"local_source" : "",
 			"name" : "mod 0",
 			"remote_source" : "",
-			"remote_update_time" : 1725043396,
+			"remote_update_time" : 1725381160,
 			"size_on_disk" : 30,
-			"suppress_update_time" : 1725043396,
+			"suppress_update_time" : 1725381160,
 			"version" : "1.0"
 		}
 	],

@@ -1,0 +1,85 @@
+{
+	"files" : 
+	[
+		{
+			"mod_id" : 2,
+			"path" : "0"
+		},
+		{
+			"mod_id" : 2,
+			"path" : "0.txt"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "1.txt"
+		},
+		{
+			"mod_id" : 1,
+			"path" : "6"
+		},
+		{
+			"mod_id" : 1,
+			"path" : "7"
+		},
+		{
+			"mod_id" : 2,
+			"path" : "a"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "a/0.txt"
+		},
+		{
+			"mod_id" : 2,
+			"path" : "a/1.txt"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "a/2.txt"
+		},
+		{
+			"mod_id" : 2,
+			"path" : "a/b"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "a/b/1.txt"
+		},
+		{
+			"mod_id" : 2,
+			"path" : "a/b/2.txt"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "a-Fil _3"
+		},
+		{
+			"mod_id" : 2,
+			"path" : "b"
+		},
+		{
+			"mod_id" : 2,
+			"path" : "b/3"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "b/3aBc"
+		},
+		{
+			"mod_id" : 1,
+			"path" : "f"
+		},
+		{
+			"mod_id" : 1,
+			"path" : "f/b c.t"
+		},
+		{
+			"mod_id" : 1,
+			"path" : "f/g"
+		},
+		{
+			"mod_id" : 1,
+			"path" : "f/g/0"
+		}
+	]
+}

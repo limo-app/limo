@@ -25,6 +25,7 @@
 #include <QCheckBox>
 #include <QDesktopServices>
 #include <QMessageBox>
+#include <QMetaType>
 #include <QPainter>
 #include <QPalette>
 #include <QPushButton>
@@ -58,6 +59,8 @@ Q_DECLARE_METATYPE(std::vector<EditManualTagAction>);
 Q_DECLARE_METATYPE(std::vector<EditAutoTagAction>);
 Q_DECLARE_METATYPE(EditProfileInfo);
 Q_DECLARE_METATYPE(nexus::Page);
+Q_DECLARE_METATYPE(ExternalChangesInfo);
+Q_DECLARE_METATYPE(FileChangeChoices);
 
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -165,6 +168,8 @@ void MainWindow::setupConnections()
   qRegisterMetaType<std::vector<EditAutoTagAction>>();
   qRegisterMetaType<EditProfileInfo>();
   qRegisterMetaType<nexus::Page>();
+  qRegisterMetaType<ExternalChangesInfo>();
+  qRegisterMetaType<FileChangeChoices>();
 
   connect(this, &MainWindow::getModInfo,
           app_manager_, &ApplicationManager::getModInfo);
@@ -368,6 +373,14 @@ void MainWindow::setupConnections()
           app_manager_, &ApplicationManager::suppressUpdateNotification);
   connect(app_manager_, &ApplicationManager::modInstallationComplete,
           this, &MainWindow::onModInstallationComplete);
+  connect(this, &MainWindow::getExternalChanges,
+          app_manager_, &ApplicationManager::getExternalChanges);
+  connect(this, &MainWindow::keepOrRevertFileModifications,
+          app_manager_, &ApplicationManager::keepOrRevertFileModifications);
+  connect(app_manager_, &ApplicationManager::sendExternalChangesInfo,
+          this, &MainWindow::onGetExternalChangesInfo);
+  connect(app_manager_, &ApplicationManager::externalChangesHandled,
+          this, &MainWindow::onExternalChangesHandled);
 }
 // clang-format on
 
@@ -632,6 +645,16 @@ void MainWindow::setupDialogs()
           &NexusModDialog::modDownloadRequested,
           this,
           &MainWindow::onModDownloadRequested);
+
+  external_changes_dialog_ = std::make_unique<ExternalChangesDialog>();
+  connect(external_changes_dialog_.get(),
+          &ExternalChangesDialog::externalChangesDialogCompleted,
+          this,
+          &MainWindow::onExternalChangesDialogCompleted);
+  connect(external_changes_dialog_.get(),
+          &ExternalChangesDialog::externalChangesDialogAborted,
+          this,
+          &MainWindow::onExternalChangesDialogAborted);
 }
 
 void MainWindow::updateModList(const std::vector<ModInfo>& mod_info)
@@ -2007,14 +2030,20 @@ void MainWindow::setupIcons()
 
 void MainWindow::on_deploy_button_clicked()
 {
-  Log::info("Deploying mods for '" + ui->app_selection_box->currentText().toStdString() + "'");
-  setStatusMessage("Deploying mods");
+  // Log::info("Deploying mods for '" + ui->app_selection_box->currentText().toStdString() + "'");
+  // setStatusMessage("Deploying mods");
+  // setBusyStatus(true, true, true);
+  // if(deploy_for_all_)
+  //   emit deployMods(currentApp());
+  // else
+  //   emit deployModsFor(currentApp(), { currentDeployer() });
+  // emit getDeployerInfo(currentApp(), currentDeployer());
+  setStatusMessage("Checking for external changes");
   setBusyStatus(true, true, true);
   if(deploy_for_all_)
-    emit deployMods(currentApp());
+    emit getExternalChanges(currentApp(), 0);
   else
-    emit deployModsFor(currentApp(), { currentDeployer() });
-  emit getDeployerInfo(currentApp(), currentDeployer());
+    emit getExternalChanges(currentApp(), currentDeployer());
 }
 
 
@@ -3143,4 +3172,54 @@ void MainWindow::onModInstallationComplete(bool success)
     mod_import_queue_.pop();
   if(!mod_import_queue_.empty())
     importMod();
+}
+
+void MainWindow::onGetExternalChangesInfo(int app_id, ExternalChangesInfo info, int num_deployers)
+{
+  setStatusMessage("");
+  if(!info.file_changes.empty())
+  {
+    external_changes_dialog_->setup(app_id, info);
+    external_changes_dialog_->show();
+  }
+  else
+    onExternalChangesHandled(app_id, info.deployer_id, num_deployers);
+}
+
+void MainWindow::onExternalChangesHandled(int app_id, int deployer, int num_deployers)
+{
+  setStatusMessage("");
+  setBusyStatus(false);
+  if(deployer == num_deployers - 1 || !deploy_for_all_)
+  {
+    Log::info("Deploying mods...");
+    setStatusMessage("Deploying mods");
+    setBusyStatus(true, true, true);
+    if(deploy_for_all_)
+      emit deployMods(app_id);
+    else
+      emit deployModsFor(app_id, { deployer });
+    if(app_id == currentApp())
+      emit getDeployerInfo(currentApp(), currentDeployer());
+  }
+  else
+  {
+    setStatusMessage("Checking for external changes");
+    setBusyStatus(true, true, true);
+    emit getExternalChanges(app_id, deployer + 1);
+  }
+}
+
+void MainWindow::onExternalChangesDialogCompleted(int app_id,
+                                                  int deployer,
+                                                  const FileChangeChoices& changes_to_keep)
+{
+  setStatusMessage("Applying changes");
+  emit keepOrRevertFileModifications(app_id, deployer, changes_to_keep);
+}
+
+void MainWindow::onExternalChangesDialogAborted()
+{
+  setStatusMessage("Deployment aborted", 3000);
+  setBusyStatus(false);
 }

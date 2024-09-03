@@ -6,6 +6,7 @@
 #pragma once
 
 #include "conflictinfo.h"
+#include "filechangechoices.h"
 #include "log.h"
 #include "progressnode.h"
 #include <filesystem>
@@ -281,13 +282,13 @@ public:
   /*!
    * \brief Currently only supports hard link deployment.
    * For every given file: Moves the modified file into the source mods directory and links
-   * it back in, if the changes are to be kept. Else: Deletes that file and restores the original link.
-   * \param modified_files Tuples of paths to modified files, the id of the mod currently
+   * it back in, if the changes are to be kept. Else: Deletes that file and restores
+   * the original link.
+   * \param changes_to_keep Contains paths to modified files, the id of the mod currently
    * responsible for that file and a bool which indicates whether or not changes to
    * that file should be kept.
    */
-  virtual void keepOrRevertFileModifications(
-    std::vector<std::tuple<std::filesystem::path, int, bool>> modified_files) const;
+  virtual void keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) const;
 
 protected:
   /*! \brief Type of this deployer, e.g. Simple Deployer. */

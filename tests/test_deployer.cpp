@@ -235,10 +235,14 @@ TEST_CASE("External changes are handeld", "[.deployer]")
   for(const auto& [path, id] : detected_changes)
     REQUIRE(actual_changes.contains({path.string(), id}));
   
-  std::vector<std::tuple<std::filesystem::path, int, bool>> changes_to_keep;
+  FileChangeChoices changes_to_keep;
   for(const auto& [path, id] : detected_changes)
-    changes_to_keep.emplace_back(path, id, true);
-  std::get<2>(changes_to_keep[1]) = false;
+  {
+    changes_to_keep.paths.push_back(path);
+    changes_to_keep.mod_ids.push_back(id);
+    changes_to_keep.changes_to_keep.push_back(true);
+  }
+  changes_to_keep.changes_to_keep[1] = false;
   depl.keepOrRevertFileModifications(changes_to_keep);
   
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "external_changes", true);

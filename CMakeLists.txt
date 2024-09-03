@@ -79,6 +79,8 @@ set(PROJECT_SOURCES
         src/core/editmanualtagaction.cpp
         src/core/editmanualtagaction.h
         src/core/editprofileinfo.h
+        src/core/externalchangesinfo.h
+        src/core/filechangechoices.h
         src/core/fomod/dependency.cpp
         src/core/fomod/dependency.h
         src/core/fomod/file.h
@@ -184,6 +186,9 @@ set(PROJECT_SOURCES
         src/ui/enterapipwdialog.cpp
         src/ui/enterapipwdialog.h
         src/ui/enterapipwdialog.ui
+        src/ui/externalchangesdialog.cpp
+        src/ui/externalchangesdialog.h
+        src/ui/externalchangesdialog.ui
         src/ui/fomodcheckbox.cpp
         src/ui/fomodcheckbox.h
         src/ui/fomoddialog.cpp
@@ -242,8 +247,8 @@ set(PROJECT_SOURCES
 
 add_executable(Limo
     ${PROJECT_SOURCES})
-    
-target_include_directories(Limo 
+
+target_include_directories(Limo
     PRIVATE "${PROJECT_SOURCE_DIR}/src"
     PRIVATE ${LibArchive_INCLUDE_DIRS}
     PRIVATE /usr/include/loot

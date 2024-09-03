@@ -15,6 +15,7 @@
 #include "editdeployerinfo.h"
 #include "editmanualtagaction.h"
 #include "editprofileinfo.h"
+#include "externalchangesinfo.h"
 #include "log.h"
 #include "manualtag.h"
 #include "modinfo.h"
@@ -616,6 +617,23 @@ public:
    * \return The path to the downloaded file.
    */
   std::string downloadMod(const std::string& url, std::function<void(float)> progress_callback);
+  /*!
+   * \brief Checks if files deployed by the given deployer have been externally overwritten.
+   * \param deployer Deployer to check.
+   * \return Contains data about overwritten files.
+   */
+  ExternalChangesInfo getExternalChanges(int deployer);
+  /*!
+   * \brief Currently only supports hard link deployment.
+   * For every given file: Moves the modified file into the source mods directory and links
+   * it back in, if the changes are to be kept. Else: Deletes that file and restores
+   * the original link.
+   * \param deployer Target deployer.
+   * \param changes_to_keep Contains paths to modified files, the id of the mod currently
+   * responsible for that file and a bool which indicates whether or not changes to
+   * that file should be kept.
+   */
+  void keepOrRevertFileModifications(int deployer, const FileChangeChoices& changes_to_keep) const;
 
 private:
   /*! \brief The name of this application. */

@@ -775,13 +775,13 @@ std::vector<std::pair<sfs::path, int>> Deployer::getExternallyModifiedFiles(
   return modified_files;
 }
 
-void Deployer::keepOrRevertFileModifications(
-  std::vector<std::tuple<std::filesystem::path, int, bool>> modified_files) const
+void Deployer::keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) const
 {
   if(use_copy_deployment_)
     return;
 
-  for(const auto& [path, mod_id, keep_change] : modified_files)
+  for(const auto& [path, mod_id, keep_change] :
+      stv::zip(changes_to_keep.paths, changes_to_keep.mod_ids, changes_to_keep.changes_to_keep))
   {
     const auto target_path = dest_path_ / path;
     const auto mod_file_path = source_path_ / std::to_string(mod_id) / path;

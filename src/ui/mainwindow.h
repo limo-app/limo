@@ -32,6 +32,7 @@
 #include "tablecelldelegate.h"
 #include "ui/editautotagsdialog.h"
 #include "ui/editmanualtagsdialog.h"
+#include "ui/externalchangesdialog.h"
 #include "ui/ipcserver.h"
 #include "ui/tagcheckbox.h"
 #include "versionboxdelegate.h"
@@ -188,6 +189,8 @@ private:
   std::unique_ptr<EditModSourcesDialog> edit_mod_sources_dialog_;
   /*! \brief Reusable dialog for displaying NexusMods data for a mod. */
   std::unique_ptr<NexusModDialog> nexus_mod_dialog_;
+  /*! \brief Reusable dialog for displaying external changes to files. */
+  std::unique_ptr<ExternalChangesDialog> external_changes_dialog_;
   /*! \brief Stores the index in ui->mod_list of a mod before being added to a group. */
   int last_mod_list_index_ = -1;
   /*! \brief Contains all queued mods to be downloaded or extracted. */
@@ -989,6 +992,36 @@ private slots:
    *  \param success If true: Installation was successful.
    */
   void onModInstallationComplete(bool success);
+  /*!
+   * \brief If at least one file has been changed: Show a ExternalChangesDialog.
+   * Afterwards, get external changes for other deployers. If there are none: Begin deployment.
+   * \param app_id \ref ModdedApplication "application" for which changes have been received.
+   * \param info Contains data about externally modified files.
+   * \param num_deployers The total number of deployers for the target app.
+   */
+  void onGetExternalChangesInfo(int app_id, ExternalChangesInfo info, int num_deployers);
+  /*!
+   * \brief Gets external changes for other deployers. If there are none: Begin deployment.
+   * \param app_id \ref ModdedApplication "application" for which changes have benn handled.
+   * \param deployer Deployer for which changes have been handled.
+   * \param num_deployers The total number of deployers for the target app.
+   */
+  void onExternalChangesHandled(int app_id, int deployer, int num_deployers);
+  /*!
+   * \brief Called when the ExternalChangesDialog has been completed sucessfully.
+   * Emits \ref keepOrRevertFileModifications.
+   * \param app_id Target app.
+   * \param deployer Target deployer.
+   * \param changes_to_keep Contains paths to modified files, the id of the mod currently
+   * responsible for that file and a bool which indicates whether or not changes to
+   * that file should be kept.
+   */
+  void onExternalChangesDialogCompleted(
+    int app_id,
+    int deployer,
+    const FileChangeChoices& changes_to_keep);
+  /*! \brief Called when the ExternalChangesDialog has been aborted. Cancels deployment. */
+  void onExternalChangesDialogAborted();
 
 signals:
   /*!
@@ -1439,4 +1472,26 @@ signals:
    * \param mod_ids Ids of the mods for which update notifications are to be disabled.
    */
   void suppressUpdateNotification(int app_id, const std::vector<int>& mod_ids);
+  /*!
+   * \brief Checks if files deployed by the given app by the given deployer have been
+   * externally overwritten.
+   * \param app_id Target app.
+   * \param deployer Deployer to check.
+   */
+  void getExternalChanges(int app_id, int deployer);
+  /*!
+   * \brief Keeps or reverts external changes for one app for one deployer.
+   * For every given file: Moves the modified file into the source mods directory and links
+   * it back in, if the changes are to be kept. Else: Deletes that file and restores
+   * the original link.
+   * \param app_id Target app.
+   * \param deployer Target deployer.
+   * \param modified_files Contains paths to modified files, the id of the mod currently
+   * responsible for that file and a bool which indicates whether or not changes to
+   * that file should be kept.
+   */
+  void keepOrRevertFileModifications(
+    int app_id,
+    int deployer,
+    const FileChangeChoices& changes_to_keep);
 };

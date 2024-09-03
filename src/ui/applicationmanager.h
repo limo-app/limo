@@ -420,6 +420,21 @@ signals:
    * \param success If true: Installation was successful.
    */
   void modInstallationComplete(bool success);
+  /*!
+   * \brief Sends data about externally modified files for one app for one deployer.
+   * \param app_id Target app.
+   * \param info Contains data about modified files.
+   * \param num_deployers The total number of deployers for the target app.
+   */
+  void sendExternalChangesInfo(int app_id, ExternalChangesInfo info, int num_deployers);
+  /*!
+   * \brief Signals that external changes to files for given app for given deployer have been
+   * handled.
+   * \param app_id Target app.
+   * \param deployer Target deployer.
+   * \param num_deployers The total number of deployers for the target app.
+   */
+  void externalChangesHandled(int app_id, int deployer, int num_deployers);
 
 public slots:
   /*!
@@ -896,4 +911,26 @@ public slots:
    * \param mod_ids Ids of the mods for which update notifications are to be disabled.
    */
   void suppressUpdateNotification(int app_id, const std::vector<int>& mod_ids);
+  /*!
+   * \brief Checks if files deployed by the given app by the given deployer have
+   * been externally overwritten.
+   * \param app_id Target app.
+   * \param deployer Deployer to check.
+   */
+  void getExternalChanges(int app_id, int deployer);
+  /*!
+   * \brief Keeps or reverts external changes for one app for one deployer.
+   * For every given file: Moves the modified file into the source mods directory and links
+   * it back in, if the changes are to be kept. Else: Deletes that file and restores
+   * the original link.
+   * \param app_id Target app.
+   * \param deployer Target deployer.
+   * \param changes_to_keep Contains paths to modified files, the id of the mod currently
+   * responsible for that file and a bool which indicates whether or not changes to
+   * that file should be kept.
+   */
+  void keepOrRevertFileModifications(
+    int app_id,
+    int deployer,
+    const FileChangeChoices& changes_to_keep);
 };

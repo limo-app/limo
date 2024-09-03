@@ -1412,6 +1412,23 @@ std::string ModdedApplication::downloadMod(const std::string& url,
   return (download_path / file_name).string();
 }
 
+ExternalChangesInfo ModdedApplication::getExternalChanges(int deployer)
+{
+  ExternalChangesInfo info;
+  ProgressNode node(progress_callback_);
+  info.file_changes = deployers_[deployer]->getExternallyModifiedFiles({ &node });
+  info.deployer_id = deployer;
+  info.deployer_name = deployers_[deployer]->getName();
+  return info;
+}
+
+void ModdedApplication::keepOrRevertFileModifications(
+  int deployer,
+  const FileChangeChoices& changes_to_keep) const
+{
+  deployers_[deployer]->keepOrRevertFileModifications(changes_to_keep);
+}
+
 sfs::path ModdedApplication::iconPath() const
 {
   return icon_path_;

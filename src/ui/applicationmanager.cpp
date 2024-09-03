@@ -897,3 +897,36 @@ void ApplicationManager::suppressUpdateNotification(int app_id, const std::vecto
     handleExceptions<&ModdedApplication::suppressUpdateNotification>(app_id, mod_ids);
   emit completedOperations();
 }
+
+void ApplicationManager::getExternalChanges(int app_id, int deployer)
+{
+  if(appIndexIsValid(app_id) && deployerIndexIsValid(app_id, deployer))
+  {
+    auto changes_info =
+      handleExceptions(&ModdedApplication::getExternalChanges, apps_[app_id], deployer);
+    if(!changes_info)
+      emit completedOperations("Checking for external changes failed");
+    else
+      emit sendExternalChangesInfo(app_id, *changes_info, apps_[app_id].getNumDeployers());
+  }
+  else
+    emit completedOperations("Checking for external changes failed");
+}
+
+void ApplicationManager::keepOrRevertFileModifications(
+  int app_id,
+  int deployer,
+  const FileChangeChoices& changes_to_keep)
+{
+  if(appIndexIsValid(app_id) && deployerIndexIsValid(app_id, deployer))
+  {
+    const bool has_throw = handleExceptions<&ModdedApplication::keepOrRevertFileModifications>(
+      app_id, deployer, changes_to_keep);
+    if(has_throw)
+      emit completedOperations("Applying external changes failed");
+    else
+      emit externalChangesHandled(app_id, deployer, apps_[app_id].getNumDeployers());
+  }
+  else
+    emit completedOperations("Applying external changes failed");
+}
