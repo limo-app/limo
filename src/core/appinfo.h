@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "deployer.h"
 #include "tagcondition.h"
 #include <map>
 #include <string>
@@ -44,10 +45,8 @@ struct AppInfo
    * \ref ModdedApplication "application".
    */
   std::vector<int> deployer_mods{};
-  /*!
-   * \brief One bool per deployer indicating whether file are copied for deployment.
-   */
-  std::vector<bool> uses_copy_deployment{};
+  /*! \brief For every deployer: Determines how files will be deployed to the target directory. */
+  std::vector<Deployer::DeployMode> deploy_modes{};
   /*!
    * \brief Name and command for each tool belonging to the
    * \ref ModdedApplication "application".

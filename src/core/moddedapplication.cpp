@@ -256,7 +256,7 @@ void ModdedApplication::addDeployer(const EditDeployerInfo& info)
   if(DeployerFactory::AUTONOMOUS_DEPLOYERS.at(info.type))
     source_dir = info.source_dir;
   deployers_.push_back(DeployerFactory::makeDeployer(
-    info.type, source_dir, info.target_dir, info.name, info.use_copy_deployment));
+    info.type, source_dir, info.target_dir, info.name, info.deploy_mode));
   for(int i = 0; i < profile_names_.size(); i++)
     deployers_[deployers_.size() - 1]->addProfile();
   deployers_[deployers_.size() - 1]->setProfile(current_profile_);
@@ -421,7 +421,7 @@ AppInfo ModdedApplication::getAppInfo() const
     info.target_dirs.push_back(deployer->getDestPath());
     info.deployer_source_dirs.push_back(deployer->getSourcePath());
     info.deployer_mods.push_back(deployer->getNumMods());
-    info.uses_copy_deployment.push_back(deployer->usesCopyDeployment());
+    info.deploy_modes.push_back(deployer->getDeployMode());
   }
   info.tools = tools_;
   for(const auto& tag : manual_tags_)
@@ -471,7 +471,7 @@ void ModdedApplication::editDeployer(int deployer, const EditDeployerInfo& info)
   {
     deployers_[deployer]->setName(info.name);
     deployers_[deployer]->setDestPath(info.target_dir);
-    deployers_[deployer]->setUseCopyDeployment(info.use_copy_deployment);
+    deployers_[deployer]->setDeployMode(info.deploy_mode);
   }
   else
   {
@@ -479,7 +479,7 @@ void ModdedApplication::editDeployer(int deployer, const EditDeployerInfo& info)
     json_settings_["deployers"][deployer]["name"] = info.name;
     json_settings_["deployers"][deployer]["dest_path"] = info.target_dir;
     json_settings_["deployers"][deployer]["type"] = info.type;
-    json_settings_["deployers"][deployer]["use_copy_deployment"] = info.use_copy_deployment;
+    json_settings_["deployers"][deployer]["deploy_mode"] = info.deploy_mode;
     updateState();
   }
   if(deployers_[deployer]->isAutonomous())
@@ -1483,8 +1483,7 @@ void ModdedApplication::updateSettings(bool write)
     json_settings_["deployers"][depl]["source_path"] = deployers_[depl]->sourcePath().string();
     json_settings_["deployers"][depl]["name"] = deployers_[depl]->getName();
     json_settings_["deployers"][depl]["type"] = deployers_[depl]->getType();
-    json_settings_["deployers"][depl]["use_copy_deployment"] =
-      deployers_[depl]->usesCopyDeployment();
+    json_settings_["deployers"][depl]["deploy_mode"] = deployers_[depl]->getDeployMode();
 
     if(!deployers_[depl]->isAutonomous())
     {
@@ -1662,12 +1661,20 @@ void ModdedApplication::updateState(bool read)
     if(std::find(types.begin(), types.end(), type) == types.end())
       throw ParseError("Unknown deployer type: " + type + " in \"" +
                        (staging_dir_ / CONFIG_FILE_NAME).string() + "\"");
+
+    Deployer::DeployMode deploy_mode = Deployer::hard_link;
+    if(deployers[depl].isMember("use_copy_deployment"))
+      deploy_mode =
+        deployers[depl]["use_copy_deployment"].asBool() ? Deployer::copy : Deployer::hard_link;
+    else
+      deploy_mode = static_cast<Deployer::DeployMode>(deployers[depl]["deploy_mode"].asInt());
     deployers_.push_back(
       DeployerFactory::makeDeployer(type,
                                     sfs::path(deployers[depl]["source_path"].asString()),
                                     sfs::path(deployers[depl]["dest_path"].asString()),
                                     deployers[depl]["name"].asString(),
-                                    deployers[depl]["use_copy_deployment"].asBool()));
+                                    deploy_mode));
+
     if(!deployers_[depl]->isAutonomous())
     {
       for(int prof = 0; prof < profile_names_.size(); prof++)

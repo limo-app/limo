@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "deployer.h"
 #include <string>
 
 
@@ -20,8 +21,8 @@ struct EditDeployerInfo
   std::string name;
   /*! \brief This is where the deployer will deploy to. */
   std::string target_dir;
-  /*! \brief If true: Copy mods to target directory, else: use hard links. */
-  bool use_copy_deployment;
+  /*! \brief Determines how files will be deployed to the target directory. */
+  Deployer::DeployMode deploy_mode;
   /*! \brief The deployers mod source directory. Only used by autonomous deployers. */
   std::string source_dir = "";
 };

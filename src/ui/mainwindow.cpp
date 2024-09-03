@@ -778,13 +778,19 @@ void MainWindow::setupButtons()
 
 void MainWindow::showEditDeployerDialog(int deployer)
 {
+  QString deploy_mode_string =
+    ui->info_deployer_list->item(deployer, getColumnIndex(ui->info_deployer_list, "Mode"))->text();
+  Deployer::DeployMode deploy_mode = Deployer::hard_link;
+  if(deploy_mode_string == deploy_mode_sym_link)
+    deploy_mode = Deployer::sym_link;
+  else if(deploy_mode_string == deploy_mode_copy)
+    deploy_mode = Deployer::copy;
   add_deployer_dialog_->setEditMode(
     ui->info_deployer_list->item(deployer, getColumnIndex(ui->info_deployer_list, "Type"))->text(),
     ui->info_deployer_list->item(deployer, getColumnIndex(ui->info_deployer_list, "Name"))->text(),
     deployer_target_paths_[deployer],
     deployer_source_paths_[deployer],
-    ui->info_deployer_list->item(deployer, getColumnIndex(ui->info_deployer_list, "Mode"))
-        ->text() == "Copy",
+    deploy_mode,
     currentApp(),
     deployer);
   setBusyStatus(true, false);
@@ -1592,8 +1598,12 @@ void MainWindow::onGetAppInfo(AppInfo app_info)
     ui->info_deployer_list->setItem(i, 2, new QTableWidgetItem(app_info.deployer_types[i].c_str()));
     ui->info_deployer_list->setItem(
       i, 3, new QTableWidgetItem(QString::number(app_info.deployer_mods[i])));
-    ui->info_deployer_list->setItem(
-      i, 4, new QTableWidgetItem(QString(app_info.uses_copy_deployment[i] ? "Copy" : "Link")));
+    QString deploy_mode = deploy_mode_hard_link;
+    if(app_info.deploy_modes[i] == Deployer::sym_link)
+      deploy_mode = deploy_mode_sym_link;
+    else if(app_info.deploy_modes[i] == Deployer::copy)
+      deploy_mode = deploy_mode_copy;
+    ui->info_deployer_list->setItem(i, 4, new QTableWidgetItem(deploy_mode));
     ui->info_deployer_list->setItem(i, 5, new QTableWidgetItem(app_info.target_dirs[i].c_str()));
   }
   ui->info_deployer_list->setColumnWidth(0, 50);
@@ -1826,7 +1836,9 @@ void MainWindow::onExtractionComplete(int app_id,
   QStringList deployers;
   for(int i = 0; i < ui->deployer_selection_box->count(); i++)
     deployers << ui->deployer_selection_box->itemText(i);
+  QStringList group_names;
   QStringList mod_names;
+  QStringList mod_versions;
   std::vector<int> mod_ids;
   const auto mods = mod_list_model_->getModInfo();
   for(int i = 0; i < mods.size(); i++)
@@ -1835,7 +1847,9 @@ void MainWindow::onExtractionComplete(int app_id,
     std::string prefix = " ";
     if(mods[i].group != -1 && !mods[i].is_active_group_member)
       prefix = "[INACTIVE] ";
-    mod_names << (prefix + mod.name + " [" + std::to_string(mod.id) + "]").c_str();
+    group_names << (prefix + mod.name + " [" + std::to_string(mod.id) + "]").c_str();
+    mod_names << mod.name.c_str();
+    mod_versions << mod.version.c_str();
     mod_ids.push_back(mod.id);
   }
   int deployer =
@@ -1852,7 +1866,7 @@ void MainWindow::onExtractionComplete(int app_id,
   bool was_successful = add_mod_dialog_->setupDialog(name.filename().c_str(),
                                                      deployers,
                                                      deployer,
-                                                     mod_names,
+                                                     group_names,
                                                      mod_ids,
                                                      extracted_path,
                                                      deployer_paths,
@@ -1861,7 +1875,9 @@ void MainWindow::onExtractionComplete(int app_id,
                                                      ui->info_version_label->text(),
                                                      local_source,
                                                      remote_source,
-                                                     mod_id);
+                                                     mod_id,
+                                                     mod_names,
+                                                     mod_versions);
   if(was_successful)
   {
     setBusyStatus(true, false);

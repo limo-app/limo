@@ -6,25 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>533</width>
-    <height>226</height>
+    <width>660</width>
+    <height>255</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>New Deployer</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <item row="1" column="0">
-    <widget class="QCheckBox" name="copy_box">
-     <property name="toolTip">
-      <string>Copy all files instead of using hard links</string>
-     </property>
-     <property name="text">
-      <string>Use copy deployment</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0" colspan="3">
+   <item row="1" column="0" colspan="3">
     <widget class="QLabel" name="warning_label">
      <property name="text">
       <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -43,6 +33,113 @@ li.checked::marker { content: &quot;\2612&quot;; }
       <set>Qt::LinksAccessibleByMouse</set>
      </property>
     </widget>
+   </item>
+   <item row="0" column="0" colspan="3">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="2" column="1">
+      <widget class="ValidatingLineEdit" name="source_path_field"/>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="source_dir_label">
+       <property name="text">
+        <string>Source directory:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="ValidatingLineEdit" name="name_field"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="toolTip">
+        <string>This is where installed mods will be deployed to</string>
+       </property>
+       <property name="text">
+        <string>Target directory:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="ValidatingLineEdit" name="path_field"/>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="toolTip">
+        <string>Name of the deployer</string>
+       </property>
+       <property name="text">
+        <string>Name:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QPushButton" name="source_picker_button">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset theme="folder-open">
+         <normaloff>.</normaloff>.</iconset>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="toolTip">
+        <string>Determines how mods will be deployed</string>
+       </property>
+       <property name="text">
+        <string>Deployer type:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QComboBox" name="type_box"/>
+     </item>
+     <item row="1" column="2">
+      <widget class="QPushButton" name="file_picker_button">
+       <property name="toolTip">
+        <string>Pick target directory</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset theme="folder-open">
+         <normaloff>.</normaloff>.</iconset>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="toolTip">
+        <string>Determines how files will be deployed.</string>
+       </property>
+       <property name="text">
+        <string>Deployment method:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="deploy_mode_box">
+       <item>
+        <property name="text">
+         <string>Hard Link</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Sym Link</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Copy</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
    </item>
    <item row="3" column="1">
     <spacer name="verticalSpacer">
@@ -67,83 +164,15 @@ li.checked::marker { content: &quot;\2612&quot;; }
      </property>
     </widget>
    </item>
-   <item row="0" column="0" colspan="3">
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="label">
-       <property name="toolTip">
-        <string>Name of the deployer</string>
-       </property>
-       <property name="text">
-        <string>Name:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="ValidatingLineEdit" name="name_field"/>
-     </item>
-     <item row="3" column="1">
-      <widget class="QComboBox" name="type_box"/>
-     </item>
-     <item row="1" column="1">
-      <widget class="ValidatingLineEdit" name="path_field"/>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="toolTip">
-        <string>This is where installed mods will be deployed to</string>
-       </property>
-       <property name="text">
-        <string>Target directory:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="ValidatingLineEdit" name="source_path_field"/>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="source_dir_label">
-       <property name="text">
-        <string>Source directory:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="2">
-      <widget class="QPushButton" name="file_picker_button">
-       <property name="toolTip">
-        <string>Pick target directory</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset theme="folder-open">
-         <normaloff>.</normaloff>.</iconset>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_4">
-       <property name="toolTip">
-        <string>Determines how mods will be deployed</string>
-       </property>
-       <property name="text">
-        <string>Deployer type:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="2">
-      <widget class="QPushButton" name="source_picker_button">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset theme="folder-open">
-         <normaloff>.</normaloff>.</iconset>
-       </property>
-      </widget>
-     </item>
-    </layout>
+   <item row="2" column="0" colspan="3">
+    <widget class="QLabel" name="sym_link_label">
+     <property name="text">
+      <string>Sym link deployment may cause issues in rare cases, but can, unlike hard link deployment, be used across filesystems. If possible, prefer hard links.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

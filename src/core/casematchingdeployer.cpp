@@ -10,8 +10,8 @@ namespace pu = path_utils;
 CaseMatchingDeployer::CaseMatchingDeployer(const sfs::path& source_path,
                                            const sfs::path& dest_path,
                                            const std::string& name,
-                                           bool use_copy_deployment) :
-  Deployer(source_path, dest_path, name, use_copy_deployment)
+                                           DeployMode deploy_mode) :
+  Deployer(source_path, dest_path, name, deploy_mode)
 {
   type_ = "Case Matching Deployer";
 }

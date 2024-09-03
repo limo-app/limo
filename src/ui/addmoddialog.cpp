@@ -97,7 +97,9 @@ bool AddModDialog::setupDialog(const QString& name,
                                const QString& app_version,
                                const QString& local_source,
                                const QString& remote_source,
-                               int mod_id)
+                               int mod_id,
+                               const QStringList& mod_names,
+                               const QStringList& mod_versions)
 {
   ui->name_text->setFocus();
   app_id_ = app_id;
@@ -119,19 +121,27 @@ bool AddModDialog::setupDialog(const QString& name,
   ui->group_field->setCompleter(completer_.get());
   ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
   ui->group_check->setCheckState(Qt::Unchecked);
+  int mod_index = -1;
   if(mod_id != -1)
   {
     auto iter = str::find(mod_ids, mod_id);
     if(iter != mod_ids.end())
     {
-      ui->group_field->setText(groups[iter - mod_ids.begin()]);
+      mod_index = iter - mod_ids.begin();
+      ui->group_field->setText(groups[mod_index]);
       ui->group_check->setCheckState(Qt::Checked);
+      ui->group_combo_box->setCurrentIndex(REPLACE_MOD_INDEX);
     }
   }
   std::regex name_regex(R"(-\d+((?:-[\dA-Za-z]+)+)-\d+\.(?:zip|7z|rar)$)");
   std::smatch match;
   std::string name_str = name.toStdString();
-  if(std::regex_search(name_str, match, name_regex))
+  if(mod_index >= 0 && mod_index < mod_names.size())
+  {
+    ui->name_text->setText(mod_names[mod_index]);
+    ui->version_text->setText(mod_versions[mod_index]);
+  }
+  else if(std::regex_search(name_str, match, name_regex))
   {
     ui->name_text->setText(match.prefix().str().c_str());
     std::string version_str = match[1].str();

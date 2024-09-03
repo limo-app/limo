@@ -18,12 +18,12 @@ public:
    * \param source_path Path to directory containing mods installed using the Installer class.
    * \param dest_path Path to target directory for mod deployment.
    * \param name A custom name for this instance.
-   * \param use_copy_deployment If True: copy files during deployment, else use hard links.
+   * \param deploy_mode Determines how files are deployed to the target directory.
    */
   CaseMatchingDeployer(const std::filesystem::path& source_path,
                        const std::filesystem::path& dest_path,
                        const std::string& name,
-                       bool use_copy_deployment = false);
+                       DeployMode deploy_mode = hard_link);
   /*!
    * \brief Iterates over every file and directory contained in the mods in the given load order.
    * If any name case insensitively matches the name of a file in the target directory, the source

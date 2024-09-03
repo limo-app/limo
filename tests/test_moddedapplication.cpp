@@ -44,7 +44,7 @@ TEST_CASE("Deployers are added", "[.app]")
   resetStagingDir();
   resetAppDir();
   ModdedApplication app(DATA_DIR / "staging", "test");
-  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "app", false });
+  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "app", Deployer::hard_link });
   AddModInfo info{ "mod 0",
                    "1.0",
                    Installer::SIMPLEINSTALLER,
@@ -69,8 +69,8 @@ TEST_CASE("State is saved", "[.app]")
   resetStagingDir();
   resetAppDir();
   ModdedApplication app(DATA_DIR / "staging", "test");
-  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "app", false });
-  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl1", DATA_DIR / "app_2", false });
+  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "app", Deployer::hard_link });
+  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl1", DATA_DIR / "app_2", Deployer::hard_link });
   app.addProfile(EditProfileInfo{ "test profile", "", -1 });
   app.addTool("a tool", "a command");
   app.addTool("another tool", "another command");
@@ -116,8 +116,8 @@ TEST_CASE("Groups update loadorders", "[.app]")
 {
   resetStagingDir();
   ModdedApplication app(DATA_DIR / "staging", "test");
-  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "app", false });
-  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl1", DATA_DIR / "app_2", false });
+  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "app", Deployer::hard_link });
+  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl1", DATA_DIR / "app_2", Deployer::hard_link });
   AddModInfo info{ "mod 0",
                    "1.0",
                    Installer::SIMPLEINSTALLER,
@@ -154,27 +154,27 @@ TEST_CASE("Mods are split", "[.app]")
   resetStagingDir();
   ModdedApplication app(DATA_DIR / "staging", "test");
   app.addDeployer(
-    { DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "source" / "split" / "targets", false });
+    { DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "source" / "split" / "targets", Deployer::hard_link });
   app.addDeployer({ DeployerFactory::CASEMATCHINGDEPLOYER,
                     "depl1",
                     DATA_DIR / "source" / "split" / "targets" / "a",
-                    false });
+                    Deployer::hard_link });
   app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER,
                     "depl3",
                     DATA_DIR / "source" / "split" / "targets" / "a" / "b",
-                    false });
+                    Deployer::hard_link });
   app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER,
                     "depl3",
                     DATA_DIR / "source" / "split" / "targets" / "a" / "b" / "123",
-                    false });
+                    Deployer::hard_link });
   app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER,
                     "depl4",
                     DATA_DIR / "source" / "split" / "targets" / "a" / "c",
-                    false });
+                    Deployer::hard_link });
   app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER,
                     "depl2",
                     DATA_DIR / "source" / "split" / "targets" / "d",
-                    false });
+                    Deployer::hard_link });
   AddModInfo info{ "mod 0",
                    "1.0",
                    Installer::SIMPLEINSTALLER,
@@ -193,8 +193,8 @@ TEST_CASE("Mods are uninstalled", "[.app]")
 {
   resetStagingDir();
   ModdedApplication app(DATA_DIR / "staging", "test");
-  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "app", false });
-  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl1", DATA_DIR / "app_2", false });
+  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "app", Deployer::hard_link });
+  app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl1", DATA_DIR / "app_2", Deployer::hard_link });
   AddModInfo info{ "mod 0",
                    "1.0",
                    Installer::SIMPLEINSTALLER,

@@ -51,11 +51,13 @@ public:
    * \param source_path Path to directory containing mods installed using the Installer class.
    * \param dest_path Path to target directory for mod deployment.
    * \param name A custom name for this instance.
+   * \param deploy_mode Determines how files are deployed to the target directory
    * \return The constructed unique pointer.
    */
-  static std::unique_ptr<Deployer> makeDeployer(const std::string& type,
-                                                const std::filesystem::path& source_path,
-                                                const std::filesystem::path& dest_path,
-                                                const std::string& name,
-                                                bool use_copy_deployment = false);
+  static std::unique_ptr<Deployer> makeDeployer(
+    const std::string& type,
+    const std::filesystem::path& source_path,
+    const std::filesystem::path& dest_path,
+    const std::string& name,
+    Deployer::DeployMode deploy_mode = Deployer::hard_link);
 };

@@ -3,6 +3,7 @@
 	"deployers" : 
 	[
 		{
+			"deploy_mode" : 0,
 			"dest_path" : "/home/christian/workspaces/Qt/LinuxModManager/tests/data/app",
 			"name" : "depl0",
 			"profiles" : 
@@ -30,10 +31,10 @@
 				}
 			],
 			"source_path" : "/home/christian/workspaces/Qt/LinuxModManager/tests/data/staging",
-			"type" : "Simple Deployer",
-			"use_copy_deployment" : false
+			"type" : "Simple Deployer"
 		},
 		{
+			"deploy_mode" : 0,
 			"dest_path" : "/home/christian/workspaces/Qt/LinuxModManager/tests/data/app_2",
 			"name" : "depl1",
 			"profiles" : 
@@ -56,8 +57,7 @@
 				}
 			],
 			"source_path" : "/home/christian/workspaces/Qt/LinuxModManager/tests/data/staging",
-			"type" : "Simple Deployer",
-			"use_copy_deployment" : false
+			"type" : "Simple Deployer"
 		}
 	],
 	"icon_path" : "",
@@ -65,26 +65,26 @@
 	[
 		{
 			"id" : 1,
-			"install_time" : 1725381160,
+			"install_time" : 1725403111,
 			"installer" : "Simple Installer",
 			"local_source" : "",
 			"name" : "mod 1",
 			"remote_source" : "",
-			"remote_update_time" : 1725381160,
+			"remote_update_time" : 1725403111,
 			"size_on_disk" : 20,
-			"suppress_update_time" : 1725381160,
+			"suppress_update_time" : 1725403111,
 			"version" : "1.0"
 		},
 		{
 			"id" : 2,
-			"install_time" : 1725381160,
+			"install_time" : 1725403111,
 			"installer" : "Simple Installer",
 			"local_source" : "",
 			"name" : "mod 0",
 			"remote_source" : "",
-			"remote_update_time" : 1725381160,
+			"remote_update_time" : 1725403111,
 			"size_on_disk" : 30,
-			"suppress_update_time" : 1725381160,
+			"suppress_update_time" : 1725403111,
 			"version" : "1.0"
 		}
 	],

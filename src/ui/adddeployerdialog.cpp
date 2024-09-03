@@ -59,8 +59,9 @@ void AddDeployerDialog::setAddMode(int app_id)
   setWindowTitle("New Deployer");
   ui->name_field->clear();
   ui->path_field->clear();
-  ui->copy_box->setCheckState(Qt::Unchecked);
+  ui->deploy_mode_box->setCurrentIndex(Deployer::hard_link);
   ui->warning_label->setHidden(true);
+  ui->sym_link_label->setHidden(true);
   edit_mode_ = false;
   setupTypeBox();
   enableOkButton(false);
@@ -75,7 +76,7 @@ void AddDeployerDialog::setEditMode(const QString& type,
                                     const QString& name,
                                     const QString& target_path,
                                     const QString& source_path,
-                                    bool use_copy_deployment,
+                                    Deployer::DeployMode deploy_mode,
                                     int app_id,
                                     int deployer_id)
 {
@@ -85,11 +86,9 @@ void AddDeployerDialog::setEditMode(const QString& type,
   type_ = type;
   app_id_ = app_id;
   deployer_id_ = deployer_id;
-  ui->copy_box->setCheckState(use_copy_deployment ? Qt::Checked : Qt::Unchecked);
-  if(use_copy_deployment)
-    ui->warning_label->setHidden(false);
-  else
-    ui->warning_label->setHidden(true);
+  ui->deploy_mode_box->setCurrentIndex(deploy_mode);
+  ui->warning_label->setHidden(deploy_mode != Deployer::copy);
+  ui->sym_link_label->setHidden(deploy_mode != Deployer::sym_link);
   setupTypeBox();
   setWindowTitle("Edit " + name);
   edit_mode_ = true;
@@ -161,7 +160,7 @@ void AddDeployerDialog::on_buttonBox_accepted()
   info.name = ui->name_field->text().toStdString();
   info.target_dir = ui->path_field->text().toStdString();
   info.source_dir = ui->source_path_field->text().toStdString();
-  info.use_copy_deployment = ui->copy_box->checkState() == Qt::Checked;
+  info.deploy_mode = static_cast<Deployer::DeployMode>(ui->deploy_mode_box->currentIndex());
   if(edit_mode_)
     emit deployerEdited(info, app_id_, deployer_id_);
   else
@@ -174,21 +173,10 @@ void AddDeployerDialog::onFileDialogAccepted(const QString& path)
     ui->path_field->setText(path);
 }
 
-
-void AddDeployerDialog::on_copy_box_stateChanged(int state)
-{
-  if(state == Qt::Checked)
-    ui->warning_label->setHidden(false);
-  else
-    ui->warning_label->setHidden(true);
-}
-
-
 void AddDeployerDialog::on_type_box_currentIndexChanged(int index)
 {
   updateSourceFields();
 }
-
 
 void AddDeployerDialog::on_source_picker_button_clicked()
 {
@@ -216,3 +204,10 @@ void AddDeployerDialog::on_source_path_field_textChanged(const QString& path)
 {
   updateOkButton();
 }
+
+void AddDeployerDialog::on_deploy_mode_box_currentIndexChanged(int index)
+{
+  ui->warning_label->setHidden(index != Deployer::copy);
+  ui->sym_link_label->setHidden(index != Deployer::sym_link);
+}
+

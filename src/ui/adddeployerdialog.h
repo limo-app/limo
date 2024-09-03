@@ -40,6 +40,7 @@ public:
    * \param name Current name of the edited Deployer.
    * \param target_path Current target directory of the edited Deployer.
    * \param source_path Current source directory of the edited Deployer.
+   * \param deploy_mode Determines how files are deployed to the target directory.
    * \param app_id Id of the ModdedApplication owning the edited Deployer.
    * \param deployer_id Id of the edited Deployer.
    */
@@ -47,7 +48,7 @@ public:
                    const QString& name,
                    const QString& target_path,
                    const QString& source_path,
-                   bool use_copy_deployment,
+                   Deployer::DeployMode deploy_mode,
                    int app_id,
                    int deployer_id);
   /*! \brief Enables/ Disables the ui elements responsible for setting a source directory. */
@@ -97,8 +98,6 @@ private slots:
   void on_buttonBox_accepted();
   /*! \brief Updates the target path with given path. */
   void onFileDialogAccepted(const QString& path);
-  /*! \brief Updates the warning label. */
-  void on_copy_box_stateChanged(int arg1);
   /*! \brief Updates the source path widgets enabled status. */
   void on_type_box_currentIndexChanged(int index);
   /*! \brief Shows a file dialog for the source directory path. */
@@ -107,6 +106,11 @@ private slots:
   void onSourceDialogAccepted(const QString& path);
   /*! \brief Only enable the OK button if a valid source directory path has been entered. */
   void on_source_path_field_textChanged(const QString& path);
+  /*!
+   * \brief Hides/ shows warning labels for deploy modes.
+   * \param index New index.
+   */
+  void on_deploy_mode_box_currentIndexChanged(int index);
 
 signals:
   /*!

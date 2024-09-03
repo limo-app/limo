@@ -51,6 +51,8 @@ public:
    * \param local_source Source archive for the mod.
    * \param remote_source URL from where the mod was downloaded.
    * \param mod_id If =! -1: Id of the mod to the group of which the new mod should be added by default.
+   * \param mod_names Contains the name of all currently installed mods.
+   * \param mod_versions Contains the versions of all currently installed mods.
    * \return True if dialog creation was successful.
    */
   bool setupDialog(const QString& name,
@@ -65,7 +67,9 @@ public:
                    const QString& app_version,
                    const QString& local_source,
                    const QString& remote_source,
-                   int mod_id);
+                   int mod_id,
+                   const QStringList& mod_names,
+                   const QStringList& mod_versions);
   /*!
    * \brief Closes the dialog and emits a signal indicating installation has been canceled.
    * \param event The close even sent upon closing the application.

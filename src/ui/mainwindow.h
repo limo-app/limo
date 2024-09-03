@@ -103,6 +103,12 @@ private:
   static constexpr int deployer_tab_idx = 2;
   /*! \brief Index of the app tab. */
   static constexpr int backup_tab_idx = 3;
+  /*! \brief Display string for hard link deployment. */
+  static inline const QString deploy_mode_hard_link = "Hard Link";
+  /*! \brief Display string for sym link deployment. */
+  static inline const QString deploy_mode_sym_link = "Sym Link";
+  /*! \brief Display string for copy deployment. */
+  static inline const QString deploy_mode_copy = "Copy";
   /*! \brief True if the button used to reorder load orders is being pressed. */
   bool move_button_pressed_ = false;
   /*! \brief Stores the row containing the currently held down move button for load orders. */

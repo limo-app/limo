@@ -7,13 +7,13 @@ std::unique_ptr<Deployer> DeployerFactory::makeDeployer(const std::string& type,
                                                         const std::filesystem::path& source_path,
                                                         const std::filesystem::path& dest_path,
                                                         const std::string& name,
-                                                        bool use_copy_deployment)
+                                                        Deployer::DeployMode deploy_mode)
 {
   if(type == SIMPLEDEPLOYER)
-    return std::make_unique<Deployer>(source_path, dest_path, name, use_copy_deployment);
+    return std::make_unique<Deployer>(source_path, dest_path, name, deploy_mode);
   else if(type == CASEMATCHINGDEPLOYER)
     return std::make_unique<CaseMatchingDeployer>(
-      source_path, dest_path, name, use_copy_deployment);
+      source_path, dest_path, name, deploy_mode);
   else if(type == LOOTDEPLOYER)
     return std::make_unique<LootDeployer>(source_path, dest_path, name);
   else

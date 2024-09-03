@@ -22,17 +22,28 @@
 class Deployer
 {
 public:
+  /*! \brief Describes how files should be deployed to the target directory. */
+  enum DeployMode
+  {
+    /*! \brief Create hard links for files. */
+    hard_link = 0,
+    /*! \brief Create sym links for files. */
+    sym_link = 1,
+    /*! \brief Copy files. */
+    copy = 2
+  };
+
   /*!
    * \brief Constructor.
    * \param source_path Path to directory containing mods installed using the Installer class.
    * \param dest_path Path to target directory for mod deployment.
    * \param name A custom name for this instance.
-   * \param use_copy_deployment If True: copy files during deployment, else use hard links.
+   * \param deploy_mode Determines how files are deployed to the target directory.
    */
   Deployer(const std::filesystem::path& source_path,
            const std::filesystem::path& dest_path,
            const std::string& name,
-           bool use_copy_deployment = false);
+           DeployMode deploy_mode = hard_link);
 
   /*!
    * \brief Getter for path to deployment target directory.
@@ -208,15 +219,15 @@ public:
    */
   virtual void setConflictGroups(const std::vector<std::vector<int>>& newConflict_groups);
   /*!
-   * \brief Getter for use_copy_deployment_.
-   * \return True if this copies files during deployment, else use hard links.
+   * \brief Getter for the current DeployMode.
+   * \return The current DeployMode.
    */
-  bool usesCopyDeployment() const;
+  DeployMode getDeployMode() const;
   /*!
-   * \brief Sets the copy deployment.
-   * \param newUse_copy_deployment If true: copy files during deployment, else use hard links.
+   * \brief Sets the current DeployMode.
+   * \param deploy_mode The new DeployMode.
    */
-  void setUseCopyDeployment(bool newUse_copy_deployment);
+  void setDeployMode(DeployMode deploy_mode);
   /*! \brief Getter for is_autonomous_. */
   bool isAutonomous();
   /*!
@@ -312,8 +323,8 @@ protected:
    * group contains mods with no conflicts.
    */
   std::vector<std::vector<std::vector<int>>> conflict_groups_;
-  /*! \brief If false: Use hard links to deploy mods, else: copy files. */
-  bool use_copy_deployment_ = false;
+  /*! \brief Determines how files should be deployed to the target directory. */
+  DeployMode deploy_mode_ = hard_link;
   /*! \brief Autonomous deployers manage their own mods and do not rely on ModdedApplication. */
   bool is_autonomous_ = false;
   /*! \brief If true: Automatically update conflict groups when necessary. */

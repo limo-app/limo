@@ -2,6 +2,8 @@
 #include "../src/core/deployer.h"
 #include "test_utils.h"
 #include <catch2/catch_test_macros.hpp>
+#include <filesystem>
+#include <iostream>
 #include <set>
 #include <ranges>
 
@@ -249,4 +251,24 @@ TEST_CASE("External changes are handeld", "[.deployer]")
   REQUIRE(sfs::equivalent(DATA_DIR / "staging" / "0" / "b" / "3aBc", DATA_DIR / "app" / "b" / "3aBc"));
   REQUIRE(sfs::equivalent(DATA_DIR / "staging" / "1" / "6", DATA_DIR / "app" / "6"));
   REQUIRE(sfs::equivalent(DATA_DIR / "staging" / "2" / "0.txt", DATA_DIR / "app" / "0.txt"));
+}
+
+TEST_CASE("Files are deployed as sym links", "[.deployer]")
+{
+  resetAppDir();
+  Deployer depl = Deployer(DATA_DIR / "source", DATA_DIR / "app", "", Deployer::sym_link);
+  depl.addProfile();
+  depl.addMod(0, true);
+  depl.addMod(1, true);
+  depl.addMod(2, true);
+  depl.deploy();
+  verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "mod012", false);
+  for(const auto& dir_entry : std::filesystem::recursive_directory_iterator(DATA_DIR / "app"))
+  {
+    // exclude directories, files which are not overwritten and .lmmfiles
+    if(!dir_entry.is_directory() && dir_entry.path().extension() != ".lmmbak"
+      && dir_entry.path().filename() != ".lmmfiles" && dir_entry.path().filename() != "file.cfg"
+      && dir_entry.path().filename() != "wasd" && dir_entry.path().filename() != "0")
+        REQUIRE(std::filesystem::is_symlink(dir_entry.path()));
+  }
 }

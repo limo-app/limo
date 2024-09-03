@@ -1,6 +1,6 @@
 /*!
  * \file filechangechoices.h
- * \brief Header for the FileChangeChoices struct.
+ * \brief Contains the FileChangeChoices struct.
  */
 
 #pragma once

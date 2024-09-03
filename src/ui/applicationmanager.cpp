@@ -238,7 +238,7 @@ void ApplicationManager::addApplication(EditApplicationInfo info)
         depl_info.type = DeployerFactory::CASEMATCHINGDEPLOYER;
         depl_info.name = name;
         depl_info.target_dir = target_path;
-        depl_info.use_copy_deployment = false;
+        depl_info.deploy_mode = Deployer::hard_link;
         depl_info.source_dir = info.staging_dir;
         apps_[apps_.size() - 1].addDeployer(depl_info);
       }
