@@ -43,7 +43,7 @@
       <description>
         <p>Added sym link support</p>
         <ul>
-          <li>Added sym link deployment type</li>
+          <li>Added sym link deployment option</li>
           <li>Added check for external changes before deployment</li>
           <li>Fixed file conflicts window displaying incorrect winner</li>
           <li>Reinstall from local now remembers mod name and version</li>
