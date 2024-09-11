@@ -38,6 +38,14 @@ public:
     std::optional<ProgressNode*> progress_node = {}) override;
   /*! \brief Use base class implementation of overloaded function. */
   using Deployer::deploy;
+  /*!
+   * \brief Updates the deployed files for one mod to match those in the mod's source directory.
+   * \param mod_id Target mod.
+   * \param progress_node Used to inform about progress.
+   */
+  virtual void updateDeployedFilesForMod(
+    int mod_id,
+    std::optional<ProgressNode*> progress_node = {}) const override;
 
 private:
   /*!

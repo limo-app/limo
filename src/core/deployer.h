@@ -300,6 +300,13 @@ public:
    * that file should be kept.
    */
   virtual void keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) const;
+  /*!
+   * \brief Updates the deployed files for one mod to match those in the mod's source directory.
+   * \param mod_id Target mod.
+   * \param progress_node Used to inform about progress.
+   */
+  virtual void updateDeployedFilesForMod(int mod_id,
+                                         std::optional<ProgressNode*> progress_node = {}) const;
 
 protected:
   /*! \brief Type of this deployer, e.g. Simple Deployer. */

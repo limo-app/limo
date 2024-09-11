@@ -46,8 +46,7 @@ public:
       "https://raw.githubusercontent.com/loot/morrowind/v0.21/masterlist.yaml" },
     { loot::GameType::tes4,
       "https://raw.githubusercontent.com/loot/oblivion/v0.21/masterlist.yaml" },
-    { loot::GameType::tes5,
-      "https://raw.githubusercontent.com/loot/skyrim/v0.21/masterlist.yaml" },
+    { loot::GameType::tes5, "https://raw.githubusercontent.com/loot/skyrim/v0.21/masterlist.yaml" },
     { loot::GameType::tes5se,
       "https://raw.githubusercontent.com/loot/skyrimse/v0.21/masterlist.yaml" },
     { loot::GameType::tes5vr,
@@ -207,7 +206,17 @@ public:
    * \brief Not supported by this Deployer type.
    * \param changes_to_keep Ignored.
    */
-  virtual void keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) const override;
+  virtual void keepOrRevertFileModifications(
+    const FileChangeChoices& changes_to_keep) const override;
+  /*!
+   * \brief Updates the deployed files for one mod to match those in the mod's source directory.
+   * This is not supported for this deployer type.
+   * \param mod_id Ignored.
+   * \param progress_node Ignored.
+   */
+  virtual void updateDeployedFilesForMod(
+    int mod_id,
+    std::optional<ProgressNode*> progress_node = {}) const override;
 
 private:
   /*! \brief Name of the file containing plugin load order. */
@@ -238,18 +247,12 @@ private:
   /*! \brief Name of a standard plugin tag. */
   static constexpr std::string STANDARD_PLUGIN = "Standard";
   /*! \brief Maps loot game types to the default name used to store plugins. */
-  static inline const std::map<loot::GameType, std::string> PLUGIN_FILE_NAMES =
-  {
-    { loot::GameType::fo3, "plugins.txt" },
-    { loot::GameType::fo4, "plugins.txt" },
-    { loot::GameType::fo4vr, "plugins.txt" },
-    { loot::GameType::fonv, "plugins.txt" },
-    { loot::GameType::starfield, "plugins.txt" },
-    { loot::GameType::tes3, "plugins.txt" },
-    { loot::GameType::tes4, "Plugins.txt" },
-    { loot::GameType::tes5, "plugins.txt" },
-    { loot::GameType::tes5se, "plugins.txt" },
-    { loot::GameType::tes5vr, "plugins.txt" }
+  static inline const std::map<loot::GameType, std::string> PLUGIN_FILE_NAMES = {
+    { loot::GameType::fo3, "plugins.txt" },       { loot::GameType::fo4, "plugins.txt" },
+    { loot::GameType::fo4vr, "plugins.txt" },     { loot::GameType::fonv, "plugins.txt" },
+    { loot::GameType::starfield, "plugins.txt" }, { loot::GameType::tes3, "plugins.txt" },
+    { loot::GameType::tes4, "Plugins.txt" },      { loot::GameType::tes5, "plugins.txt" },
+    { loot::GameType::tes5se, "plugins.txt" },    { loot::GameType::tes5vr, "plugins.txt" }
   };
   /*! \brief Name of the file containing plugin activation status. */
   std::string plugin_file_name_ = "plugins.txt";

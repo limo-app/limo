@@ -373,6 +373,10 @@ void LootDeployer::keepOrRevertFileModifications(const FileChangeChoices& change
 {
 }
 
+void LootDeployer::updateDeployedFilesForMod(int mod_id,
+                                             std::optional<ProgressNode*> progress_node) const
+{}
+
 void LootDeployer::updatePlugins()
 {
   std::vector<std::string> plugin_files;

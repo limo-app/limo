@@ -121,10 +121,11 @@ bool ImportFromSteamDialog::addTableRow(std::string app_id, sfs::path path)
 {
   // Name | App ID | Prefix | Path
   std::string file_name = std::string("appmanifest_") + app_id + ".acf";
-  std::ifstream file(path / "steamapps" / file_name);
+  const sfs::path file_path = path / "steamapps" / file_name;
+  std::ifstream file(file_path);
   if(!file.is_open())
   {
-    Log::warning(std::string("Could not open ") + file_name.c_str());
+    Log::warning(std::string("Could not open ") + file_path.c_str());
     return false;
   }
   std::string line;

@@ -769,8 +769,8 @@ std::vector<std::pair<sfs::path, int>> Deployer::getExternallyModifiedFiles(
       modPathExists(mod_id) && sfs::exists(target_path) && sfs::exists(mod_file_path) &&
       !sfs::is_directory(target_path) &&
       (deploy_mode_ == hard_link && !sfs::equivalent(mod_file_path, target_path) ||
-       deploy_mode_ == sym_link && (!sfs::is_symlink(target_path) ||
-                                    sfs::read_symlink(target_path) != mod_file_path));
+       deploy_mode_ == sym_link &&
+         (!sfs::is_symlink(target_path) || sfs::read_symlink(target_path) != mod_file_path));
     if(file_exists_and_is_modified_link)
       modified_files.emplace_back(path, mod_id);
 
@@ -824,5 +824,32 @@ void Deployer::keepOrRevertFileModifications(const FileChangeChoices& changes_to
       sfs::create_symlink(mod_file_path, target_path);
     else
       sfs::create_hard_link(mod_file_path, target_path);
+  }
+}
+
+void Deployer::updateDeployedFilesForMod(int mod_id,
+                                         std::optional<ProgressNode*> progress_node) const
+{
+  std::map<sfs::path, int> deployed_files = loadDeployedFiles(progress_node);
+  for(const auto& [path, id]: deployed_files)
+  {
+    if(id != mod_id)
+      continue;
+    const sfs::path dest_path = dest_path_ / path;
+    const sfs::path source_path = source_path_ / std::to_string(mod_id) / path;
+
+    if(sfs::exists(dest_path) && sfs::is_directory(dest_path)
+       || !sfs::exists(source_path) || sfs::is_directory(source_path))
+      continue;
+
+    if(sfs::exists(dest_path))
+      sfs::remove(dest_path);
+
+    if(deploy_mode_ == sym_link)
+      sfs::create_symlink(source_path, dest_path);
+    else if(deploy_mode_ == DeployMode::copy)
+      sfs::copy(source_path, dest_path);
+    else
+      sfs::create_hard_link(source_path, dest_path);
   }
 }

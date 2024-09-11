@@ -24,9 +24,40 @@ std::map<int, unsigned long> CaseMatchingDeployer::deploy(
     (*progress_node)->addChildren({ 2, 1, 3 });
   adaptLoadorderFiles(loadorder,
                       progress_node ? &(*progress_node)->child(0) : std::optional<ProgressNode*>{});
-  updateConflictGroups(progress_node ? &(*progress_node)->child(1) : std::optional<ProgressNode*>{});
+  updateConflictGroups(progress_node ? &(*progress_node)->child(1)
+                                     : std::optional<ProgressNode*>{});
   return Deployer::deploy(
     loadorder, progress_node ? &(*progress_node)->child(2) : std::optional<ProgressNode*>{});
+}
+
+void CaseMatchingDeployer::updateDeployedFilesForMod(
+  int mod_id,
+  std::optional<ProgressNode*> progress_node) const
+{
+  std::map<sfs::path, int> deployed_files = loadDeployedFiles(progress_node);
+  for(const auto& [path, id] : deployed_files)
+  {
+    if(id != mod_id)
+      continue;
+    const sfs::path dest_path = dest_path_ / path;
+    auto actual_path = pu::pathExists(path, source_path_ / std::to_string(mod_id));
+    if(!actual_path)
+      continue;
+    const sfs::path source_path = source_path_ / std::to_string(mod_id) / *actual_path;
+
+    if(sfs::exists(dest_path) && sfs::is_directory(dest_path) || sfs::is_directory(source_path))
+      continue;
+
+    if(sfs::exists(dest_path))
+      sfs::remove(dest_path);
+
+    if(deploy_mode_ == sym_link)
+      sfs::create_symlink(source_path, dest_path);
+    else if(deploy_mode_ == DeployMode::copy)
+      sfs::copy(source_path, dest_path);
+    else
+      sfs::create_hard_link(source_path, dest_path);
+  }
 }
 
 void CaseMatchingDeployer::adaptDirectoryFiles(const sfs::path& path,

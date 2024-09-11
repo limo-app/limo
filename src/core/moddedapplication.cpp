@@ -1922,11 +1922,16 @@ void ModdedApplication::replaceMod(const AddModInfo& info)
   index->remote_update_time = index->install_time;
   index->size_on_disk = mod_size;
 
-  std::vector<float> weights;
+  std::vector<float> weights_profiles;
+  std::vector<float> weights_mods;
   std::vector<std::vector<int>> update_targets;
   for(int depl = 0; depl < deployers_.size(); depl++)
   {
     update_targets.push_back({});
+    if(deployers_[depl]->hasMod(info.group))
+      weights_mods.push_back(deployers_[depl]->getNumMods());
+    else
+      weights_mods.push_back(0);
     if(deployers_[depl]->isAutonomous())
       continue;
     for(int prof = 0; prof < profile_names_.size(); prof++)
@@ -1935,19 +1940,23 @@ void ModdedApplication::replaceMod(const AddModInfo& info)
       if(deployers_[depl]->hasMod(info.group))
       {
         update_targets[depl].push_back(prof);
-        weights.push_back(deployers_[depl]->getNumMods());
+        weights_profiles.push_back(deployers_[depl]->getNumMods());
       }
     }
     deployers_[depl]->setProfile(current_profile_);
   }
-  ProgressNode node(progress_callback_, weights);
+
+  ProgressNode node(progress_callback_, { 10.0f, 6.0f });
+  node.child(0).addChildren(weights_mods);
+  node.child(1).addChildren(weights_profiles);
   int i = 0;
   for(int depl = 0; depl < update_targets.size(); depl++)
   {
+    deployers_[depl]->updateDeployedFilesForMod(info.group, &node.child(0).child(depl));
     for(int prof : update_targets[depl])
     {
       deployers_[depl]->setProfile(prof);
-      deployers_[depl]->updateConflictGroups(&node.child(i));
+      deployers_[depl]->updateConflictGroups(&node.child(1).child(i));
       i++;
     }
     deployers_[depl]->setProfile(current_profile_);
