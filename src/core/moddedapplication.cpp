@@ -1927,6 +1927,7 @@ void ModdedApplication::replaceMod(const AddModInfo& info)
   std::vector<std::vector<int>> update_targets;
   for(int depl = 0; depl < deployers_.size(); depl++)
   {
+    bool was_split = false;
     update_targets.push_back({});
     if(deployers_[depl]->hasMod(info.group))
       weights_mods.push_back(deployers_[depl]->getNumMods());
@@ -1941,6 +1942,11 @@ void ModdedApplication::replaceMod(const AddModInfo& info)
       {
         update_targets[depl].push_back(prof);
         weights_profiles.push_back(deployers_[depl]->getNumMods());
+        if(!was_split)
+        {
+          was_split = true;
+          splitMod(info.group, depl);
+        }
       }
     }
     deployers_[depl]->setProfile(current_profile_);

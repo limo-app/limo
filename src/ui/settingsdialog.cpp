@@ -397,7 +397,6 @@ void SettingsDialog::on_show_api_key_button_clicked()
       return;
     }
     const auto [cipher, nonce, tag, is_default_pw] = *res;
-    std::string pw = cryptography::default_key;
     if(!is_default_pw)
     {
       EnterApiPwDialog dialog(cipher, nonce, tag, this);
@@ -406,6 +405,20 @@ void SettingsDialog::on_show_api_key_button_clicked()
         return;
       api_key = dialog.getApiKey();
       nexus::Api::setApiKey(api_key);
+    }
+    else
+    {
+      try
+      {
+        api_key = cryptography::decrypt(cipher, cryptography::default_key, nonce, tag);
+      }
+      catch(CryptographyError& e)
+      {
+        const QString message = "Error during key decryption.";
+        Log::error(message.toStdString());
+        QMessageBox error_box(QMessageBox::Critical, "Error", message, QMessageBox::Ok);
+        error_box.exec();
+      }
     }
   }
   ui->api_key_label->setText(("API Key: " + api_key).c_str());
