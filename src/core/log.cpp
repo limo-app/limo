@@ -6,6 +6,7 @@
 namespace sfs = std::filesystem;
 
 inline constexpr std::string default_log_file_name = "limo_log";
+inline constexpr std::string default_log_file_extension = ".txt";
 
 std::string getTimestamp(Log::LogLevel log_level)
 {
@@ -40,6 +41,16 @@ void writeLog(const std::string& message, Log::LogLevel log_level)
   {
     Log::debug("Failed to write to log file!");
   }
+}
+
+std::string getOldLogFileName(int log_num)
+{
+  return default_log_file_name + "-" + std::to_string(log_num);
+}
+
+std::string getLogFileName(int log_num)
+{
+  return getOldLogFileName(log_num) + default_log_file_extension;
 }
 
 namespace Log
@@ -97,25 +108,33 @@ void init(sfs::path log_dir_path)
     if(!sfs::exists(log_dir_path))
       sfs::create_directories(log_dir_path);
 
-    const sfs::path max_file =
-      log_dir_path / (default_log_file_name + "-" + std::to_string(num_log_files - 1));
+    // rename files created before the .txt extension was used
+    if(sfs::exists(log_dir_path / default_log_file_name))
+      sfs::rename(log_dir_path / default_log_file_name,
+                  log_dir_path / (default_log_file_name + default_log_file_extension));
+    for(int i = 0; i < num_log_files; i++)
+    {
+      if(sfs::exists(log_dir_path / getOldLogFileName(i)))
+        sfs::rename(log_dir_path / getOldLogFileName(i), log_dir_path / getLogFileName(i));
+    }
+
+    // delete the oldest log, if file limit has been exceeded
+    const sfs::path max_file = log_dir_path / getLogFileName(num_log_files - 1);
     if(sfs::exists(max_file))
       sfs::remove(max_file);
 
+    // rename existing files to make room for a new log file
     for(int i = num_log_files - 2; i >= 0; i--)
     {
-      const sfs::path cur_file = log_dir_path / (default_log_file_name + "-" + std::to_string(i));
-      const sfs::path prev_file =
-        log_dir_path / (default_log_file_name + "-" + std::to_string(i + 1));
+      const sfs::path cur_file = log_dir_path / getLogFileName(i);
+      const sfs::path prev_file = log_dir_path / getLogFileName(i + 1);
       if(sfs::exists(cur_file))
-      {
         sfs::rename(cur_file, prev_file);
-      }
     }
 
-    log_file_path = log_dir_path / default_log_file_name;
+    log_file_path = log_dir_path / (default_log_file_name + default_log_file_extension);
     if(sfs::exists(log_file_path))
-      sfs::rename(log_file_path, log_dir_path / (default_log_file_name + "-0"));
+      sfs::rename(log_file_path, log_dir_path / getLogFileName(0));
   }
   catch(...)
   {
