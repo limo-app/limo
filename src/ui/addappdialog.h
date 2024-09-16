@@ -6,7 +6,9 @@
 #pragma once
 
 #include "../core/editapplicationinfo.h"
+#include "../core/editdeployerinfo.h"
 #include <QDialog>
+#include <json/json.h>
 
 
 namespace Ui
@@ -33,6 +35,29 @@ public:
 private:
   /*! \brief Contains auto-generated UI elements. */
   Ui::AddAppDialog* ui;
+
+  /*! \brief Name of the key used to identify deployers in the apps config file. */
+  constexpr static inline std::string JSON_DEPLOYERS_GROUP = "deployers";
+  /*! \brief Name of the key used to identify deployer type in the apps config file. */
+  constexpr static inline std::string JSON_DEPLOYERS_TYPE = "type";
+  /*! \brief Name of the key used to identify deployer name in the apps config file. */
+  constexpr static inline std::string JSON_DEPLOYERS_NAME = "name";
+  /*! \brief Name of the key used to identify deployer target dir in the apps config file. */
+  constexpr static inline std::string JSON_DEPLOYERS_TARGET = "target_dir";
+  /*! \brief Name of the key used to identify deployer mode in the apps config file. */
+  constexpr static inline std::string JSON_DEPLOYERS_MODE = "deploy_mode";
+  /*! \brief Name of the key used to identify deployer source dir in the apps config file. */
+  constexpr static inline std::string JSON_DEPLOYERS_SOURCE = "source_dir";
+  /*! \brief Contains all mandatory valid keys used in a deployer group in the apps config file. */
+  constexpr static std::array<std::string, 4> JSON_DEPLOYER_MANDATORY_KEYS{ JSON_DEPLOYERS_TYPE,
+                                                                            JSON_DEPLOYERS_NAME,
+                                                                            JSON_DEPLOYERS_TARGET,
+                                                                            JSON_DEPLOYERS_MODE };
+  /*! \brief Name of the key used to identify auto tags in the apps config file. */
+  constexpr static inline std::string JSON_AUTO_TAGS_GROUP = "auto_tags";
+  /*! \brief Name of the key used to identify the apps name in the apps config file. */
+  constexpr static inline std::string JSON_NAME = "name";
+
   /*! \brief If true: Dialog is used to edit, else: Dialog is used to create. */
   bool edit_mode_ = false;
   /*! \brief Current name of the edited \ref ModdedApplication "application". */
@@ -49,6 +74,10 @@ private:
   QString steam_prefix_path_ = "";
   /*! \brief Indicates whether the dialog has been completed. */
   bool dialog_completed_ = false;
+  /*! \brief Contains deployers which will be created upon adding a new application. */
+  std::vector<EditDeployerInfo> deployers_;
+  /*! \brief Contains Json objects representing imported auto tags. */
+  std::vector<Json::Value> auto_tags_;
 
   /*!
    * \brief Set the enabled state of this dialogs OK button.
@@ -62,6 +91,16 @@ private:
    * \param Path to an icon. If this checked instead of ui->icon_field if this is not empty.
    */
   bool iconIsValid(const QString& path = "");
+  /*!
+   * \brief Initializes default settings for deployers and auto tags from a file named "app_id_.json".
+   * If no such file exists, creates generic deployers targeting installation directory and prefix.
+   */
+  void initConfigForApp();
+  /*! \brief
+   *  Initializes deployers targeting the currently selected steam app's installation and,
+   *  if present, it's prefix directory.
+   */
+  void initDefaultAppConfig();
 
 public:
   /*!

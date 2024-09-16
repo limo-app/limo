@@ -522,6 +522,13 @@ public:
                   const std::vector<TagCondition>& conditions,
                   bool update);
   /*!
+   * \brief Adds a new auto tag from the given Json object.
+   * \param json_tag Json object representing the new auto tag.
+   * \param update If true: Update the auto tag map and the settings.
+   * \throw std::runtime_error If a tag by that name exists.
+   */
+  void addAutoTag(const Json::Value& json_tag, bool update);
+  /*!
    * \brief Removes the given auto tag.
    * \param name Tag to be removed.
    * \param update If true: Update the auto tag map and the settings.

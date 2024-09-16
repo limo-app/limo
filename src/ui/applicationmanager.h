@@ -141,6 +141,13 @@ private:
       if(throw_exceptions_)
         throw error;
     }
+    catch(...)
+    {
+      has_thrown = true;
+      message = "An unexpected error occured!";
+      if(throw_exceptions_)
+        throw std::runtime_error("An unexpected error occured!");
+    }
 
     if(has_thrown)
       emit sendError("Error", message.c_str());
@@ -216,6 +223,13 @@ private:
       message = error.what();
       if(throw_exceptions_)
         throw error;
+    }
+    catch(...)
+    {
+      has_thrown = true;
+      message = "An unexpected error occured!";
+      if(throw_exceptions_)
+        throw std::runtime_error("An unexpected error occured!");
     }
 
     if(has_thrown)

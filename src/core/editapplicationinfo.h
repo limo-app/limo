@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "editdeployerinfo.h"
+#include <json/json.h>
 #include <string>
 #include <vector>
 
@@ -21,11 +23,10 @@ struct EditApplicationInfo
   std::string staging_dir;
   /*! \brief Command used to run the application. */
   std::string command;
-  /*!
-   *  \brief When creating a new application, this contains names and target paths
-   *  for initial deployers.
-   */
-  std::vector<std::pair<std::string, std::string>> deployers;
+  /*! \brief When creating a new application, this contains data needed to add initial deployers. */
+  std::vector<EditDeployerInfo> deployers{};
+  /*! \brief When creating a new application, this contains data needed to add initial auto tags. */
+  std::vector<Json::Value> auto_tags{};
   /*!
    *  \brief When editing an application, this indicates whether to move the existing
    *  staging directory to the new path specified in staging_dir.

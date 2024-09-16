@@ -105,9 +105,9 @@ void ApplicationManager::updateState()
     try
     {
       apps_.emplace_back(staging_dir);
-      apps_[apps_.size() - 1].setProgressCallback([app_mgr = this](float p)
+      apps_.back().setProgressCallback([app_mgr = this](float p)
                                                   { app_mgr->sendUpdateProgress(p); });
-      apps_[apps_.size() - 1].setLog(
+      apps_.back().setLog(
         [app_mgr = this](Log::LogLevel log_level, const std::string& message)
         { app_mgr->sendLogMessage(log_level, message); });
     }
@@ -144,6 +144,12 @@ void ApplicationManager::updateState()
     catch(std::logic_error& error)
     {
       handleParseError((staging_dir / ModdedApplication::CONFIG_FILE_NAME).string(), error.what());
+      continue;
+    }
+    catch(...)
+    {
+      handleParseError((staging_dir / ModdedApplication::CONFIG_FILE_NAME).string(),
+                       "Unexpected error!");
       continue;
     }
   }
@@ -228,21 +234,15 @@ void ApplicationManager::addApplication(EditApplicationInfo info)
     try
     {
       apps_.emplace_back(staging_dir, info.name, info.command, info.icon_path, info.app_version);
-      apps_[apps_.size() - 1].setProgressCallback([app_mgr = this](float p)
-                                                  { app_mgr->sendUpdateProgress(p); });
-      apps_[apps_.size() - 1].setLog(
-        [app_mgr = this](Log::LogLevel log_level, const std::string& message)
-        { app_mgr->sendLogMessage(log_level, message); });
-      for(const auto& [name, target_path] : info.deployers)
-      {
-        EditDeployerInfo depl_info;
-        depl_info.type = DeployerFactory::CASEMATCHINGDEPLOYER;
-        depl_info.name = name;
-        depl_info.target_dir = target_path;
-        depl_info.deploy_mode = Deployer::hard_link;
-        depl_info.source_dir = info.staging_dir;
-        apps_[apps_.size() - 1].addDeployer(depl_info);
-      }
+      apps_.back().setProgressCallback([app_mgr = this](float p)
+                                       { app_mgr->sendUpdateProgress(p); });
+      apps_.back().setLog([app_mgr = this](Log::LogLevel log_level, const std::string& message)
+                          { app_mgr->sendLogMessage(log_level, message); });
+
+      for(const auto& depl_info : info.deployers)
+        apps_.back().addDeployer(depl_info);
+      for(const auto& tag : info.auto_tags)
+        apps_.back().addAutoTag(tag, true);
       updateSettings();
     }
     catch(Json::RuntimeError& error)
@@ -272,6 +272,11 @@ void ApplicationManager::addApplication(EditApplicationInfo info)
     catch(std::logic_error& error)
     {
       handleParseError((staging_dir / ModdedApplication::CONFIG_FILE_NAME).string(), error.what());
+    }
+    catch(...)
+    {
+      handleParseError((staging_dir / ModdedApplication::CONFIG_FILE_NAME).string(),
+                       "Unexpected error while adding application!");
     }
   }
   else
@@ -914,10 +919,9 @@ void ApplicationManager::getExternalChanges(int app_id, int deployer)
     emit completedOperations("Checking for external changes failed");
 }
 
-void ApplicationManager::keepOrRevertFileModifications(
-  int app_id,
-  int deployer,
-  const FileChangeChoices& changes_to_keep)
+void ApplicationManager::keepOrRevertFileModifications(int app_id,
+                                                       int deployer,
+                                                       const FileChangeChoices& changes_to_keep)
 {
   if(appIndexIsValid(app_id) && deployerIndexIsValid(app_id, deployer))
   {

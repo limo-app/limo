@@ -1,4 +1,7 @@
 #include "addappdialog.h"
+#include "../core/autotag.h"
+#include "../core/deployerfactory.h"
+#include "core/parseerror.h"
 #include "importfromsteamdialog.h"
 #include "ui_addappdialog.h"
 #include <QDebug>
@@ -7,8 +10,10 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <filesystem>
+#include <fstream>
 
 namespace sfs = std::filesystem;
+namespace str = std::ranges;
 
 
 AddAppDialog::AddAppDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AddAppDialog)
@@ -16,6 +21,7 @@ AddAppDialog::AddAppDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AddApp
   ui->setupUi(this);
   ui->move_dir_box->setVisible(false);
   ui->import_checkbox->setVisible(false);
+  ui->import_tags_checkbox->setVisible(false);
   enableOkButton(false);
   ui->path_field->setValidationMode(ValidatingLineEdit::VALID_PATH_EXISTS);
   dialog_completed_ = false;
@@ -75,6 +81,184 @@ bool AddAppDialog::iconIsValid(const QString& path)
   return QIcon(icon_path).availableSizes().size() > 0;
 }
 
+void AddAppDialog::initConfigForApp()
+{
+  deployers_.clear();
+  auto_tags_.clear();
+  sfs::path config_path = "steam_app_configs";
+
+  config_path /= (std::to_string(app_id_) + ".json");
+  if(!sfs::exists(config_path))
+  {
+    initDefaultAppConfig();
+    return;
+  }
+
+  Json::Value json;
+  std::ifstream file(config_path, std::fstream::binary);
+  if(!file.is_open())
+  {
+    Log::debug("Failed to open app settings file at: " + config_path.string());
+    initDefaultAppConfig();
+    return;
+  }
+  try
+  {
+    file >> json;
+  }
+  catch(Json::Exception& e)
+  {
+    Log::debug("Failed to read from app settings file at: " + config_path.string() +
+               ". Error was: " + e.what());
+    initDefaultAppConfig();
+    return;
+  }
+  catch(...)
+  {
+    Log::debug("Failed to read from app settings file at: " + config_path.string());
+    initDefaultAppConfig();
+    return;
+  }
+
+  Log::debug(std::format("Reading app config for id {}", app_id_));
+  try
+  {
+    for(int i = 0; i < json["deployers"].size(); i++)
+    {
+      Json::Value deployer = json["deployers"][i];
+      EditDeployerInfo info;
+
+      for(const auto& key : JSON_DEPLOYER_MANDATORY_KEYS)
+      {
+        if(deployer[key].isNull())
+        {
+          Log::debug(std::format(
+            "App config for deployer {} for app {} does not contain key {}", i, app_id_, key));
+          continue;
+        }
+      }
+
+      const std::string type = deployer[JSON_DEPLOYERS_TYPE].asString();
+      if(str::find(DeployerFactory::DEPLOYER_TYPES, type) == DeployerFactory::DEPLOYER_TYPES.end())
+      {
+        Log::debug(std::format(
+          "App config for deployer {} for app {} contains unknown type {}", i, app_id_, type));
+        continue;
+      }
+      info.type = type;
+
+      info.name = deployer[JSON_DEPLOYERS_NAME].asString();
+
+      QString target_string = deployer[JSON_DEPLOYERS_TARGET].asString().c_str();
+      target_string.replace("$STEAM_INSTALL_PATH$", steam_install_path_);
+      target_string.replace("$STEAM_PREFIX_PATH$", steam_prefix_path_);
+      const std::string target_dir = target_string.toStdString();
+      if(!sfs::exists(target_dir))
+      {
+        Log::debug(std::format("App config for deployer {} for app {} contains invalid target {}",
+                               i,
+                               app_id_,
+                               target_dir));
+        continue;
+      }
+      info.target_dir = target_dir;
+
+      QString deploy_mode = deployer[JSON_DEPLOYERS_MODE].asString().c_str();
+      deploy_mode = deploy_mode.toLower();
+      if(deploy_mode == "hard link")
+        info.deploy_mode = Deployer::hard_link;
+      else if(deploy_mode == "sym link" || deploy_mode == "soft link")
+        info.deploy_mode = Deployer::sym_link;
+      else if(deploy_mode == "hard link")
+        info.deploy_mode = Deployer::copy;
+      else
+      {
+        Log::debug(std::format("App config for deployer {} for app {} contains invalid mode {}",
+                               i,
+                               app_id_,
+                               deploy_mode.toStdString()));
+        continue;
+      }
+
+      if(!deployer[JSON_DEPLOYERS_SOURCE].isNull())
+      {
+        QString source_string = deployer[JSON_DEPLOYERS_SOURCE].asString().c_str();
+        source_string.replace("$STEAM_INSTALL_PATH$", steam_install_path_);
+        source_string.replace("$STEAM_PREFIX_PATH$", steam_prefix_path_);
+        const std::string source_dir = source_string.toStdString();
+        if(!sfs::exists(source_dir))
+        {
+          Log::debug(std::format("App config for deployer {} for app {} contains invalid source {}",
+                                 i,
+                                 app_id_,
+                                 source_dir));
+          continue;
+        }
+        info.source_dir = source_dir;
+      }
+      deployers_.push_back(info);
+    }
+    Log::debug(std::format("Found {} deployers", deployers_.size()));
+
+    for(int i = 0; i < json[JSON_AUTO_TAGS_GROUP].size(); i++)
+    {
+      try
+      {
+        AutoTag _(json[JSON_AUTO_TAGS_GROUP][i]);
+      }
+      catch(const ParseError& e)
+      {
+        Log::debug(std::format(
+          "Failed to read auto tag {} for app with id {}.\nError: {}", i, app_id_, e.what()));
+        continue;
+      }
+      catch(...)
+      {
+        Log::debug(std::format("Failed to read auto tag {} for app with id {}", i, app_id_));
+        continue;
+      }
+      auto_tags_.push_back(json[JSON_AUTO_TAGS_GROUP][i]);
+    }
+    Log::debug(std::format("Found {} auto tags", auto_tags_.size()));
+
+    if(!json[JSON_NAME].isNull())
+      ui->name_field->setText(json[JSON_NAME].asCString());
+  }
+  catch(...)
+  {
+    Log::debug("Failed to read from app settings file at: " + config_path.string());
+    initDefaultAppConfig();
+    return;
+  }
+
+  ui->import_checkbox->setToolTip(
+    std::format("Import {} recommended deployers", deployers_.size()).c_str());
+
+  ui->import_tags_checkbox->setToolTip(
+    std::format("Import {} recommended auto tags", auto_tags_.size()).c_str());
+
+  if(deployers_.empty() && auto_tags_.empty())
+    initDefaultAppConfig();
+}
+
+void AddAppDialog::initDefaultAppConfig()
+{
+  deployers_.clear();
+  auto_tags_.clear();
+
+  Log::debug(std::format("Using default config for app {}", app_id_));
+  deployers_.emplace_back(DeployerFactory::CASEMATCHINGDEPLOYER,
+                          "Install",
+                          steam_install_path_.toStdString(),
+                          Deployer::hard_link);
+  deployers_.emplace_back(DeployerFactory::CASEMATCHINGDEPLOYER,
+                          "Prefix",
+                          steam_prefix_path_.toStdString(),
+                          Deployer::hard_link);
+  ui->import_checkbox->setToolTip(
+    "Import deployers targeting the installation and prefix directories");
+}
+
 void AddAppDialog::setEditMode(const QString& name,
                                const QString& app_version,
                                const QString& path,
@@ -82,9 +266,12 @@ void AddAppDialog::setEditMode(const QString& name,
                                const QString& icon_path,
                                int app_id)
 {
+  deployers_.clear();
+  auto_tags_.clear();
   steam_prefix_path_ = "";
   steam_install_path_ = "";
   ui->import_checkbox->setVisible(false);
+  ui->import_tags_checkbox->setVisible(false);
   ui->import_button->setEnabled(false);
   ui->import_button->setHidden(true);
   ui->move_dir_box->setCheckState(Qt::Unchecked);
@@ -110,9 +297,12 @@ void AddAppDialog::setEditMode(const QString& name,
 
 void AddAppDialog::setAddMode()
 {
+  deployers_.clear();
+  auto_tags_.clear();
   steam_prefix_path_ = "";
   steam_install_path_ = "";
   ui->import_checkbox->setVisible(false);
+  ui->import_tags_checkbox->setVisible(false);
   ui->import_button->setEnabled(true);
   ui->import_button->setHidden(false);
   setWindowTitle("New Application");
@@ -146,14 +336,10 @@ void AddAppDialog::on_buttonBox_accepted()
   }
   else
   {
-    info.deployers = std::vector<std::pair<std::string, std::string>>{};
     if(ui->import_checkbox->isChecked())
-    {
-      if(steam_install_path_ != "")
-        info.deployers.push_back({ "Install", steam_install_path_.toStdString() });
-      if(steam_prefix_path_ != "")
-        info.deployers.push_back({ "Prefix", steam_prefix_path_.toStdString() });
-    }
+      info.deployers = deployers_;
+    if(ui->import_tags_checkbox->isChecked())
+      info.auto_tags = auto_tags_;
     emit applicationAdded(info);
   }
 }
@@ -176,11 +362,14 @@ void AddAppDialog::onApplicationImported(QString name,
 {
   ui->name_field->setText(name);
   ui->command_field->setText("steam -applaunch " + app_id);
-  ui->import_checkbox->setVisible(true);
+  app_id_ = app_id.toInt();
   steam_install_path_ = install_dir;
   steam_prefix_path_ = prefix_path;
   ui->icon_field->setText(icon_path);
   ui->icon_picker_button->setIcon(QIcon(icon_path));
+  initConfigForApp();
+  ui->import_checkbox->setVisible(!deployers_.empty());
+  ui->import_tags_checkbox->setVisible(!auto_tags_.empty());
 }
 
 void AddAppDialog::onFileDialogAccepted(const QString& path)

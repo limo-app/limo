@@ -494,7 +494,7 @@ void LootDeployer::updateAppType()
 {
   for(const auto& [type, file] : TYPE_IDENTIFIERS)
   {
-    if(pu::pathExists(source_path_ / file, ""))
+    if(pu::pathExists(file, source_path_))
     {
       app_type_ = type;
       plugin_file_name_ = PLUGIN_FILE_NAMES.at(type);

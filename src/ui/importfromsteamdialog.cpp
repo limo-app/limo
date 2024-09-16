@@ -184,7 +184,7 @@ void ImportFromSteamDialog::on_buttonBox_accepted()
   QString prefix_path = "";
   if(ui->app_table->item(row, 2)->text() == "True")
     prefix_path = (path.parent_path().parent_path() / "compatdata" / app_id.toStdString() / "pfx" /
-                   "drive_c" / "users" / "steamuser")
+                   "drive_c")
                     .c_str();
   emit applicationImported(name, app_id, path.string().c_str(), prefix_path, icon_path);
 }

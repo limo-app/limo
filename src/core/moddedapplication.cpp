@@ -1076,6 +1076,23 @@ void ModdedApplication::addAutoTag(const std::string& tag_name,
   }
 }
 
+void ModdedApplication::addAutoTag(const Json::Value& json_tag, bool update)
+{
+  if(std::find(auto_tags_.begin(), auto_tags_.end(), json_tag["name"].asString()) != auto_tags_.end())
+    throw std::runtime_error(
+      std::format("Error: A tag with the name '{}' already exists.", json_tag["name"].asString()));
+
+  auto_tags_.emplace_back(json_tag);
+  auto select_id = [](const auto& mod) { return mod.id; };
+  if(json_tag["expression"].asString() != "")
+    auto_tags_.back().reapplyMods(staging_dir_, str::transform_view(installed_mods_, select_id));
+  if(update)
+  {
+    updateAutoTagMap();
+    updateSettings(true);
+  }
+}
+
 void ModdedApplication::removeAutoTag(const std::string& tag_name, bool update)
 {
   auto iter = std::find(auto_tags_.begin(), auto_tags_.end(), tag_name);
