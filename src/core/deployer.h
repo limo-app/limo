@@ -307,6 +307,8 @@ public:
    */
   virtual void updateDeployedFilesForMod(int mod_id,
                                          std::optional<ProgressNode*> progress_node = {}) const;
+  /*! \brief If using hard_link deploy mode and links cannot be created: Switch to sym links. */
+  virtual void fixInvalidLinkDeployMode();
 
 protected:
   /*! \brief Type of this deployer, e.g. Simple Deployer. */

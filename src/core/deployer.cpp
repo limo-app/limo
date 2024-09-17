@@ -831,15 +831,15 @@ void Deployer::updateDeployedFilesForMod(int mod_id,
                                          std::optional<ProgressNode*> progress_node) const
 {
   std::map<sfs::path, int> deployed_files = loadDeployedFiles(progress_node);
-  for(const auto& [path, id]: deployed_files)
+  for(const auto& [path, id] : deployed_files)
   {
     if(id != mod_id)
       continue;
     const sfs::path dest_path = dest_path_ / path;
     const sfs::path source_path = source_path_ / std::to_string(mod_id) / path;
 
-    if(sfs::exists(dest_path) && sfs::is_directory(dest_path)
-       || !sfs::exists(source_path) || sfs::is_directory(source_path))
+    if(sfs::exists(dest_path) && sfs::is_directory(dest_path) || !sfs::exists(source_path) ||
+       sfs::is_directory(source_path))
       continue;
 
     if(sfs::exists(dest_path))
@@ -851,5 +851,39 @@ void Deployer::updateDeployedFilesForMod(int mod_id,
       sfs::copy(source_path, dest_path);
     else
       sfs::create_hard_link(source_path, dest_path);
+  }
+}
+
+void Deployer::fixInvalidLinkDeployMode()
+{
+  if(deploy_mode_ != hard_link)
+    return;
+
+  const std::string file_name = "_lmm_write_test_file_";
+  try
+  {
+    if(sfs::exists(source_path_ / file_name))
+      sfs::remove(source_path_ / file_name);
+    if(sfs::exists(dest_path_ / file_name))
+      sfs::remove(dest_path_ / file_name);
+
+    sfs::create_hard_link(source_path_ / file_name, dest_path_ / file_name);
+  }
+  catch(...)
+  {
+    log_(Log::LOG_DEBUG,
+         std::format("Deployer {} failed to create hard link. Switching to sym link.", name_));
+    deploy_mode_ = sym_link;
+  }
+  try
+  {
+    if(sfs::exists(source_path_ / file_name))
+      sfs::remove(source_path_ / file_name);
+    if(sfs::exists(dest_path_ / file_name))
+      sfs::remove(dest_path_ / file_name);
+  }
+  catch (...)
+  {
+    log_(Log::LOG_ERROR, "Failed to write to disk. Ensure that permissions are set correctly.");
   }
 }

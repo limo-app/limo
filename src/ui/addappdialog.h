@@ -7,6 +7,7 @@
 
 #include "../core/editapplicationinfo.h"
 #include "../core/editdeployerinfo.h"
+#include "importfromsteamdialog.h"
 #include <QDialog>
 #include <json/json.h>
 
@@ -27,8 +28,9 @@ public:
   /*!
    * \brief Initializes the UI.
    * \param parent Parent for this widget, this is passed to the constructor of QDialog.
+   * \param is_flatpak Whether or not this application is running as a flatpak.
    */
-  explicit AddAppDialog(QWidget* parent = nullptr);
+  explicit AddAppDialog(bool is_flatpak, QWidget* parent = nullptr);
   /*! \brief Deletes the UI. */
   ~AddAppDialog();
 
@@ -78,6 +80,10 @@ private:
   std::vector<EditDeployerInfo> deployers_;
   /*! \brief Contains Json objects representing imported auto tags. */
   std::vector<Json::Value> auto_tags_;
+  /*! \brief Whether or not this application is running as a flatpak. */
+  bool is_flatpak_;
+  /*! \brief Reusable dialog for importing data from installed Steam apps. */
+  std::unique_ptr<ImportFromSteamDialog> import_from_steam_dialog_;
 
   /*!
    * \brief Set the enabled state of this dialogs OK button.

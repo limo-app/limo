@@ -217,6 +217,8 @@ public:
   virtual void updateDeployedFilesForMod(
     int mod_id,
     std::optional<ProgressNode*> progress_node = {}) const override;
+  /*! \brief Since this deployer type does not use normal deployment methods, this does nothing. */
+  virtual void fixInvalidLinkDeployMode() override;
 
 private:
   /*! \brief Name of the file containing plugin load order. */

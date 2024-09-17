@@ -278,4 +278,6 @@ if(IS_FLATPAK)
             DESTINATION /app/share/metainfo)
     install(FILES flatpak/io.github.limo_app.limo.desktop
             DESTINATION /app/share/applications)
+    install(DIRECTORY steam_app_configs
+            DESTINATION /app/share)
 endif()

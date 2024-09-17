@@ -521,7 +521,7 @@ void MainWindow::setupMenus()
 
 void MainWindow::setupDialogs()
 {
-  add_app_dialog_ = std::make_unique<AddAppDialog>();
+  add_app_dialog_ = std::make_unique<AddAppDialog>(is_a_flatpak_);
   connect(add_app_dialog_.get(),
           &AddAppDialog::applicationEdited,
           this,

@@ -1446,6 +1446,12 @@ void ModdedApplication::keepOrRevertFileModifications(
   deployers_[deployer]->keepOrRevertFileModifications(changes_to_keep);
 }
 
+void ModdedApplication::fixInvalidHardLinkDeployers()
+{
+  for(auto& depl: deployers_)
+    depl->fixInvalidLinkDeployMode();
+}
+
 sfs::path ModdedApplication::iconPath() const
 {
   return icon_path_;

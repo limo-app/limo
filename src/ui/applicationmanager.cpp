@@ -241,6 +241,7 @@ void ApplicationManager::addApplication(EditApplicationInfo info)
 
       for(const auto& depl_info : info.deployers)
         apps_.back().addDeployer(depl_info);
+      apps_.back().fixInvalidHardLinkDeployers();
       for(const auto& tag : info.auto_tags)
         apps_.back().addAutoTag(tag, true);
       updateSettings();

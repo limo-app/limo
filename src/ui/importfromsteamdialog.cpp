@@ -12,8 +12,8 @@
 namespace sfs = std::filesystem;
 
 
-ImportFromSteamDialog::ImportFromSteamDialog(QWidget* parent) :
-  QDialog(parent), ui(new Ui::ImportFromSteamDialog)
+ImportFromSteamDialog::ImportFromSteamDialog(bool is_flatpak, QWidget* parent) :
+  is_flatpak_(is_flatpak), QDialog(parent), ui(new Ui::ImportFromSteamDialog)
 {
   ui->setupUi(this);
   setWindowTitle("Import App");
@@ -27,7 +27,11 @@ ImportFromSteamDialog::ImportFromSteamDialog(QWidget* parent) :
   {
     sfs::path default_path =
       QStandardPaths::writableLocation(QStandardPaths::HomeLocation).toStdString();
-    default_path = default_path / ".steam" / "steam" / "steamapps";
+    if(is_flatpak_)
+      default_path = default_path / ".var" / "app" / "com.valvesoftware.Steam" / ".local" /
+                     "share" / "Steam" / "steamapps";
+    else
+      default_path = default_path / ".steam" / "steam" / "steamapps";
     if(pathIsValid(default_path))
     {
       ui->path_field->setText(default_path.string().c_str());
@@ -39,6 +43,15 @@ ImportFromSteamDialog::ImportFromSteamDialog(QWidget* parent) :
 ImportFromSteamDialog::~ImportFromSteamDialog()
 {
   delete ui;
+}
+
+void ImportFromSteamDialog::init()
+{
+  dialog_completed_ = false;
+  ui->search_field->clear();
+  for(int i = 0; i < ui->app_table->rowCount(); i++)
+    ui->app_table->setRowHidden(i, false);
+  ui->search_field->setFocus();
 }
 
 void ImportFromSteamDialog::on_pick_path_button_clicked()
@@ -183,9 +196,9 @@ void ImportFromSteamDialog::on_buttonBox_accepted()
   sfs::path path(ui->app_table->item(row, 3)->text().toStdString());
   QString prefix_path = "";
   if(ui->app_table->item(row, 2)->text() == "True")
-    prefix_path = (path.parent_path().parent_path() / "compatdata" / app_id.toStdString() / "pfx" /
-                   "drive_c")
-                    .c_str();
+    prefix_path =
+      (path.parent_path().parent_path() / "compatdata" / app_id.toStdString() / "pfx" / "drive_c")
+        .c_str();
   emit applicationImported(name, app_id, path.string().c_str(), prefix_path, icon_path);
 }
 

@@ -363,19 +363,19 @@ std::map<std::string, int> LootDeployer::getAutoTagMap()
            { STANDARD_PLUGIN, num_standard_plugins_ } };
 }
 
-std::vector<std::pair<sfs::path, int>>
-LootDeployer::getExternallyModifiedFiles(std::optional<ProgressNode*> progress_node) const
+std::vector<std::pair<sfs::path, int>> LootDeployer::getExternallyModifiedFiles(
+  std::optional<ProgressNode*> progress_node) const
 {
   return {};
 }
 
-void LootDeployer::keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) const
-{
-}
+void LootDeployer::keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) const {}
 
 void LootDeployer::updateDeployedFilesForMod(int mod_id,
                                              std::optional<ProgressNode*> progress_node) const
 {}
+
+void LootDeployer::fixInvalidLinkDeployMode() {}
 
 void LootDeployer::updatePlugins()
 {

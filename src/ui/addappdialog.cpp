@@ -16,7 +16,8 @@ namespace sfs = std::filesystem;
 namespace str = std::ranges;
 
 
-AddAppDialog::AddAppDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AddAppDialog)
+AddAppDialog::AddAppDialog(bool is_flatpak, QWidget* parent) :
+  is_flatpak_(is_flatpak), QDialog(parent), ui(new Ui::AddAppDialog)
 {
   ui->setupUi(this);
   ui->move_dir_box->setVisible(false);
@@ -25,6 +26,11 @@ AddAppDialog::AddAppDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AddApp
   enableOkButton(false);
   ui->path_field->setValidationMode(ValidatingLineEdit::VALID_PATH_EXISTS);
   dialog_completed_ = false;
+  import_from_steam_dialog_ = std::make_unique<ImportFromSteamDialog>(is_flatpak);
+  connect(import_from_steam_dialog_.get(),
+          &ImportFromSteamDialog::applicationImported,
+          this,
+          &AddAppDialog::onApplicationImported);
 }
 
 AddAppDialog::~AddAppDialog()
@@ -85,7 +91,7 @@ void AddAppDialog::initConfigForApp()
 {
   deployers_.clear();
   auto_tags_.clear();
-  sfs::path config_path = "steam_app_configs";
+  sfs::path config_path(is_flatpak_ ? "/app/share/steam_app_configs" : "steam_app_configs");
 
   config_path /= (std::to_string(app_id_) + ".json");
   if(!sfs::exists(config_path))
@@ -169,7 +175,7 @@ void AddAppDialog::initConfigForApp()
         info.deploy_mode = Deployer::hard_link;
       else if(deploy_mode == "sym link" || deploy_mode == "soft link")
         info.deploy_mode = Deployer::sym_link;
-      else if(deploy_mode == "hard link")
+      else if(deploy_mode == "copy")
         info.deploy_mode = Deployer::copy;
       else
       {
@@ -346,12 +352,8 @@ void AddAppDialog::on_buttonBox_accepted()
 
 void AddAppDialog::on_import_button_clicked()
 {
-  auto dialog = new ImportFromSteamDialog(this);
-  connect(dialog,
-          &ImportFromSteamDialog::applicationImported,
-          this,
-          &AddAppDialog::onApplicationImported);
-  dialog->exec();
+  import_from_steam_dialog_->init();
+  import_from_steam_dialog_->exec();
 }
 
 void AddAppDialog::onApplicationImported(QString name,

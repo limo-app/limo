@@ -641,6 +641,8 @@ public:
    * that file should be kept.
    */
   void keepOrRevertFileModifications(int deployer, const FileChangeChoices& changes_to_keep) const;
+  /*! \brief For all deployers: If using hard links that can't be created, switch to sym links. */
+  void fixInvalidHardLinkDeployers();
 
 private:
   /*! \brief The name of this application. */
