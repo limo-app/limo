@@ -381,6 +381,8 @@ void MainWindow::setupConnections()
           this, &MainWindow::onGetExternalChangesInfo);
   connect(app_manager_, &ApplicationManager::externalChangesHandled,
           this, &MainWindow::onExternalChangesHandled);
+  connect(this, &MainWindow::exportAppConfiguration,
+          app_manager_, &ApplicationManager::exportAppConfiguration);
 }
 // clang-format on
 
@@ -655,6 +657,16 @@ void MainWindow::setupDialogs()
           &ExternalChangesDialog::externalChangesDialogAborted,
           this,
           &MainWindow::onExternalChangesDialogAborted);
+
+  export_app_config_dialog_ = std::make_unique<ExportAppConfigDialog>();
+  connect(export_app_config_dialog_.get(),
+          &ExportAppConfigDialog::appConfigExported,
+          this,
+          &MainWindow::onExportAppConfigDialogComplete);
+  connect(export_app_config_dialog_.get(),
+          &ExportAppConfigDialog::dialogClosed,
+          this,
+          &MainWindow::onBusyDialogAborted);
 }
 
 void MainWindow::updateModList(const std::vector<ModInfo>& mod_info)
@@ -774,6 +786,8 @@ void MainWindow::setupButtons()
   ui->profile_tool_button->setMenu(profile_menu);
 
   ui->reset_filter_button->setHidden(true);
+
+  ui->export_app_config_button->setIcon(QIcon::fromTheme("document-export"));
 }
 
 void MainWindow::showEditDeployerDialog(int deployer)
@@ -3238,4 +3252,26 @@ void MainWindow::onExternalChangesDialogAborted()
 {
   setStatusMessage("Deployment aborted", 3000);
   setBusyStatus(false);
+}
+
+void MainWindow::on_export_app_config_button_clicked()
+{
+  QStringList deployers;
+  for(int i = 0; i < ui->deployer_selection_box->count(); i++)
+    deployers << ui->deployer_selection_box->itemText(i);
+  QStringList auto_tags;
+  for(const auto& [name, _] : auto_tags_)
+    auto_tags << name.c_str();
+  export_app_config_dialog_->init(
+    currentApp(), ui->app_selection_box->currentText(), deployers, auto_tags);
+  setBusyStatus(true, false);
+  export_app_config_dialog_->show();
+}
+
+void MainWindow::onExportAppConfigDialogComplete(int app_id,
+                                                 std::vector<int> deployers,
+                                                 QStringList auto_tags)
+{
+  setBusyStatus(false);
+  emit exportAppConfiguration(app_id, deployers, auto_tags);
 }

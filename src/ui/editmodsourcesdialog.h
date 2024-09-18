@@ -45,7 +45,7 @@ public:
                    const QString& remote_source);
   /*!
    * \brief Emits dialogClosed.
-   * \param event The close even sent upon closing the application.
+   * \param event The close event sent upon closing the dialog.
    */
   void closeEvent(QCloseEvent* event) override;
 
@@ -85,6 +85,7 @@ signals:
   void modSourcesEdited(int app_id, int mod_id, QString local_source, QString remote_source);
   /*! \brief Signals cancellation of editing. */
   void dialogClosed();
+
 private slots:
   /*! \brief Completes the dialog by emitting modSourcesEdited. */
   void on_buttonBox_accepted();

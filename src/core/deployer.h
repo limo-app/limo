@@ -227,7 +227,7 @@ public:
    * \brief Sets the current DeployMode.
    * \param deploy_mode The new DeployMode.
    */
-  void setDeployMode(DeployMode deploy_mode);
+  virtual void setDeployMode(DeployMode deploy_mode);
   /*! \brief Getter for is_autonomous_. */
   bool isAutonomous();
   /*!

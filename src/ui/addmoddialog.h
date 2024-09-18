@@ -72,7 +72,7 @@ public:
                    const QStringList& mod_versions);
   /*!
    * \brief Closes the dialog and emits a signal indicating installation has been canceled.
-   * \param event The close even sent upon closing the application.
+   * \param event The close even sent upon closing the dialog.
    */
   void closeEvent(QCloseEvent* event) override;
 

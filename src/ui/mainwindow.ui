@@ -226,6 +226,16 @@
                <property name="bottomMargin">
                 <number>0</number>
                </property>
+               <item row="1" column="0" colspan="5">
+                <widget class="Line" name="line">
+                 <property name="frameShadow">
+                  <enum>QFrame::Sunken</enum>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
                <item row="0" column="0">
                 <layout class="QHBoxLayout" name="horizontalLayout_5">
                  <property name="spacing">
@@ -271,30 +281,6 @@
                  </item>
                 </layout>
                </item>
-               <item row="1" column="0" colspan="4">
-                <widget class="Line" name="line">
-                 <property name="frameShadow">
-                  <enum>QFrame::Sunken</enum>
-                 </property>
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="3">
-                <widget class="QPushButton" name="edit_app_button">
-                 <property name="toolTip">
-                  <string>Edit Application</string>
-                 </property>
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="icon">
-                  <iconset theme="preferences-other">
-                   <normaloff>.</normaloff>.</iconset>
-                 </property>
-                </widget>
-               </item>
                <item row="0" column="1">
                 <spacer name="horizontalSpacer_6">
                  <property name="orientation">
@@ -308,76 +294,18 @@
                  </property>
                 </spacer>
                </item>
-               <item row="2" column="0">
-                <layout class="QFormLayout" name="formLayout">
-                 <item row="0" column="0">
-                  <layout class="QGridLayout" name="gridLayout_9">
-                   <item row="0" column="0">
-                    <widget class="QLabel" name="dir_label">
-                     <property name="toolTip">
-                      <string>All installed mods are stored here.</string>
-                     </property>
-                     <property name="text">
-                      <string>Staging Dir:</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QLabel" name="mods_label">
-                     <property name="toolTip">
-                      <string>Number of installed mods.</string>
-                     </property>
-                     <property name="text">
-                      <string>Mods:</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="label_3">
-                     <property name="toolTip">
-                      <string>Command used to run the application.</string>
-                     </property>
-                     <property name="text">
-                      <string>Command:</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item row="0" column="1">
-                  <layout class="QGridLayout" name="gridLayout_10">
-                   <item row="0" column="0">
-                    <widget class="QLabel" name="info_sdir_label">
-                     <property name="text">
-                      <string/>
-                     </property>
-                     <property name="textInteractionFlags">
-                      <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="1" column="0">
-                    <widget class="QLabel" name="info_mods_label">
-                     <property name="text">
-                      <string/>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="info_command_label">
-                     <property name="text">
-                      <string/>
-                     </property>
-                     <property name="textInteractionFlags">
-                      <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                </layout>
+               <item row="0" column="2">
+                <widget class="QPushButton" name="check_mod_updates_button">
+                 <property name="text">
+                  <string>Check for Mod Updates</string>
+                 </property>
+                 <property name="icon">
+                  <iconset theme="view-refresh">
+                   <normaloff>.</normaloff>.</iconset>
+                 </property>
+                </widget>
                </item>
-               <item row="3" column="0" colspan="4">
+               <item row="3" column="0" colspan="5">
                 <layout class="QGridLayout" name="gridLayout_11">
                  <item row="0" column="0" colspan="2">
                   <widget class="Line" name="line_2">
@@ -530,14 +458,96 @@
                  </item>
                 </layout>
                </item>
-               <item row="0" column="2">
-                <widget class="QPushButton" name="check_mod_updates_button">
+               <item row="2" column="0">
+                <layout class="QFormLayout" name="formLayout">
+                 <item row="0" column="0">
+                  <layout class="QGridLayout" name="gridLayout_9">
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="dir_label">
+                     <property name="toolTip">
+                      <string>All installed mods are stored here.</string>
+                     </property>
+                     <property name="text">
+                      <string>Staging Dir:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="mods_label">
+                     <property name="toolTip">
+                      <string>Number of installed mods.</string>
+                     </property>
+                     <property name="text">
+                      <string>Mods:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="label_3">
+                     <property name="toolTip">
+                      <string>Command used to run the application.</string>
+                     </property>
+                     <property name="text">
+                      <string>Command:</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item row="0" column="1">
+                  <layout class="QGridLayout" name="gridLayout_10">
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="info_sdir_label">
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="textInteractionFlags">
+                      <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="info_mods_label">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="info_command_label">
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="textInteractionFlags">
+                      <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </item>
+               <item row="0" column="4">
+                <widget class="QPushButton" name="edit_app_button">
+                 <property name="toolTip">
+                  <string>Edit Application</string>
+                 </property>
                  <property name="text">
-                  <string>Check Mod Updates</string>
+                  <string/>
                  </property>
                  <property name="icon">
-                  <iconset theme="view-refresh">
+                  <iconset theme="preferences-other">
                    <normaloff>.</normaloff>.</iconset>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="3">
+                <widget class="QPushButton" name="export_app_config_button">
+                 <property name="toolTip">
+                  <string>Export configuration to file</string>
+                 </property>
+                 <property name="text">
+                  <string>Export</string>
                  </property>
                 </widget>
                </item>
@@ -636,8 +646,8 @@
                  <rect>
                   <x>0</x>
                   <y>0</y>
-                  <width>443</width>
-                  <height>320</height>
+                  <width>539</width>
+                  <height>331</height>
                  </rect>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -1122,8 +1132,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>389</width>
-                     <height>278</height>
+                     <width>406</width>
+                     <height>289</height>
                     </rect>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_2">

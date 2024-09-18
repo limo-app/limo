@@ -1078,7 +1078,8 @@ void ModdedApplication::addAutoTag(const std::string& tag_name,
 
 void ModdedApplication::addAutoTag(const Json::Value& json_tag, bool update)
 {
-  if(std::find(auto_tags_.begin(), auto_tags_.end(), json_tag["name"].asString()) != auto_tags_.end())
+  if(std::find(auto_tags_.begin(), auto_tags_.end(), json_tag["name"].asString()) !=
+     auto_tags_.end())
     throw std::runtime_error(
       std::format("Error: A tag with the name '{}' already exists.", json_tag["name"].asString()));
 
@@ -1448,8 +1449,57 @@ void ModdedApplication::keepOrRevertFileModifications(
 
 void ModdedApplication::fixInvalidHardLinkDeployers()
 {
-  for(auto& depl: deployers_)
+  for(auto& depl : deployers_)
     depl->fixInvalidLinkDeployMode();
+}
+
+void ModdedApplication::exportConfiguration(const std::vector<int>& deployers,
+                                            const std::vector<std::string>& auto_tags)
+{
+  Json::Value json;
+  json["name"] = name_;
+
+  int i = 0;
+  for(int deployer_id : deployers)
+  {
+    if(deployer_id < 0 || deployer_id >= deployers_.size())
+      continue;
+
+    const auto& deployer = deployers_[deployer_id];
+    json["deployers"][i]["type"] = deployer->getType();
+    json["deployers"][i]["name"] = deployer->getName();
+    json["deployers"][i]["target_dir"] = generalizeSteamPath(deployer->getDestPath());
+    if(deployer->isAutonomous())
+      json["deployers"][i]["source_dir"] = generalizeSteamPath(deployer->getSourcePath());
+    // use hard link by default; import will auto change this to sym link when needed
+    json["deployers"][i]["deploy_mode"] =
+      deployer->getDeployMode() == Deployer::copy ? "copy" : "hard_link";
+    i++;
+  }
+
+  i = 0;
+  for(const auto& tag : auto_tags)
+  {
+    auto iter = str::find_if(auto_tags_, [name = tag](auto tag) { return tag.getName() == name; });
+    if(iter == auto_tags_.end())
+      continue;
+
+    json["auto_tags"][i] = iter->toJson();
+    json["auto_tags"][i].removeMember("mod_ids");
+    i++;
+  }
+
+  sfs::path path = staging_dir_ / (export_file_name + ".json");
+  if(sfs::exists(path))
+  {
+    i = 1;
+    do
+      path = staging_dir_ / (export_file_name + std::format("_{}.json", i++));
+    while(sfs::exists(path));
+  }
+  log_(Log::LOG_INFO, std::format("Exporting configuration for '{}' to '{}'", name_, path.string()));
+  std::ofstream file(path, std::fstream::binary);
+  file << json;
 }
 
 sfs::path ModdedApplication::iconPath() const
@@ -2052,4 +2102,18 @@ void ModdedApplication::performUpdateCheck(const std::vector<int>& target_mod_in
   else
     log_(Log::LOG_INFO, "No mod updates found.");
   updateSettings(true);
+}
+
+std::string ModdedApplication::generalizeSteamPath(const std::string& path)
+{
+  std::string modified_path = path;
+  std::regex install_regex(R"((\/.*\/steamapps\/common\/.*?)(?:\/.*)?)");
+  std::regex prefix_regex(
+    R"((\/.*\/steamapps\/compatdata\/\d+\/pfx\/(?:drive_c|dosdevices\/c:))(?:\/.*)?)");
+  std::smatch match;
+  if(std::regex_match(path, match, install_regex))
+    modified_path.replace(0, match[1].length(), "$STEAM_INSTALL_PATH$");
+  else if(std::regex_match(path, match, prefix_regex))
+    modified_path.replace(0, match[1].length(), "$STEAM_PREFIX_PATH$");
+  return modified_path;
 }

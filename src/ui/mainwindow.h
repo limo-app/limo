@@ -32,6 +32,7 @@
 #include "tablecelldelegate.h"
 #include "ui/editautotagsdialog.h"
 #include "ui/editmanualtagsdialog.h"
+#include "ui/exportappconfigdialog.h"
 #include "ui/externalchangesdialog.h"
 #include "ui/ipcserver.h"
 #include "ui/tagcheckbox.h"
@@ -78,7 +79,7 @@ public:
   ~MainWindow();
   /*!
    * \brief Store the GUI state in a QSettings file before closing the window.
-   * \param event The close even sent upon closing the application.
+   * \param event The close event sent upon closing the application.
    */
   void closeEvent(QCloseEvent* event) override;
   /*!
@@ -197,6 +198,8 @@ private:
   std::unique_ptr<NexusModDialog> nexus_mod_dialog_;
   /*! \brief Reusable dialog for displaying external changes to files. */
   std::unique_ptr<ExternalChangesDialog> external_changes_dialog_;
+  /*! \brief Reusable dialog for exporting the configuration of the current app. */
+  std::unique_ptr<ExportAppConfigDialog> export_app_config_dialog_;
   /*! \brief Stores the index in ui->mod_list of a mod before being added to a group. */
   int last_mod_list_index_ = -1;
   /*! \brief Contains all queued mods to be downloaded or extracted. */
@@ -1022,12 +1025,22 @@ private slots:
    * responsible for that file and a bool which indicates whether or not changes to
    * that file should be kept.
    */
-  void onExternalChangesDialogCompleted(
-    int app_id,
-    int deployer,
-    const FileChangeChoices& changes_to_keep);
+  void onExternalChangesDialogCompleted(int app_id,
+                                        int deployer,
+                                        const FileChangeChoices& changes_to_keep);
   /*! \brief Called when the ExternalChangesDialog has been aborted. Cancels deployment. */
   void onExternalChangesDialogAborted();
+  /*! \brief Opens the export_app_config_dialog_. */
+  void on_export_app_config_button_clicked();
+  /*!
+   * \brief Emits \ref exportAppConfiguration.
+   * \param app_id Target app.
+   * \param deployers Deployers to export.
+   * \param auto_tags Auto tags to export.
+   */
+  void onExportAppConfigDialogComplete(int app_id,
+                                       std::vector<int> deployers,
+                                       QStringList auto_tags);
 
 signals:
   /*!
@@ -1496,8 +1509,15 @@ signals:
    * responsible for that file and a bool which indicates whether or not changes to
    * that file should be kept.
    */
-  void keepOrRevertFileModifications(
-    int app_id,
-    int deployer,
-    const FileChangeChoices& changes_to_keep);
+  void keepOrRevertFileModifications(int app_id,
+                                     int deployer,
+                                     const FileChangeChoices& changes_to_keep);
+  /*!
+   * \brief Exports configurations for the given deployers and the given auto tags to a json file.
+   * Does not include mods.
+   * \param app_id Target app.
+   * \param deployers Deployers to export.
+   * \param auto_tags Auto tags to export.
+   */
+  void exportAppConfiguration(int app_id, std::vector<int> deployers, QStringList auto_tags);
 };

@@ -50,7 +50,7 @@ public:
                    const std::vector<int>& mod_ids);
   /*!
    * \brief Emits dialogClosed.
-   * \param event The close even sent upon closing the application.
+   * \param event The close event sent upon closing the dialog.
    */
   void closeEvent(QCloseEvent* event) override;
 

@@ -106,10 +106,9 @@ void ApplicationManager::updateState()
     {
       apps_.emplace_back(staging_dir);
       apps_.back().setProgressCallback([app_mgr = this](float p)
-                                                  { app_mgr->sendUpdateProgress(p); });
-      apps_.back().setLog(
-        [app_mgr = this](Log::LogLevel log_level, const std::string& message)
-        { app_mgr->sendLogMessage(log_level, message); });
+                                       { app_mgr->sendUpdateProgress(p); });
+      apps_.back().setLog([app_mgr = this](Log::LogLevel log_level, const std::string& message)
+                          { app_mgr->sendLogMessage(log_level, message); });
     }
     catch(Json::RuntimeError& error)
     {
@@ -935,4 +934,16 @@ void ApplicationManager::keepOrRevertFileModifications(int app_id,
   }
   else
     emit completedOperations("Applying external changes failed");
+}
+
+void ApplicationManager::exportAppConfiguration(int app_id,
+                                                std::vector<int> deployers,
+                                                QStringList auto_tags)
+{
+  std::vector<std::string> tag_vector;
+  for(const auto& tag: auto_tags)
+    tag_vector.push_back(tag.toStdString());
+  if(appIndexIsValid(app_id))
+    handleExceptions<&ModdedApplication::exportConfiguration>(app_id, deployers, tag_vector);
+  emit completedOperations("Configuration exported");
 }

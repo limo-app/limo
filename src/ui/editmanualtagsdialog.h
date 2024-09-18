@@ -42,7 +42,7 @@ public:
                    const std::vector<int> num_mods_per_tag);
   /*!
    * \brief Emits dialogClosed.
-   * \param event The close even sent upon closing the application.
+   * \param event The close event sent upon closing the dialog.
    */
   void closeEvent(QCloseEvent* event) override;
 

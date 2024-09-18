@@ -643,6 +643,14 @@ public:
   void keepOrRevertFileModifications(int deployer, const FileChangeChoices& changes_to_keep) const;
   /*! \brief For all deployers: If using hard links that can't be created, switch to sym links. */
   void fixInvalidHardLinkDeployers();
+  /*!
+   * \brief Exports configurations for the given deployers and the given auto tags to a json file.
+   * Does not include mods.
+   * \param deployers Deployers to export.
+   * \param auto_tags Auto tags to export.
+   */
+  void exportConfiguration(const std::vector<int>& deployers,
+                           const std::vector<std::string>& auto_tags);
 
 private:
   /*! \brief The name of this application. */
@@ -699,6 +707,8 @@ private:
   std::function<void(float)> progress_callback_ = [](float f) {};
   /*! \brief The subdirectory used to store downloads. */
   std::string download_dir_ = "_download";
+  /*! \brief File name used to store exported deployers and auto tags. */
+  std::string export_file_name = "exported_config";
 
   /*!
    * \brief Updates json_settings_ with the current state of this object.
@@ -755,4 +765,11 @@ private:
    * \param target_mod_indices Target mod indices.
    */
   void performUpdateCheck(const std::vector<int>& target_mod_indices);
+  /*!
+   * \brief Checks if the given path belongs to a steam installation or prefix directory.
+   * Replaces installation or prefix path components with tokens.
+   * \param path Path to check.
+   * \return If no steam paths are found: The input path, else: The modified path.
+   */
+  std::string generalizeSteamPath(const std::string& path);
 };

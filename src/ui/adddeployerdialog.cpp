@@ -114,11 +114,16 @@ void AddDeployerDialog::updateSourceFields()
   std::string cur_text = ui->type_box->currentText().toStdString();
   if(cur_text.empty())
     return;
-  bool hidden = !DeployerFactory::AUTONOMOUS_DEPLOYERS.at(cur_text);
+  const bool hidden = !DeployerFactory::AUTONOMOUS_DEPLOYERS.at(cur_text);
   ui->source_path_field->setHidden(hidden);
   ui->source_dir_label->setHidden(hidden);
   ui->source_picker_button->setHidden(hidden);
   ui->source_path_field->updateValidation();
+  ui->deploy_mode_box->setHidden(!hidden);
+  ui->method_label->setHidden(!hidden);
+  const int mode_index = ui->deploy_mode_box->currentIndex();
+  ui->sym_link_label->setHidden(mode_index != Deployer::sym_link || !hidden);
+  ui->warning_label->setHidden(mode_index != Deployer::copy || !hidden);
   updateOkButton();
 }
 

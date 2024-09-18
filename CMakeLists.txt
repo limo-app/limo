@@ -186,6 +186,9 @@ set(PROJECT_SOURCES
         src/ui/enterapipwdialog.cpp
         src/ui/enterapipwdialog.h
         src/ui/enterapipwdialog.ui
+        src/ui/exportappconfigdialog.cpp
+        src/ui/exportappconfigdialog.h
+        src/ui/exportappconfigdialog.ui
         src/ui/externalchangesdialog.cpp
         src/ui/externalchangesdialog.h
         src/ui/externalchangesdialog.ui

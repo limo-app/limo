@@ -947,4 +947,12 @@ public slots:
     int app_id,
     int deployer,
     const FileChangeChoices& changes_to_keep);
+  /*!
+   * \brief Exports configurations for the given deployers and the given auto tags to a json file.
+   * Does not include mods.
+   * \param app_id Target app.
+   * \param deployers Deployers to export.
+   * \param auto_tags Auto tags to export.
+   */
+  void exportAppConfiguration(int app_id, std::vector<int> deployers, QStringList auto_tags);
 };

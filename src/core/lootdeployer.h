@@ -219,6 +219,11 @@ public:
     std::optional<ProgressNode*> progress_node = {}) const override;
   /*! \brief Since this deployer type does not use normal deployment methods, this does nothing. */
   virtual void fixInvalidLinkDeployMode() override;
+  /*!
+   * \brief This deployer always uses copy deploy mode.
+   * \param deploy_mode ignored.
+   */
+  virtual void setDeployMode(DeployMode deploy_mode) override;
 
 private:
   /*! \brief Name of the file containing plugin load order. */

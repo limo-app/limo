@@ -377,6 +377,11 @@ void LootDeployer::updateDeployedFilesForMod(int mod_id,
 
 void LootDeployer::fixInvalidLinkDeployMode() {}
 
+void LootDeployer::setDeployMode(DeployMode deploy_mode)
+{
+  deploy_mode_ = copy;
+}
+
 void LootDeployer::updatePlugins()
 {
   std::vector<std::string> plugin_files;

@@ -43,7 +43,7 @@ public:
     const std::map<std::string, std::pair<std::string, std::vector<TagCondition>>>& auto_tags);
   /*!
    * \brief Emits dialogClosed.
-   * \param event The close even sent upon closing the application.
+   * \param event The close event sent upon closing the dialog.
    */
   void closeEvent(QCloseEvent* event) override;
 
