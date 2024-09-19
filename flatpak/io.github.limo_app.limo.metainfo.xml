@@ -39,6 +39,18 @@
   <content_rating type="oars-1.1" />
   
   <releases>
+    <release version="1.0.7" date="2024-09-19">
+      <description>
+        <p>Added per app Steam imports</p>
+        <ul>
+          <li>Import from Steam now supports specialized settings for Steam apps</li>
+          <li>Added default filesystem accesss to flatpak Steam</li>
+          <li>Fixed detection of flatpak Steam version</li>
+          <li>Reinstalling mods will no longer cause the new files to be shown as external changes</li>
+          <li>Fixed mods not being split when reinstalling them</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.6" date="2024-09-04">
       <description>
         <p>Added sym link support</p>
