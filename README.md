@@ -129,3 +129,16 @@ tests/build/tests
 ```
 doxygen src/lmm_Doxyfile
 ```
+
+## Contributing configurations
+
+From version 1.0.7 onwards, Limo supports specialized deployer and auto tag imports for Steam games. Each configuration is stored in
+a file named *<STEAM_APP_ID>.json* in the *steam_app_configs* directory of this repository. If you are using Limo to mod a Steam
+game for which for no configuration file exists or if you want to improve an existing configuration, please consider open a Pull Request.
+
+You can export your existing configuration by clicking on the *Export* button in the *App* tab. This will generate the file *exported_config.json*
+in the app's staging directory. Before creating a Pull Request, rename this file to *<STEAM_APP_ID>.json*, e.g. *489830.json* for
+Skyrim SE, and move it to the *steam_app_configs* directory.
+
+**Note**: Deploy modes in this file will default to *hard link*, even if you are using sym links. When your configuration is imported by others,
+sym links will automatically used instead if hard links do not work.

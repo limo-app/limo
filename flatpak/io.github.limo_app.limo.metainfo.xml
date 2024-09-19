@@ -44,7 +44,7 @@
         <p>Added per app Steam imports</p>
         <ul>
           <li>Import from Steam now supports specialized settings for Steam apps</li>
-          <li>Added default filesystem accesss to flatpak Steam</li>
+          <li>Added default filesystem access to flatpak Steam</li>
           <li>Fixed detection of flatpak Steam version</li>
           <li>Reinstalling mods will no longer cause the new files to be shown as external changes</li>
           <li>Fixed mods not being split when reinstalling them</li>
