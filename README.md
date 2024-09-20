@@ -142,3 +142,43 @@ Skyrim SE, and move it to the *steam_app_configs* directory.
 
 **Note**: Deploy modes in this file will default to *hard link*, even if you are using sym links. When your configuration is imported by others,
 sym links will automatically used instead if hard links do not work.
+
+## Planned features
+
+**Reverse Deployer**  
+Optionally either moves all files or all files not belonging to the base game from its target directory to its source directory,
+displays them as mods and links them back in.
+This is similar to how MO2's overwrite directory works.
+
+**BG3 Deployer**  
+Similar to how the *LOOT Deployer* currently works, this will automatically add mods to the *modsettings.lsx* file in
+order to better support modding Baldurs Gate 3.
+
+**Bethesda base plugins**  
+For Bethesda games like Skyrim, certain plugins are always loaded regardless of whether or not they are enabled
+in the *LOOT Deployer*. This includes master plugins like *Skyrim.esm* and creation club content. These files should not
+be listed by the *LOOT Deployer*.
+
+**Mod grouping**  
+Currently split mods and mod patches are treated as completely separate from each other. This
+makes it hard to see which mods belong together and also makes it harder to uninstall them all at once. Grouping them
+together in a tree view under the base mod will resolve this.
+
+**Installation rules**  
+Adds user defined rules that can be toggled during mod installation. These rules allow moving or
+deleting files/ directories that match a certain pattern. This is intended to remove unnecessary files like screenshots and
+to resolve issues where parts of a mod would have to be moved manually, like *Nemesis* files when using *Pandora* in
+the case of Skyrim.
+
+**Config file detection**  
+Many mods and games allow tweaking some settings via config files (often ending in *.ini*).
+This feature will add a new tab that lists all such files and offers a button to open them in the default editor. Rules for
+detecting these files will be set by users, like those for auto tags.
+
+**API support**  
+Support for automatically checking for updates and downloading mods from modding websites that
+provide this functionality like *Thunderstore* and *Gamebanana*.
+
+**Deployers for other games**  
+If a game requires more specialized actions, like the current *LOOT Deployer* for
+Skyrim, in order to be modded, a deployer can be added if there is demand for it.
