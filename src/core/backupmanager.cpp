@@ -14,6 +14,7 @@ void BackupManager::addTarget(const sfs::path& path,
 {
   if(!sfs::exists(path))
     throw std::runtime_error(std::format("Path \"{}\" does not exist", path.string()));
+
   sfs::path trimmed_path = path;
   if(path.string().ends_with(sfs::path::preferred_separator))
     trimmed_path = path.string().erase(path.string().size() - 1, 1);
@@ -28,7 +29,7 @@ void BackupManager::addTarget(const sfs::path& path,
   else
   {
     if(backup_names.empty())
-      throw std::runtime_error("At least one backup name must be provided");
+      throw std::runtime_error("At least one backup name must be provided.");
     targets_.emplace_back(trimmed_path,
                           name,
                           std::vector<std::string>{ backup_names[0] },
@@ -42,10 +43,11 @@ void BackupManager::addTarget(const sfs::path& path,
 void BackupManager::addTarget(const sfs::path& path)
 {
   if(!sfs::exists(path))
-    throw std::runtime_error(std::format("Path \"{}\" does not exist", path.string()));
-  if(!sfs::exists(getConfigPath(path)))
     throw std::runtime_error(
-      std::format("Could not find settings file at \"{}\"", getConfigPath(path).string()));
+      std::format("Backup target path \"{}\" does not exist.", path.string()));
+  if(!sfs::exists(getConfigPath(path)))
+    throw std::runtime_error(std::format(
+      "Could not find backup target settings file at \"{}\".", getConfigPath(path).string()));
   for(const auto& target : targets_)
   {
     if(target.path == path)
@@ -145,6 +147,13 @@ void BackupManager::setProfile(int profile)
 {
   if(profile == cur_profile_)
     return;
+
+  if(profile < 0 || profile >= num_profiles_)
+    throw std::runtime_error(
+      std::format("Invalid profile id {} while changing profile. There are {} profiles",
+                  profile,
+                  num_profiles_));
+
   for(int target_id = 0; target_id < targets_.size(); target_id++)
   {
     auto& target = targets_[target_id];
@@ -173,13 +182,19 @@ void BackupManager::addProfile(int source)
 
 void BackupManager::removeProfile(int profile)
 {
+  if(profile < 0 || profile >= num_profiles_)
+    throw std::runtime_error(
+      std::format("Invalid profile id {} while removing profile. There are {} profiles",
+                  profile,
+                  num_profiles_));
+
   num_profiles_--;
   for(auto& target : targets_)
     target.active_members.erase(target.active_members.begin() + profile);
   if(profile == cur_profile_)
     setProfile(0);
   else if(cur_profile_ > profile)
-    cur_profile_--;
+    setProfile(cur_profile_ - 1);
   updateSettings();
 }
 
@@ -301,21 +316,24 @@ void BackupManager::updateState()
   for(auto& target : targets_)
   {
     const auto settings = readSettings(getConfigPath(target.path));
-    auto keys = { "path", "target_name", "backup_names", "active_members" };
+    const auto keys = { "path", "target_name", "backup_names", "active_members" };
     for(const auto& key : keys)
     {
       if(!settings.isMember(key))
-        throw ParseError(std::format("\"{}\" is missing in \"{}\"", key, target.path.string()));
+        throw ParseError(std::format("\"{}\" is missing in \"{}\".", key, target.path.string()));
     }
+
     if(settings["path"].asString() != target.path.string())
       throw ParseError(std::format(
         "Invalid path \"{}\" in \"{}\"", settings["path"].asString(), target.path.string()));
+
     std::vector<std::string> new_names;
     auto names = settings["backup_names"];
     if(names.empty())
-      throw ParseError(std::format("No backups found for \"{}\"", target.path.string()));
+      throw ParseError(std::format("No backups found for \"{}\".", target.path.string()));
     for(int i = 0; i < names.size(); i++)
       new_names.push_back(names[i].asString());
+
     std::vector<int> new_active_members;
     auto active_members = settings["active_members"];
     for(int i = 0; i < active_members.size(); i++)
@@ -323,12 +341,12 @@ void BackupManager::updateState()
       int member = active_members[i].asInt();
       if(member < 0 || member >= new_names.size())
         throw ParseError(
-          std::format("Invalid active member\"{}\" in \"{}\"", member, target.path.string()));
+          std::format("Invalid active member\"{}\" in \"{}\".", member, target.path.string()));
       new_active_members.push_back(member);
     }
-    if(active_members.size() != num_profiles_)
+    if(new_active_members.size() != num_profiles_)
       throw ParseError(
-        std::format("Failed to parse active_members in \"{}\"", target.path.string()));
+        std::format("Failed to parse active_members in \"{}\".", target.path.string()));
     target.target_name = settings["target_name"].asString();
     target.backup_names = new_names;
     target.active_members = new_active_members;
