@@ -49,18 +49,19 @@ int ProgressNode::id() const
 void ProgressNode::addChildren(const std::vector<float>& weights)
 {
   weights_ = weights;
+  for(float& weight : weights_)
+    weight = std::abs(weight);
   float sum = std::accumulate(weights_.begin(), weights_.end(), 0.0f);
   if(sum == 0.0f)
     sum = 1.0f;
-  for(auto& weight : weights_)
-    weight = std::abs(weight / sum);
+  for(float& weight : weights_)
+    weight /= sum;
   for(int i = 0; i < weights_.size(); i++)
     children_.push_back({ i, {}, this });
 }
 
 ProgressNode& ProgressNode::child(int id)
 {
-  int* i;
   return children_[id];
 }
 

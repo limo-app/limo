@@ -43,10 +43,10 @@ void ModdedApplication::deployMods()
 void ModdedApplication::deployModsFor(const std::vector<int>& deployers)
 {
   std::vector<float> weights;
-  for(int i : deployers)
+  for(int deployer : deployers)
   {
-    const int num_mods = deployers_[i]->getNumMods();
-    if(deployers_[i]->isAutonomous() || num_mods == 0)
+    const int num_mods = deployers_[deployer]->getNumMods();
+    if(deployers_[deployer]->isAutonomous() || num_mods == 0)
       weights.push_back(1);
     else
       weights.push_back(num_mods);
@@ -55,11 +55,11 @@ void ModdedApplication::deployModsFor(const std::vector<int>& deployers)
   // always deploy normal deployers first, since some autonomous deployers
   // may depend on their output
   ProgressNode node(progress_callback_, weights);
-  for(int i : deployers)
+  for(auto [i, deployer] : str::enumerate_view(deployers))
   {
-    if(!deployers_[i]->isAutonomous())
+    if(!deployers_[deployer]->isAutonomous())
     {
-      const auto mod_sizes = deployers_[i]->deploy(&(node.child(i)));
+      const auto mod_sizes = deployers_[deployer]->deploy(&(node.child(i)));
       for(const auto [mod_id, mod_size] : mod_sizes)
       {
         auto mod_iter =
@@ -70,10 +70,10 @@ void ModdedApplication::deployModsFor(const std::vector<int>& deployers)
     }
   }
 
-  for(int i : deployers)
+  for(auto [i, deployer] : str::enumerate_view(deployers))
   {
-    if(deployers_[i]->isAutonomous())
-      deployers_[i]->deploy(&(node.child(i)));
+    if(deployers_[deployer]->isAutonomous())
+      deployers_[deployer]->deploy(&(node.child(i)));
   }
 
   updateSettings(true);
