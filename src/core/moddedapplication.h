@@ -62,6 +62,13 @@ public:
    * \param deployers The Deployer ids used for deployment.
    */
   void deployModsFor(const std::vector<int>& deployers);
+  /*! \brief Undeploys mods for all managed deployers. */
+  void unDeployMods();
+  /*!
+   * \brief Undeploys mods for the given deployers.
+   * \param deployers Target deployers.
+   */
+  void unDeployModsFor(const std::vector<int>& deployers);
   /*!
    * \brief Installs a new mod using the given Installer type.
    * \param info Contains all data needed to install the mod.

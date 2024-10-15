@@ -439,16 +439,18 @@ signals:
    * \param app_id Target app.
    * \param info Contains data about modified files.
    * \param num_deployers The total number of deployers for the target app.
+   * \param deploy If True: Deploy mods after checking, else: Undeploy mods.
    */
-  void sendExternalChangesInfo(int app_id, ExternalChangesInfo info, int num_deployers);
+  void sendExternalChangesInfo(int app_id, ExternalChangesInfo info, int num_deployers, bool deploy);
   /*!
    * \brief Signals that external changes to files for given app for given deployer have been
    * handled.
    * \param app_id Target app.
    * \param deployer Target deployer.
    * \param num_deployers The total number of deployers for the target app.
+   * \param deploy If True: Deploy mods after checking, else: Undeploy mods.
    */
-  void externalChangesHandled(int app_id, int deployer, int num_deployers);
+  void externalChangesHandled(int app_id, int deployer, int num_deployers, bool deploy);
 
 public slots:
   /*!
@@ -476,6 +478,18 @@ public slots:
    * \param deployer_ids Target deployers.
    */
   void deployModsFor(int app_id, std::vector<int> deployer_ids);
+  /*!
+   * \brief Undeploys mods using all Deployer objects of one \ref ModdedApplication
+   * "application".
+   * \param app_id The target \ref ModdedApplication "application".
+   */
+  void unDeployMods(int app_id);
+  /*!
+   * \brief Undeploys mods for given deployers and given application.
+   * \param app_id Target application.
+   * \param deployer_ids Target deployers.
+   */
+  void unDeployModsFor(int app_id, std::vector<int> deployer_ids);
   /*!
    * \brief Installs a new mod for one \ref ModdedApplication "application" using
    * the given Installer type.
@@ -930,8 +944,9 @@ public slots:
    * been externally overwritten.
    * \param app_id Target app.
    * \param deployer Deployer to check.
+   * \param deploy If True: Deploy mods after checking, else: Undeploy mods.
    */
-  void getExternalChanges(int app_id, int deployer);
+  void getExternalChanges(int app_id, int deployer, bool deploy);
   /*!
    * \brief Keeps or reverts external changes for one app for one deployer.
    * For every given file: Moves the modified file into the source mods directory and links
@@ -942,11 +957,13 @@ public slots:
    * \param changes_to_keep Contains paths to modified files, the id of the mod currently
    * responsible for that file and a bool which indicates whether or not changes to
    * that file should be kept.
+   * \param deploy If True: Deploy mods after checking, else: Undeploy mods.
    */
   void keepOrRevertFileModifications(
     int app_id,
     int deployer,
-    const FileChangeChoices& changes_to_keep);
+    const FileChangeChoices& changes_to_keep,
+    bool deploy);
   /*!
    * \brief Exports configurations for the given deployers and the given auto tags to a json file.
    * Does not include mods.

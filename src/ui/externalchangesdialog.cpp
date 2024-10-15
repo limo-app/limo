@@ -17,10 +17,11 @@ ExternalChangesDialog::~ExternalChangesDialog()
   delete ui;
 }
 
-void ExternalChangesDialog::setup(int app_id, const ExternalChangesInfo& info)
+void ExternalChangesDialog::setup(int app_id, const ExternalChangesInfo& info, bool deploy)
 {
   app_id_ = app_id;
   changes_info_ = info;
+  deploy_ = deploy;
 
   ui->file_list->clear();
   ui->description_label->setText(
@@ -48,7 +49,7 @@ void ExternalChangesDialog::on_buttonBox_accepted()
     changes_to_keep.mod_ids.push_back(mod_id);
     changes_to_keep.changes_to_keep.push_back(ui->file_list->item(i)->checkState() == Qt::Checked);
   }
-  emit externalChangesDialogCompleted(app_id_, changes_info_.deployer_id, changes_to_keep);
+  emit externalChangesDialogCompleted(app_id_, changes_info_.deployer_id, changes_to_keep, deploy_);
 }
 
 void ExternalChangesDialog::on_buttonBox_rejected()

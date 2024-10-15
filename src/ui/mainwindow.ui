@@ -204,7 +204,7 @@
            <enum>QTabWidget::Rounded</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <property name="elideMode">
            <enum>Qt::ElideNone</enum>
@@ -951,49 +951,6 @@
                <property name="bottomMargin">
                 <number>2</number>
                </property>
-               <item row="0" column="5">
-                <widget class="QPushButton" name="deploy_button">
-                 <property name="toolTip">
-                  <string>Deploy mods for all deployers</string>
-                 </property>
-                 <property name="text">
-                  <string>Deploy</string>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="4">
-                <spacer name="horizontalSpacer">
-                 <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                 </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="0" column="2">
-                <widget class="QToolButton" name="deployer_tool_button">
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="popupMode">
-                  <enum>QToolButton::MenuButtonPopup</enum>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QComboBox" name="deployer_selection_box">
-                 <property name="sizeAdjustPolicy">
-                  <enum>QComboBox::AdjustToContents</enum>
-                 </property>
-                 <property name="minimumContentsLength">
-                  <number>8</number>
-                 </property>
-                </widget>
-               </item>
                <item row="0" column="0">
                 <widget class="QLabel" name="label_2">
                  <property name="text">
@@ -1023,6 +980,59 @@
                  </property>
                  <property name="flat">
                   <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QComboBox" name="deployer_selection_box">
+                 <property name="sizeAdjustPolicy">
+                  <enum>QComboBox::AdjustToContents</enum>
+                 </property>
+                 <property name="minimumContentsLength">
+                  <number>8</number>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QToolButton" name="deployer_tool_button">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="popupMode">
+                  <enum>QToolButton::MenuButtonPopup</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="6">
+                <widget class="QPushButton" name="deploy_button">
+                 <property name="toolTip">
+                  <string>Deploy mods for all deployers</string>
+                 </property>
+                 <property name="text">
+                  <string>Deploy</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="4">
+                <spacer name="horizontalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="0" column="5">
+                <widget class="QPushButton" name="undeploy_button">
+                 <property name="toolTip">
+                  <string>Revert mod deployment</string>
+                 </property>
+                 <property name="text">
+                  <string>Undeploy</string>
                  </property>
                 </widget>
                </item>

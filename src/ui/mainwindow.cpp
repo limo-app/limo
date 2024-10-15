@@ -383,6 +383,10 @@ void MainWindow::setupConnections()
           this, &MainWindow::onExternalChangesHandled);
   connect(this, &MainWindow::exportAppConfiguration,
           app_manager_, &ApplicationManager::exportAppConfiguration);
+  connect(this, &MainWindow::unDeployMods,
+          app_manager_, &ApplicationManager::unDeployMods);
+  connect(this, &MainWindow::unDeployModsFor,
+          app_manager_, &ApplicationManager::unDeployModsFor);
 }
 // clang-format on
 
@@ -1093,6 +1097,7 @@ void MainWindow::enableModifyDeployers(bool enabled)
       action->setEnabled(enabled);
 
   ui->deploy_button->setEnabled(enabled);
+  ui->undeploy_button->setEnabled(enabled);
   ui->info_deployer_list->setEnabled(enabled);
   ui->deployer_list->setEnableButtons(enabled);
   ui->deployer_list->setEnableDragReorder(enabled);
@@ -1186,6 +1191,7 @@ void MainWindow::initUiWithoutApps(bool has_apps)
   ui->deployer_tool_button->setEnabled(has_apps);
   ui->profile_tool_button->setEnabled(has_apps);
   ui->deploy_button->setEnabled(has_apps);
+  ui->undeploy_button->setEnabled(has_apps);
   // combo boxes
   ui->deployer_selection_box->setEnabled(has_apps);
   ui->app_selection_box->setEnabled(has_apps);
@@ -1419,6 +1425,7 @@ void MainWindow::onGetDeployerNames(QStringList names, bool is_new)
     edit_deployer_action_->setEnabled(false);
     ui->actionbrowse_deployer_files->setEnabled(false);
     ui->deploy_button->setEnabled(false);
+    ui->undeploy_button->setEnabled(false);
   }
   else
   {
@@ -1426,6 +1433,7 @@ void MainWindow::onGetDeployerNames(QStringList names, bool is_new)
     edit_deployer_action_->setEnabled(true);
     ui->actionbrowse_deployer_files->setEnabled(true);
     ui->deploy_button->setEnabled(true);
+    ui->undeploy_button->setEnabled(true);
   }
   auto settings = QSettings(QCoreApplication::applicationName());
   settings.beginGroup(QString::number(currentApp()));
@@ -2071,9 +2079,9 @@ void MainWindow::on_deploy_button_clicked()
   setStatusMessage("Checking for external changes");
   setBusyStatus(true, true, true);
   if(deploy_for_all_)
-    emit getExternalChanges(currentApp(), 0);
+    emit getExternalChanges(currentApp(), 0, true);
   else
-    emit getExternalChanges(currentApp(), currentDeployer());
+    emit getExternalChanges(currentApp(), currentDeployer(), true);
 }
 
 
@@ -3204,31 +3212,45 @@ void MainWindow::onModInstallationComplete(bool success)
     importMod();
 }
 
-void MainWindow::onGetExternalChangesInfo(int app_id, ExternalChangesInfo info, int num_deployers)
+void MainWindow::onGetExternalChangesInfo(int app_id,
+                                          ExternalChangesInfo info,
+                                          int num_deployers,
+                                          bool deploy)
 {
   setStatusMessage("");
   if(!info.file_changes.empty())
   {
-    external_changes_dialog_->setup(app_id, info);
+    external_changes_dialog_->setup(app_id, info, deploy);
     external_changes_dialog_->show();
   }
   else
-    onExternalChangesHandled(app_id, info.deployer_id, num_deployers);
+    onExternalChangesHandled(app_id, info.deployer_id, num_deployers, deploy);
 }
 
-void MainWindow::onExternalChangesHandled(int app_id, int deployer, int num_deployers)
+void MainWindow::onExternalChangesHandled(int app_id, int deployer, int num_deployers, bool deploy)
 {
   setStatusMessage("");
   setBusyStatus(false);
   if(deployer == num_deployers - 1 || !deploy_for_all_)
   {
-    Log::info("Deploying mods...");
-    setStatusMessage("Deploying mods");
+    const std::string action_string = deploy ? "Deploying" : "Undeploying";
+    Log::info(action_string + " mods...");
+    setStatusMessage((action_string + " mods").c_str());
     setBusyStatus(true, true, true);
     if(deploy_for_all_)
-      emit deployMods(app_id);
+    {
+      if(deploy)
+        emit deployMods(app_id);
+      else
+        emit unDeployMods(app_id);
+    }
     else
-      emit deployModsFor(app_id, { deployer });
+    {
+      if(deploy)
+        emit deployModsFor(app_id, { deployer });
+      else
+        emit unDeployModsFor(app_id, { deployer });
+    }
     if(app_id == currentApp())
       emit getDeployerInfo(currentApp(), currentDeployer());
   }
@@ -3236,16 +3258,17 @@ void MainWindow::onExternalChangesHandled(int app_id, int deployer, int num_depl
   {
     setStatusMessage("Checking for external changes");
     setBusyStatus(true, true, true);
-    emit getExternalChanges(app_id, deployer + 1);
+    emit getExternalChanges(app_id, deployer + 1, deploy);
   }
 }
 
 void MainWindow::onExternalChangesDialogCompleted(int app_id,
                                                   int deployer,
-                                                  const FileChangeChoices& changes_to_keep)
+                                                  const FileChangeChoices& changes_to_keep,
+                                                  bool deploy)
 {
   setStatusMessage("Applying changes");
-  emit keepOrRevertFileModifications(app_id, deployer, changes_to_keep);
+  emit keepOrRevertFileModifications(app_id, deployer, changes_to_keep, deploy);
 }
 
 void MainWindow::onExternalChangesDialogAborted()
@@ -3274,4 +3297,14 @@ void MainWindow::onExportAppConfigDialogComplete(int app_id,
 {
   setBusyStatus(false);
   emit exportAppConfiguration(app_id, deployers, auto_tags);
+}
+
+void MainWindow::on_undeploy_button_clicked()
+{
+  setStatusMessage("Checking for external changes");
+  setBusyStatus(true, true, true);
+  if(deploy_for_all_)
+    emit getExternalChanges(currentApp(), 0, false);
+  else
+    emit getExternalChanges(currentApp(), currentDeployer(), false);
 }

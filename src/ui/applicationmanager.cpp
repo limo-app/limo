@@ -333,6 +333,20 @@ void ApplicationManager::deployModsFor(int app_id, std::vector<int> deployer_ids
   emit completedOperations("Mods deployed");
 }
 
+void ApplicationManager::unDeployMods(int app_id)
+{
+  if(appIndexIsValid(app_id))
+    handleExceptions<&ModdedApplication::unDeployMods>(app_id);
+  emit completedOperations("Mods undeployed");
+}
+
+void ApplicationManager::unDeployModsFor(int app_id, std::vector<int> deployer_ids)
+{
+  if(appIndexIsValid(app_id))
+    handleExceptions<&ModdedApplication::unDeployModsFor>(app_id, deployer_ids);
+  emit completedOperations("Mods undeployed");
+}
+
 void ApplicationManager::installMod(int app_id, AddModInfo info)
 {
   bool has_thrown = false;
@@ -904,7 +918,7 @@ void ApplicationManager::suppressUpdateNotification(int app_id, const std::vecto
   emit completedOperations();
 }
 
-void ApplicationManager::getExternalChanges(int app_id, int deployer)
+void ApplicationManager::getExternalChanges(int app_id, int deployer, bool deploy)
 {
   if(appIndexIsValid(app_id) && deployerIndexIsValid(app_id, deployer))
   {
@@ -913,7 +927,7 @@ void ApplicationManager::getExternalChanges(int app_id, int deployer)
     if(!changes_info)
       emit completedOperations("Checking for external changes failed");
     else
-      emit sendExternalChangesInfo(app_id, *changes_info, apps_[app_id].getNumDeployers());
+      emit sendExternalChangesInfo(app_id, *changes_info, apps_[app_id].getNumDeployers(), deploy);
   }
   else
     emit completedOperations("Checking for external changes failed");
@@ -921,7 +935,8 @@ void ApplicationManager::getExternalChanges(int app_id, int deployer)
 
 void ApplicationManager::keepOrRevertFileModifications(int app_id,
                                                        int deployer,
-                                                       const FileChangeChoices& changes_to_keep)
+                                                       const FileChangeChoices& changes_to_keep,
+                                                       bool deploy)
 {
   if(appIndexIsValid(app_id) && deployerIndexIsValid(app_id, deployer))
   {
@@ -930,7 +945,7 @@ void ApplicationManager::keepOrRevertFileModifications(int app_id,
     if(has_throw)
       emit completedOperations("Applying external changes failed");
     else
-      emit externalChangesHandled(app_id, deployer, apps_[app_id].getNumDeployers());
+      emit externalChangesHandled(app_id, deployer, apps_[app_id].getNumDeployers(), deploy);
   }
   else
     emit completedOperations("Applying external changes failed");

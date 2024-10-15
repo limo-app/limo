@@ -61,19 +61,24 @@ public:
   static inline std::string PRELUDE_URL;
 
   /*!
-   * \brief Reloads all deployed plugins. Does NOT save current load order to disk.
+   * \brief Reloads all deployed plugins.
    * \param progress_node Used to inform about the current progress of deployment.
    * \return Since this is an autonomous deployer, the returned map is always empty.
    */
   std::map<int, unsigned long> deploy(std::optional<ProgressNode*> progress_node = {}) override;
   /*!
-   * \brief Reloads all deployed plugins. Does NOT save current load order to disk.
+   * \brief Reloads all deployed plugins.
    * \param loadorder Ignored.
    * \param progress_node Used to inform about the current progress of deployment.
    * \return Since this is an autonomous deployer, the returned map is always empty.
    */
   std::map<int, unsigned long> deploy(const std::vector<int>& loadorder,
                                       std::optional<ProgressNode*> progress_node = {}) override;
+  /*!
+   * \brief Backs up current plugin file, if no backup exists, then reloads all plugins.
+   * \param progress_node Used to inform about the current progress.
+   */
+  virtual void unDeploy(std::optional<ProgressNode*> progress_node = {}) override;
   /*!
    * \brief Moves a mod from one position in the load order to another. Saves changes to disk.
    * \param from_index Index of mod to be moved.
@@ -234,6 +239,8 @@ private:
   static constexpr std::string CONFIG_FILE_NAME = ".lmmconfig";
   /*! \brief Name of the file containing loot tags. */
   static constexpr std::string TAGS_FILE_NAME = ".loot_tags";
+  /*! \brief File extension for plugins.txt and loadorder.txt backup files. */
+  static constexpr std::string UNDEPLOY_BACKUP_EXTENSION = ".undeplbak";
   /*! \brief Maps supported game type to a path to a file unique to that type. */
   static inline const std::map<loot::GameType, std::filesystem::path> TYPE_IDENTIFIERS = {
     { loot::GameType::fo3, "Fallout3.esm" },
@@ -314,4 +321,6 @@ private:
   void readPluginTags();
   /*! \brief Downloads the file from the given URL and stores it at dest_path_/file_name. */
   void downloadList(std::string url, const std::string& file_name);
+  /*! \brief If loadorder and plugin file backups exist, restore them and override the current files. */
+  void restoreUndeployBackupIfExists();
 };

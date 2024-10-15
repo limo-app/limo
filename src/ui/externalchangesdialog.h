@@ -34,9 +34,11 @@ public:
   /*!
    * \brief Initializes the dialog.
    * \param app_id Id of the app containing the modified files.
-   * \param info Contains data regarding which files have been modified and to which mods those files belong.
+   * \param info Contains data regarding which files have been modified and to which
+   * mods those files belong.
+   * \param deploy If True: Deploy mods after checking, else: Undeploy mods.
    */
-  void setup(int app_id, const ExternalChangesInfo& info);
+  void setup(int app_id, const ExternalChangesInfo& info, bool deploy);
 
 private slots:
   /*! \brief Signals sucessful dialog completion. Emits \ref externalChangesDialogCompleted. */
@@ -57,6 +59,8 @@ private:
   int app_id_ = -1;
   /*! \brief Contains data regarding which files have been modified and to which mods those files belong. */
   ExternalChangesInfo changes_info_;
+  /*! \brief If True: Deploy mods after checking, else: Undeploy mods. */
+  bool deploy_ = true;
 
 signals:
   /*!
@@ -64,11 +68,13 @@ signals:
    * \param app_id Id of the app containing the modified files.
    * \param deployer Id of the deployer managing the modified files.
    * \param changes_to_keep Contains data regarding which modifications to keep and which to reject.
+   * \param deploy If True: Deploy mods after checking, else: Undeploy mods.
    */
   void externalChangesDialogCompleted(
     int app_id,
     int deployer,
-    const FileChangeChoices& changes_to_keep);
+    const FileChangeChoices& changes_to_keep,
+    bool deploy);
   /*! \brief Signals dialog has been aborted. */
   void externalChangesDialogAborted();
 };

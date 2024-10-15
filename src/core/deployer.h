@@ -88,6 +88,11 @@ public:
    */
   virtual std::map<int, unsigned long> deploy(std::optional<ProgressNode*> progress_node = {});
   /*!
+   * \brief Removes all deployed mods from the target directory and restores backups.
+   * \param progress_node Used to inform about the current progress.
+   */
+  virtual void unDeploy(std::optional<ProgressNode*> progress_node = {});
+  /*!
    * \brief Setter for the load order used for deployment.
    * \param loadorder The new load order.
    */

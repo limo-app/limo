@@ -74,6 +74,12 @@ std::map<int, unsigned long> Deployer::deploy(std::optional<ProgressNode*> progr
   return deploy(loadorder, progress_node);
 }
 
+void Deployer::unDeploy(std::optional<ProgressNode*> progress_node)
+{
+  log_(Log::LOG_DEBUG, "Undeploying...");
+  deploy({}, progress_node);
+}
+
 void Deployer::setLoadorder(const std::vector<std::tuple<int, bool>>& loadorder)
 {
   loadorders_[current_profile_] = loadorder;

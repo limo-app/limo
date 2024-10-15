@@ -79,6 +79,44 @@ void ModdedApplication::deployModsFor(const std::vector<int>& deployers)
   updateSettings(true);
 }
 
+void ModdedApplication::unDeployMods()
+{
+  std::vector<int> deployers;
+  for(int i = 0; i < deployers_.size(); i++)
+    deployers.push_back(i);
+  unDeployModsFor(deployers);
+}
+
+void ModdedApplication::unDeployModsFor(const std::vector<int>& deployers)
+{
+  std::vector<float> weights;
+  for(int deployer : deployers)
+  {
+    const int num_mods = deployers_[deployer]->getNumMods();
+    if(deployers_[deployer]->isAutonomous() || num_mods == 0)
+      weights.push_back(1);
+    else
+      weights.push_back(num_mods);
+  }
+
+  // always un-deploy normal deployers first, since some autonomous deployers
+  // may depend on their output
+  ProgressNode node(progress_callback_, weights);
+  for(auto [i, deployer] : str::enumerate_view(deployers))
+  {
+    if(!deployers_[deployer]->isAutonomous())
+      deployers_[deployer]->unDeploy(&(node.child(i)));
+  }
+
+  for(auto [i, deployer] : str::enumerate_view(deployers))
+  {
+    if(deployers_[deployer]->isAutonomous())
+      deployers_[deployer]->unDeploy(&(node.child(i)));
+  }
+
+  updateSettings(true);
+}
+
 void ModdedApplication::installMod(const AddModInfo& info)
 {
   if(info.replace_mod && info.group != -1)
@@ -1497,7 +1535,8 @@ void ModdedApplication::exportConfiguration(const std::vector<int>& deployers,
       path = staging_dir_ / (export_file_name + std::format("_{}.json", i++));
     while(sfs::exists(path));
   }
-  log_(Log::LOG_INFO, std::format("Exporting configuration for '{}' to '{}'", name_, path.string()));
+  log_(Log::LOG_INFO,
+       std::format("Exporting configuration for '{}' to '{}'", name_, path.string()));
   std::ofstream file(path, std::fstream::binary);
   file << json;
 }

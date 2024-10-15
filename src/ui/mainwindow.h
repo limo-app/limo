@@ -1007,15 +1007,20 @@ private slots:
    * \param app_id \ref ModdedApplication "application" for which changes have been received.
    * \param info Contains data about externally modified files.
    * \param num_deployers The total number of deployers for the target app.
+   * \param deploy If True: Deploy mods after checking, else: Undeploy mods.
    */
-  void onGetExternalChangesInfo(int app_id, ExternalChangesInfo info, int num_deployers);
+  void onGetExternalChangesInfo(int app_id,
+                                ExternalChangesInfo info,
+                                int num_deployers,
+                                bool deploy);
   /*!
    * \brief Gets external changes for other deployers. If there are none: Begin deployment.
    * \param app_id \ref ModdedApplication "application" for which changes have benn handled.
    * \param deployer Deployer for which changes have been handled.
    * \param num_deployers The total number of deployers for the target app.
+   * \param deploy If True: Deploy mods after checking, else: Undeploy mods.
    */
-  void onExternalChangesHandled(int app_id, int deployer, int num_deployers);
+  void onExternalChangesHandled(int app_id, int deployer, int num_deployers, bool deploy);
   /*!
    * \brief Called when the ExternalChangesDialog has been completed sucessfully.
    * Emits \ref keepOrRevertFileModifications.
@@ -1024,10 +1029,12 @@ private slots:
    * \param changes_to_keep Contains paths to modified files, the id of the mod currently
    * responsible for that file and a bool which indicates whether or not changes to
    * that file should be kept.
+   * \param deploy If True: Deploy mods after checking, else: Undeploy mods.
    */
   void onExternalChangesDialogCompleted(int app_id,
                                         int deployer,
-                                        const FileChangeChoices& changes_to_keep);
+                                        const FileChangeChoices& changes_to_keep,
+                                        bool deploy);
   /*! \brief Called when the ExternalChangesDialog has been aborted. Cancels deployment. */
   void onExternalChangesDialogAborted();
   /*! \brief Opens the export_app_config_dialog_. */
@@ -1041,6 +1048,8 @@ private slots:
   void onExportAppConfigDialogComplete(int app_id,
                                        std::vector<int> deployers,
                                        QStringList auto_tags);
+  /*! \brief Checks for external changes and reverts mod deployment. */
+  void on_undeploy_button_clicked();
 
 signals:
   /*!
@@ -1127,6 +1136,17 @@ signals:
    * \param deployer_ids Target Deployer ids.
    */
   void deployModsFor(int app_id, std::vector<int> deployer_ids);
+  /*!
+   * \brief Undeploys mods using all Deployer objects of one \ref ModdedApplication "application".
+   * \param app_id The target \ref ModdedApplication "application".
+   */
+  void unDeployMods(int app_id);
+  /*!
+   * \brief Undeploys mods using given Deployers of one \ref ModdedApplication "application".
+   * \param app_id The target \ref ModdedApplication "application".
+   * \param deployer_ids Target Deployer ids.
+   */
+  void unDeployModsFor(int app_id, std::vector<int> deployer_ids);
   /*!
    * \brief Updates Entries in the \ref ModdedApplication "application" combo box.
    * \param is_new Indicates whether this was called after adding a
@@ -1496,8 +1516,9 @@ signals:
    * externally overwritten.
    * \param app_id Target app.
    * \param deployer Deployer to check.
+   * \param deploy If True: Deploy mods after checking, else: Undeploy mods.
    */
-  void getExternalChanges(int app_id, int deployer);
+  void getExternalChanges(int app_id, int deployer, bool deploy);
   /*!
    * \brief Keeps or reverts external changes for one app for one deployer.
    * For every given file: Moves the modified file into the source mods directory and links
@@ -1508,10 +1529,12 @@ signals:
    * \param modified_files Contains paths to modified files, the id of the mod currently
    * responsible for that file and a bool which indicates whether or not changes to
    * that file should be kept.
+   * \param deploy If True: Deploy mods after checking, else: Undeploy mods.
    */
   void keepOrRevertFileModifications(int app_id,
                                      int deployer,
-                                     const FileChangeChoices& changes_to_keep);
+                                     const FileChangeChoices& changes_to_keep,
+                                     bool deploy);
   /*!
    * \brief Exports configurations for the given deployers and the given auto tags to a json file.
    * Does not include mods.

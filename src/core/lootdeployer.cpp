@@ -37,6 +37,7 @@ LootDeployer::LootDeployer(const sfs::path& source_path,
 std::map<int, unsigned long> LootDeployer::deploy(std::optional<ProgressNode*> progress_node)
 {
   log_(Log::LOG_INFO, std::format("Deployer '{}': Updating plugins...", name_));
+  restoreUndeployBackupIfExists();
   updatePlugins();
   updatePluginTags();
   return {};
@@ -46,9 +47,31 @@ std::map<int, unsigned long> LootDeployer::deploy(const std::vector<int>& loador
                                                   std::optional<ProgressNode*> progress_node)
 {
   log_(Log::LOG_INFO, std::format("Deployer '{}': Updating plugins...", name_));
+  restoreUndeployBackupIfExists();
   updatePlugins();
   updatePluginTags();
   return {};
+}
+
+void LootDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
+{
+  const std::string loadorder_backup_path =
+    dest_path_ / ("." + LOADORDER_FILE_NAME + UNDEPLOY_BACKUP_EXTENSION);
+  const std::string plugin_backup_path =
+    dest_path_ / ("." + plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
+  if(sfs::exists(loadorder_backup_path) && !sfs::exists(plugin_backup_path))
+    sfs::remove(loadorder_backup_path);
+  else if(!sfs::exists(loadorder_backup_path) && sfs::exists(plugin_backup_path))
+    sfs::remove(plugin_backup_path);
+  else if(!sfs::exists(loadorder_backup_path) && !sfs::exists(plugin_backup_path))
+  {
+    sfs::copy(dest_path_ / LOADORDER_FILE_NAME, loadorder_backup_path);
+    sfs::copy(dest_path_ / plugin_file_name_, plugin_backup_path);
+  }
+
+  log_(Log::LOG_INFO, std::format("Deployer '{}': Updating plugins...", name_));
+  updatePlugins();
+  updatePluginTags();
 }
 
 void LootDeployer::changeLoadorder(int from_index, int to_index)
@@ -663,4 +686,25 @@ void LootDeployer::downloadList(std::string url, const std::string& file_name)
   if(sfs::exists(dest_path_ / file_name))
     sfs::remove(dest_path_ / file_name);
   sfs::rename(dest_path_ / tmp_file_name, dest_path_ / file_name);
+}
+
+void LootDeployer::restoreUndeployBackupIfExists()
+{
+  const std::string loadorder_backup_path =
+    dest_path_ / ("." + LOADORDER_FILE_NAME + UNDEPLOY_BACKUP_EXTENSION);
+  const std::string plugin_backup_path =
+    dest_path_ / ("." + plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
+  if(sfs::exists(loadorder_backup_path) && !sfs::exists(plugin_backup_path))
+    sfs::remove(loadorder_backup_path);
+  else if(!sfs::exists(loadorder_backup_path) && sfs::exists(plugin_backup_path))
+    sfs::remove(plugin_backup_path);
+  else if(sfs::exists(loadorder_backup_path) && sfs::exists(plugin_backup_path))
+  {
+    log_(Log::LOG_DEBUG, std::format("Deployer '{}': Restoring undeploy backup.", name_));
+    sfs::remove(dest_path_ / LOADORDER_FILE_NAME);
+    sfs::rename(loadorder_backup_path, dest_path_ / LOADORDER_FILE_NAME);
+    sfs::remove(dest_path_ / plugin_file_name_);
+    sfs::rename(plugin_backup_path, dest_path_ / plugin_file_name_);
+    loadPlugins();
+  }
 }
