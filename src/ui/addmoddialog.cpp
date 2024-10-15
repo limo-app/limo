@@ -250,7 +250,16 @@ void AddModDialog::closeEvent(QCloseEvent* event)
     return;
   dialog_completed_ = true;
   emit addModAborted(mod_path_);
-  QDialog::closeEvent(event);
+  QDialog::reject();
+}
+
+void AddModDialog::reject()
+{
+  if(dialog_completed_)
+    return;
+  dialog_completed_ = true;
+  emit addModAborted(mod_path_);
+  QDialog::reject();
 }
 
 sfs::path AddModDialog::removeRoot(const sfs::path& source)

@@ -45,7 +45,16 @@ void ExportAppConfigDialog::closeEvent(QCloseEvent* event)
     return;
   dialog_completed_ = true;
   emit dialogClosed();
-  QDialog::closeEvent(event);
+  QDialog::reject();
+}
+
+void ExportAppConfigDialog::reject()
+{
+  if(dialog_completed_)
+    return;
+  dialog_completed_ = true;
+  emit dialogClosed();
+  QDialog::reject();
 }
 
 void ExportAppConfigDialog::on_buttonBox_accepted()

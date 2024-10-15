@@ -246,7 +246,16 @@ void FomodDialog::closeEvent(QCloseEvent* event)
     return;
   dialog_completed_ = true;
   emit addModAborted();
-  QDialog::closeEvent(event);
+  QDialog::reject();
+}
+
+void FomodDialog::reject()
+{
+  if(dialog_completed_)
+    return;
+  dialog_completed_ = true;
+  emit addModAborted();
+  QDialog::reject();
 }
 
 void FomodDialog::onNextButtonPressed()

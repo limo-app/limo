@@ -75,6 +75,8 @@ public:
    * \param event The close even sent upon closing the dialog.
    */
   void closeEvent(QCloseEvent* event) override;
+  /*! \brief Closes the dialog and emits a signal indicating installation has been canceled. */
+  void reject() override;
 
 private:
   /*! \brief Contains auto-generated UI elements. */

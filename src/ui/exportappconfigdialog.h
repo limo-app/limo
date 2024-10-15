@@ -53,6 +53,8 @@ private:
    * \param event The close event sent upon closing the dialog.
    */
   void closeEvent(QCloseEvent* event) override;
+  /*! \brief Closes the dialog and emits a signal indicating the dialog has been closed. */
+  void reject() override;
 
 signals:
   /*!

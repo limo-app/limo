@@ -83,7 +83,16 @@ void EditAutoTagsDialog::closeEvent(QCloseEvent* event)
     return;
   dialog_completed_ = true;
   emit dialogClosed();
-  QDialog::closeEvent(event);
+  QDialog::reject();
+}
+
+void EditAutoTagsDialog::reject()
+{
+  if(dialog_completed_)
+    return;
+  dialog_completed_ = true;
+  emit dialogClosed();
+  QDialog::reject();
 }
 
 void EditAutoTagsDialog::updateOkButton()
