@@ -111,13 +111,31 @@ unsigned long Installer::install(const sfs::path& source,
         sfs::remove_all(tmp_dir);
         throw std::runtime_error("Could not find '" + source_file.string() + "'");
       }
-      const bool contains_no_duplicates = std::find_if(std::next(iter),
-                                                       fomod_files.end(),
-                                                       [source_file](auto pair) {
-                                                         return pair.first == source_file;
-                                                       }) == fomod_files.end();
+      bool contains_no_duplicates = std::find_if(std::next(iter),
+                                                 fomod_files.end(),
+                                                 [source_file](auto pair) {
+                                                   return pair.first == source_file;
+                                                 }) == fomod_files.end();
       if(sfs::is_directory(tmp_dir / source_file))
       {
+        contains_no_duplicates &= std::find_if(std::next(iter),
+                                               fomod_files.end(),
+                                               [source_file](auto pair)
+                                               {
+                                                 sfs::path parent = pair.first.parent_path();
+                                                 bool is_duplicate = false;
+                                                 while(parent != "" && parent != "/")
+                                                 {
+                                                   if(parent == source_file)
+                                                   {
+                                                     is_duplicate = true;
+                                                     break;
+                                                   }
+                                                   parent = parent.parent_path();
+                                                 }
+                                                 return is_duplicate;
+                                               }) == fomod_files.end();
+
         if(sfs::exists(destination / dest_file))
           pu::moveFilesToDirectory(
             tmp_dir / source_file, destination / dest_file, contains_no_duplicates);
@@ -425,24 +443,14 @@ void Installer::extractRarArchive(const sfs::path& source_path, const sfs::path&
     output_path[i] = dest_str[i];
   output_path[dest_str.size()] = '\0';
 
-  RAROpenArchiveDataEx archive {
-    input_path,
-    nullptr,
-    RAR_OM_EXTRACT,
-    0,
-    nullptr,
-    0,
-    0,
-    0,
-    0
-  };
+  RAROpenArchiveDataEx archive{ input_path, nullptr, RAR_OM_EXTRACT, 0, nullptr, 0, 0, 0, 0 };
   HANDLE hArcData = RAROpenArchiveEx(&archive);
-  if (archive.OpenResult != 0)
+  if(archive.OpenResult != 0)
     throw CompressionError("Failed to open RAR archive.");
   auto header_data = std::make_unique<RARHeaderDataEx>();
   int i = 0;
   int header_state = RARReadHeaderEx(hArcData, header_data.get());
-  while (header_state == 0)
+  while(header_state == 0)
   {
     if(RARProcessFile(hArcData, RAR_EXTRACT, output_path, nullptr) != 0)
       throw CompressionError("Failed to extract RAR archive.");
