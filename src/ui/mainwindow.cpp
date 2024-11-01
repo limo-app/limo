@@ -803,6 +803,9 @@ void MainWindow::showEditDeployerDialog(int deployer)
     deploy_mode = Deployer::sym_link;
   else if(deploy_mode_string == deploy_mode_copy)
     deploy_mode = Deployer::copy;
+  const auto index = ui->deployer_list->currentIndex();
+  const bool has_ignore_list = index.data(DeployerListModel::has_ignored_files_role).toBool();
+  const bool has_separate_dirs = index.data(DeployerListModel::has_separate_dirs_role).toBool();
   add_deployer_dialog_->setEditMode(
     ui->info_deployer_list->item(deployer, getColumnIndex(ui->info_deployer_list, "Type"))->text(),
     ui->info_deployer_list->item(deployer, getColumnIndex(ui->info_deployer_list, "Name"))->text(),
@@ -810,7 +813,9 @@ void MainWindow::showEditDeployerDialog(int deployer)
     deployer_source_paths_[deployer],
     deploy_mode,
     currentApp(),
-    deployer);
+    deployer,
+    has_separate_dirs,
+    has_ignore_list);
   setBusyStatus(true, false);
   add_deployer_dialog_->show();
 }

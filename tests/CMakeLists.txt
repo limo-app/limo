@@ -84,6 +84,8 @@ set(TEST_SOURCES
         ../src/core/pathutils.h
         ../src/core/progressnode.cpp
         ../src/core/progressnode.h
+        ../src/core/reversedeployer.cpp
+        ../src/core/reversedeployer.h
         ../src/core/tag.cpp
         ../src/core/tag.h
         ../src/core/tagcondition.h
@@ -96,6 +98,7 @@ set(TEST_SOURCES
         test_installer.cpp
         test_lootdeployer.cpp
         test_moddedapplication.cpp
+        test_reversedeployer.cpp
         test_tagconditionnode.cpp
         test_utils.cpp
         test_utils.h

@@ -72,6 +72,8 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
       return std::get<0>(deployer_info_.loadorder[row]);
     if(col == tags_col)
     {
+      if(tags_.empty())
+        return "";
       QStringList tags;
       for(const auto& tag : tags_.at(row))
         tags.append(tag.c_str());
@@ -92,6 +94,10 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
       tags.append(tag.c_str());
     return tags;
   }
+  if(role == has_ignored_files_role)
+    return deployer_info_.has_ignored_files;
+  if(role == has_separate_dirs_role)
+    return deployer_info_.separate_profile_dirs;
   return QVariant();
 }
 

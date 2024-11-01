@@ -43,6 +43,9 @@ public:
    * \param deploy_mode Determines how files are deployed to the target directory.
    * \param app_id Id of the ModdedApplication owning the edited Deployer.
    * \param deployer_id Id of the edited Deployer.
+   * \param has_separate_dirs Used by ReverseDeployers: If true: Store files on a per profile basis.
+   * Else: All profiles use the same files.
+   * \param has_ignored_files Used by ReverseDeployers: If true: Deployer has files on the ignore list.
    */
   void setEditMode(const QString& type,
                    const QString& name,
@@ -50,7 +53,9 @@ public:
                    const QString& source_path,
                    Deployer::DeployMode deploy_mode,
                    int app_id,
-                   int deployer_id);
+                   int deployer_id,
+                   bool has_separate_dirs = false,
+                   bool has_ignored_files = false);
   /*! \brief Enables/ Disables the ui elements responsible for setting a source directory. */
   void updateSourceFields();
 
@@ -73,6 +78,15 @@ private:
   bool dialog_completed_ = false;
   /*! \brief Current target directory of the edited Deployer. */
   QString source_path_;
+  /*!
+   * \brief Used by ReverseDeployers: If true: Store files on a per profile basis.
+   * Else: All profiles use the same files.
+   */
+  bool has_separate_dirs_ = false;
+  /*! \brief Used by ReverseDeployers: If true: Deployer has files on the ignore list. */
+  bool has_ignored_files_ = false;
+  /*! \brief Disables confirmation boxes for ReverseDeployer check boxes. */
+  bool disable_confirmation_boxes_ = false;
 
   /*!
    * \brief Set the enabled state of this dialog's OK button.
@@ -111,6 +125,16 @@ private slots:
    * \param index New index.
    */
   void on_deploy_mode_box_currentIndexChanged(int index);
+  /*!
+   * \brief Shows a dialog asking for confirmation when in edit mode.
+   * \param new_state The new check state.
+   */
+  void on_rev_depl_ignore_cb_stateChanged(int new_state);
+  /*!
+   * \brief Shows a dialog asking for confirmation when in edit mode.
+   * \param new_state The new check state.
+   */
+  void on_rev_depl_separate_cb_stateChanged(int new_state);
 
 signals:
   /*!

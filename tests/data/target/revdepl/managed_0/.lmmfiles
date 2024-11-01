@@ -1,0 +1,37 @@
+{
+	"files" : 
+	[
+		{
+			"mod_id" : 0,
+			"path" : "b"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "b/depl_file_0"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "c"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "c/depl_file_0"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "depl_dir"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "depl_dir/depl_file_0"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "depl_file_0"
+		},
+		{
+			"mod_id" : 0,
+			"path" : "depl_file_1"
+		}
+	]
+}

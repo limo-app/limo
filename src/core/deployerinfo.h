@@ -29,4 +29,11 @@ struct DeployerInfo
   std::vector<std::vector<std::string>> auto_tags;
   /*! \brief Maps tag names to the number of mods for that tag. */
   std::map<std::string, int> mods_per_tag;
+  /*!
+   * \brief Used by ReverseDeployers: If true: Store files on a per profile basis.
+   * Else: All profiles use the same files.
+   */
+  bool separate_profile_dirs = false;
+  /*! \brief Used by ReverseDeployers: If true: Deployer has files on the ignore list. */
+  bool has_ignored_files = false;
 };

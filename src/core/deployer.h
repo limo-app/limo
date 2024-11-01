@@ -373,7 +373,7 @@ protected:
    * \return The map.
    */
   std::map<std::filesystem::path, int> loadDeployedFiles(
-    std::optional<ProgressNode*> progress_node = {}) const;
+    std::optional<ProgressNode*> progress_node = {}, std::filesystem::path dest_path = "") const;
   /*!
    * \brief Creates a file containing information about currently deployed files.
    * \param deployed_files The currently deployed files.

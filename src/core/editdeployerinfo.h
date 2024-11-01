@@ -25,4 +25,14 @@ struct EditDeployerInfo
   Deployer::DeployMode deploy_mode;
   /*! \brief The deployers mod source directory. Only used by autonomous deployers. */
   std::string source_dir = "";
+  /*!
+   * \brief Used by ReverseDeployers: If true: Store files on a per profile basis.
+   * Else: All profiles use the same files.
+   */
+  bool separate_profile_dirs = false;
+  /*!
+   * \brief Used by ReverseDeployers: If true: Add all files in target_dir not managed by another
+   * deployer to the ignore list.
+   */
+  bool update_ignore_list = false;
 };

@@ -7,44 +7,27 @@
     <x>0</x>
     <y>0</y>
     <width>660</width>
-    <height>255</height>
+    <height>348</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>New Deployer</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
-   <item row="1" column="0" colspan="3">
-    <widget class="QLabel" name="warning_label">
-     <property name="text">
-      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-hr { height: 1px; border-width: 0; }
-li.unchecked::marker { content: &quot;\2610&quot;; }
-li.checked::marker { content: &quot;\2612&quot;; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Warning: Enabling copy deployment will double the disc space required per mod and may drastically increase deployment time!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-     <property name="textInteractionFlags">
-      <set>Qt::LinksAccessibleByMouse</set>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="0" colspan="3">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
     <layout class="QGridLayout" name="gridLayout">
+     <item row="3" column="2">
+      <widget class="ValidatingLineEdit" name="source_path_field"/>
+     </item>
      <item row="3" column="0">
-      <widget class="QLabel" name="method_label">
-       <property name="toolTip">
-        <string>Determines how files will be deployed.</string>
-       </property>
+      <widget class="QLabel" name="source_dir_label">
        <property name="text">
-        <string>Deployment method:</string>
+        <string>Source directory:</string>
        </property>
       </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="ValidatingLineEdit" name="path_field"/>
      </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label">
@@ -56,7 +39,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
+     <item row="2" column="0">
       <widget class="QLabel" name="label_2">
        <property name="toolTip">
         <string>This is where installed mods will be deployed to</string>
@@ -66,44 +49,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </property>
       </widget>
      </item>
-     <item row="4" column="2">
-      <widget class="QComboBox" name="type_box"/>
-     </item>
-     <item row="2" column="3">
-      <widget class="QPushButton" name="source_picker_button">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset theme="folder-open">
-         <normaloff>.</normaloff>.</iconset>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="3">
-      <widget class="QPushButton" name="file_picker_button">
-       <property name="toolTip">
-        <string>Pick target directory</string>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="icon">
-        <iconset theme="folder-open">
-         <normaloff>.</normaloff>.</iconset>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="2">
-      <widget class="ValidatingLineEdit" name="name_field"/>
-     </item>
-     <item row="1" column="2">
-      <widget class="ValidatingLineEdit" name="path_field"/>
-     </item>
-     <item row="2" column="2">
-      <widget class="ValidatingLineEdit" name="source_path_field"/>
-     </item>
-     <item row="4" column="0">
+     <item row="1" column="0">
       <widget class="QLabel" name="label_4">
        <property name="toolTip">
         <string>Determines how mods will be deployed</string>
@@ -113,14 +59,46 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="source_dir_label">
+     <item row="2" column="3">
+      <widget class="QPushButton" name="file_picker_button">
+       <property name="toolTip">
+        <string>Pick target directory</string>
+       </property>
        <property name="text">
-        <string>Source directory:</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset theme="folder-open"/>
        </property>
       </widget>
      </item>
-     <item row="3" column="2">
+     <item row="1" column="2">
+      <widget class="QComboBox" name="type_box"/>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="method_label">
+       <property name="toolTip">
+        <string>Determines how files will be deployed.</string>
+       </property>
+       <property name="text">
+        <string>Deployment method:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="3">
+      <widget class="QPushButton" name="source_picker_button">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset theme="folder-open"/>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="ValidatingLineEdit" name="name_field"/>
+     </item>
+     <item row="4" column="2">
       <widget class="QComboBox" name="deploy_mode_box">
        <item>
         <property name="text">
@@ -141,7 +119,67 @@ li.checked::marker { content: &quot;\2612&quot;; }
      </item>
     </layout>
    </item>
-   <item row="3" column="1">
+   <item>
+    <widget class="QCheckBox" name="rev_depl_ignore_cb">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds all files currently in the target directory to a ignore list.&lt;br&gt;Does not include files managed by other deployers.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Ignore current files</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="rev_depl_separate_cb">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use separate directories for managed files for every profile.&lt;br&gt;This can be used to manage multiple versions of the same files.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Separate directories for profiles</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="rev_depl_ignore_button">
+     <property name="toolTip">
+      <string>Update the list of ignored files with all files currently in the target directory. Does not include files managed by other deployers.</string>
+     </property>
+     <property name="text">
+      <string>Update Ignored Files</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="warning_label">
+     <property name="text">
+      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:700; color:#ff0000;&quot;&gt;Warning: Enabling copy deployment will double the disc space required per mod and may drastically increase deployment time!&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::LinksAccessibleByMouse</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="sym_link_label">
+     <property name="text">
+      <string>Sym link deployment works across filesystems, unlike hard like deployment. If this causes issues, try hard links instead.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -154,23 +192,13 @@ li.checked::marker { content: &quot;\2612&quot;; }
      </property>
     </spacer>
    </item>
-   <item row="4" column="2">
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0" colspan="3">
-    <widget class="QLabel" name="sym_link_label">
-     <property name="text">
-      <string>Sym link deployment works across filesystems, unlike hard like deployment. If this causes issues, try hard links instead.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
      </property>
     </widget>
    </item>

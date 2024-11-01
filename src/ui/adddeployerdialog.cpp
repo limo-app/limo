@@ -1,5 +1,6 @@
 #include "adddeployerdialog.h"
 #include "../core/deployerfactory.h"
+#include "qmessagebox.h"
 #include "ui_adddeployerdialog.h"
 #include <QDebug>
 #include <QDir>
@@ -59,6 +60,7 @@ void AddDeployerDialog::setAddMode(int app_id)
   setWindowTitle("New Deployer");
   ui->name_field->clear();
   ui->path_field->clear();
+  ui->source_path_field->clear();
   ui->deploy_mode_box->setCurrentIndex(Deployer::hard_link);
   ui->warning_label->setHidden(true);
   ui->sym_link_label->setHidden(true);
@@ -70,6 +72,11 @@ void AddDeployerDialog::setAddMode(int app_id)
   ui->path_field->updateValidation();
   ui->source_path_field->updateValidation();
   dialog_completed_ = false;
+  ui->rev_depl_ignore_cb->setText("Ignore current files");
+  disable_confirmation_boxes_ = true;
+  ui->rev_depl_ignore_cb->setCheckState(Qt::Unchecked);
+  ui->rev_depl_separate_cb->setCheckState(Qt::Unchecked);
+  disable_confirmation_boxes_ = false;
 }
 
 void AddDeployerDialog::setEditMode(const QString& type,
@@ -78,7 +85,9 @@ void AddDeployerDialog::setEditMode(const QString& type,
                                     const QString& source_path,
                                     Deployer::DeployMode deploy_mode,
                                     int app_id,
-                                    int deployer_id)
+                                    int deployer_id,
+                                    bool has_separate_dirs,
+                                    bool has_ignored_files)
 {
   name_ = name;
   target_path_ = target_path;
@@ -86,6 +95,8 @@ void AddDeployerDialog::setEditMode(const QString& type,
   type_ = type;
   app_id_ = app_id;
   deployer_id_ = deployer_id;
+  has_separate_dirs_ = has_separate_dirs;
+  has_ignored_files_ = has_ignored_files;
   ui->deploy_mode_box->setCurrentIndex(deploy_mode);
   ui->warning_label->setHidden(deploy_mode != Deployer::copy);
   ui->sym_link_label->setHidden(deploy_mode != Deployer::sym_link);
@@ -101,29 +112,43 @@ void AddDeployerDialog::setEditMode(const QString& type,
   }
   if(DeployerFactory::AUTONOMOUS_DEPLOYERS.at(ui->type_box->currentText().toStdString()))
     ui->source_path_field->setText(source_path);
-  else ui->source_path_field->clear();
+  else
+    ui->source_path_field->clear();
   updateSourceFields();
   ui->name_field->updateValidation();
   ui->path_field->updateValidation();
   ui->source_path_field->updateValidation();
   dialog_completed_ = false;
+  ui->rev_depl_ignore_cb->setText(has_ignored_files ? "Use ignore list" : "Ignore current files");
+  disable_confirmation_boxes_ = true;
+  ui->rev_depl_ignore_cb->setCheckState(has_ignored_files ? Qt::Checked : Qt::Unchecked);
+  ui->rev_depl_separate_cb->setCheckState(has_separate_dirs ? Qt::Checked : Qt::Unchecked);
+  disable_confirmation_boxes_ = false;
 }
 
 void AddDeployerDialog::updateSourceFields()
 {
-  std::string cur_text = ui->type_box->currentText().toStdString();
+  const std::string cur_text = ui->type_box->currentText().toStdString();
   if(cur_text.empty())
     return;
-  const bool hidden = !DeployerFactory::AUTONOMOUS_DEPLOYERS.at(cur_text);
-  ui->source_path_field->setHidden(hidden);
-  ui->source_dir_label->setHidden(hidden);
-  ui->source_picker_button->setHidden(hidden);
+  const bool is_reverse_deployer = cur_text == DeployerFactory::REVERSEDEPLOYER;
+  const bool hide_source =
+    !DeployerFactory::AUTONOMOUS_DEPLOYERS.at(cur_text) || is_reverse_deployer;
+  const bool hide_mode = !hide_source && !is_reverse_deployer;
+  ui->source_path_field->setHidden(hide_source);
+  ui->source_dir_label->setHidden(hide_source);
+  ui->source_picker_button->setHidden(hide_source);
   ui->source_path_field->updateValidation();
-  ui->deploy_mode_box->setHidden(!hidden);
-  ui->method_label->setHidden(!hidden);
+  ui->deploy_mode_box->setHidden(hide_mode);
+  ui->method_label->setHidden(hide_mode);
   const int mode_index = ui->deploy_mode_box->currentIndex();
-  ui->sym_link_label->setHidden(mode_index != Deployer::sym_link || !hidden);
-  ui->warning_label->setHidden(mode_index != Deployer::copy || !hidden);
+  ui->sym_link_label->setHidden(mode_index != Deployer::sym_link || hide_mode);
+  ui->warning_label->setHidden(mode_index != Deployer::copy || hide_mode);
+  ui->rev_depl_separate_cb->setHidden(!is_reverse_deployer);
+  ui->rev_depl_ignore_cb->setHidden(!is_reverse_deployer);
+  ui->rev_depl_ignore_button->setHidden(!is_reverse_deployer || !edit_mode_ ||
+                                        type_.toStdString() != DeployerFactory::REVERSEDEPLOYER ||
+                                        !has_ignored_files_);
   updateOkButton();
 }
 
@@ -166,6 +191,8 @@ void AddDeployerDialog::on_buttonBox_accepted()
   info.target_dir = ui->path_field->text().toStdString();
   info.source_dir = ui->source_path_field->text().toStdString();
   info.deploy_mode = static_cast<Deployer::DeployMode>(ui->deploy_mode_box->currentIndex());
+  info.separate_profile_dirs = ui->rev_depl_separate_cb->checkState() == Qt::Checked;
+  info.update_ignore_list = ui->rev_depl_ignore_cb->checkState() == Qt::Checked;
   if(edit_mode_)
     emit deployerEdited(info, app_id_, deployer_id_);
   else
@@ -216,3 +243,31 @@ void AddDeployerDialog::on_deploy_mode_box_currentIndexChanged(int index)
   ui->sym_link_label->setHidden(index != Deployer::sym_link);
 }
 
+void AddDeployerDialog::on_rev_depl_ignore_cb_stateChanged(int new_state)
+{
+  if(!edit_mode_ || new_state == Qt::Checked || !has_ignored_files_)
+    return;
+
+  QMessageBox box;
+  box.setWindowTitle("Confirm deletion");
+  box.setText("This will delete the current ignore list.\nThis action cannot be undone.");
+  box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+  int ret = box.exec();
+  if(ret != QMessageBox::Ok)
+    ui->rev_depl_ignore_cb->setCheckState(Qt::Checked);
+}
+
+void AddDeployerDialog::on_rev_depl_separate_cb_stateChanged(int new_state)
+{
+  if(!edit_mode_ || new_state == Qt::Checked || !has_separate_dirs_)
+    return;
+
+  QMessageBox box;
+  box.setWindowTitle("Confirm deletion");
+  box.setText("This will delete all files except those managed by the current profile.\n"
+              "This action cannot be undone.");
+  box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+  int ret = box.exec();
+  if(ret != QMessageBox::Ok)
+    ui->rev_depl_separate_cb->setCheckState(Qt::Checked);
+}

@@ -37,6 +37,16 @@ public:
   static constexpr int mod_status_role = 300;
   /*! \brief Role representing all tags added to a mod. */
   static constexpr int mod_tags_role = 301;
+  /*!
+   * \brief Only for ReverseDeployers:
+   *  Role representing whether or not profiles use separate directories.
+   */
+  static constexpr int has_separate_dirs_role = 302;
+  /*!
+   * \brief Only for ReverseDeployers:
+   *  Role representing whether or not the deployer's ignore list contains files.
+   */
+  static constexpr int has_ignored_files_role = 303;
 
   /*!
    * \brief Returns the horizontal header section names and vertical header section indices.

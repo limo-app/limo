@@ -119,7 +119,7 @@ public:
    */
   void setProfile(int profile) override;
   /*!
-   * \brief Does nothing.
+   * \brief Not supported by this type.
    * \param newConflict_groups Ignored.
    */
   void setConflictGroups(const std::vector<std::vector<int>>& newConflict_groups) override;
@@ -142,7 +142,7 @@ public:
    */
   bool addMod(int mod_id, bool enabled = true, bool update_conflicts = true) override;
   /*!
-   * \brief Does nothing.
+   * \brief Not supported by this type.
    * \param mod_id Ignored.
    * \return False.
    */
@@ -155,7 +155,7 @@ public:
    */
   bool hasMod(int mod_id) const override;
   /*!
-   * \brief swapMod Does nothing since this deployer manages its own mods.
+   * \brief Does nothing since this deployer manages its own mods.
    * \param old_id Ignored.
    * \param new_id Ignored
    * \return False.

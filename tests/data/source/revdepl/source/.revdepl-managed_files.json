@@ -1,0 +1,37 @@
+{
+	"deployed_profile" : 0,
+	"managed_files" : 
+	[
+		{
+			"files" : 
+			[
+				{
+					"enabled" : true,
+					"path" : "1"
+				},
+				{
+					"enabled" : false,
+					"path" : "a/1"
+				},
+				{
+					"enabled" : true,
+					"path" : "a/a/1"
+				},
+				{
+					"enabled" : true,
+					"path" : "a/a/2"
+				},
+				{
+					"enabled" : true,
+					"path" : "c/1"
+				},
+				{
+					"enabled" : true,
+					"path" : "d/some file.txt"
+				}
+			],
+			"profile" : 0
+		}
+	],
+	"separate_profile_dirs" : false
+}

@@ -148,7 +148,9 @@ void LootDeployer::removeProfile(int profile)
   std::string plugin_file = "." + plugin_file_name_ + EXTENSION + std::to_string(profile);
   std::string loadorder_file = "." + LOADORDER_FILE_NAME + EXTENSION + std::to_string(profile);
   if(profile == current_profile_)
-    setProfile(profile == 0 ? num_profiles_ - 2 : 0);
+    setProfile(0);
+  else if(profile < current_profile_)
+    setProfile(current_profile_ - 1);
   if(sfs::exists(dest_path_ / plugin_file))
     sfs::remove(dest_path_ / plugin_file);
   if(sfs::exists(dest_path_ / loadorder_file))

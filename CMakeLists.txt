@@ -249,7 +249,8 @@ set(PROJECT_SOURCES
 )
 
 add_executable(Limo
-    ${PROJECT_SOURCES})
+    ${PROJECT_SOURCES}
+    src/core/reversedeployer.h src/core/reversedeployer.cpp)
 
 target_include_directories(Limo
     PRIVATE "${PROJECT_SOURCE_DIR}/src"

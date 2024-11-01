@@ -3,6 +3,7 @@
 #include "installer.h"
 #include "parseerror.h"
 #include "pathutils.h"
+#include "reversedeployer.h"
 #include <algorithm>
 #include <fstream>
 #include <ranges>
@@ -291,19 +292,30 @@ void ModdedApplication::setModStatus(int deployer, int mod_id, bool status)
 void ModdedApplication::addDeployer(const EditDeployerInfo& info)
 {
   std::string source_dir = staging_dir_;
-  if(DeployerFactory::AUTONOMOUS_DEPLOYERS.at(info.type))
+  const bool is_autonomous = DeployerFactory::AUTONOMOUS_DEPLOYERS.at(info.type);
+  if(info.type == DeployerFactory::REVERSEDEPLOYER)
+  {
+    long id = 0;
+    source_dir = staging_dir_ / std::format("rev_depl_{}", id);
+    while(sfs::exists(source_dir))
+      source_dir = staging_dir_ / std::format("rev_depl_{}", ++id);
+  }
+  else if(is_autonomous)
     source_dir = info.source_dir;
   deployers_.push_back(DeployerFactory::makeDeployer(
     info.type, source_dir, info.target_dir, info.name, info.deploy_mode));
   for(int i = 0; i < profile_names_.size(); i++)
     deployers_[deployers_.size() - 1]->addProfile();
   deployers_[deployers_.size() - 1]->setProfile(current_profile_);
-  for(int i = 0; i < installed_mods_.size(); i++)
+  if(!is_autonomous)
   {
-    for(int depl = 0; depl < deployers_.size(); depl++)
+    for(int i = 0; i < installed_mods_.size(); i++)
     {
-      if(deployers_[depl]->hasMod(installed_mods_[i].id))
-        splitMod(installed_mods_[i].id, depl);
+      for(int depl = 0; depl < deployers_.size(); depl++)
+      {
+        if(deployers_[depl]->hasMod(installed_mods_[i].id))
+          splitMod(installed_mods_[i].id, depl);
+      }
     }
   }
   updateSettings(true);
@@ -522,6 +534,15 @@ void ModdedApplication::editDeployer(int deployer, const EditDeployerInfo& info)
   }
   if(deployers_[deployer]->isAutonomous())
     deployers_[deployer]->setSourcePath(info.source_dir);
+  if(info.type == DeployerFactory::REVERSEDEPLOYER)
+  {
+    auto depl = static_cast<ReverseDeployer*>(deployers_[deployer].get());
+    depl->enableSeparateDirs(info.separate_profile_dirs);
+    if(!info.update_ignore_list && depl->getNumIgnoredFiles() != 0)
+      depl->deleteIgnoredFiles();
+    else if(info.update_ignore_list && depl->getNumIgnoredFiles() == 0)
+      depl->updateIgnoredFiles(true);
+  }
   updateSettings(true);
 }
 
@@ -562,6 +583,8 @@ void ModdedApplication::removeProfile(int profile)
   bak_man_.removeProfile(profile);
   if(profile == current_profile_)
     setProfile(0);
+  else if(profile < current_profile_)
+    setProfile(current_profile_ - 1);
   updateSettings(true);
 }
 
@@ -861,13 +884,23 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
   }
   else
   {
+    bool separate_dirs = false;
+    bool has_ignored_files = false;
+    if(deployers_[deployer]->getType() == DeployerFactory::REVERSEDEPLOYER)
+    {
+      auto depl = static_cast<ReverseDeployer*>(deployers_[deployer].get());
+      separate_dirs = depl->usesSeparateDirs();
+      has_ignored_files = depl->getNumIgnoredFiles() != 0;
+    }
     return { deployers_[deployer]->getModNames(),
              deployers_[deployer]->getLoadorder(),
              deployers_[deployer]->getConflictGroups(),
              true,
              {},
              deployers_[deployer]->getAutoTags(),
-             deployers_[deployer]->getAutoTagMap() };
+             deployers_[deployer]->getAutoTagMap(),
+             separate_dirs,
+             has_ignored_files };
   }
 }
 
@@ -1818,6 +1851,16 @@ void ModdedApplication::updateState(bool read)
         }
         deployers_[depl]->setConflictGroups(conflict_groups);
       }
+    }
+    if(type == DeployerFactory::REVERSEDEPLOYER)
+    {
+      auto rev_depl = static_cast<ReverseDeployer*>(deployers_[depl].get());
+      if(rev_depl->getNumProfiles() != profile_names_.size())
+        throw ParseError(std::format(
+          "Mismatch in profile count for deployer '{}'. {} profiles found, expected {}.",
+          rev_depl->getName(),
+          rev_depl->getNumProfiles(),
+          profile_names_.size()));
     }
     deployers_[depl]->setProfile(current_profile_);
   }

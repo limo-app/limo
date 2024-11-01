@@ -275,6 +275,8 @@ void Deployer::removeProfile(int profile)
   conflict_groups_.erase(conflict_groups_.begin() + profile);
   if(profile == current_profile_)
     setProfile(0);
+  else if(profile < current_profile_)
+    setProfile(current_profile_ - 1);
 }
 
 void Deployer::setProfile(int profile)
@@ -537,15 +539,17 @@ void Deployer::deployFiles(const std::map<sfs::path, int>& source_files,
 }
 
 std::map<sfs::path, int> Deployer::loadDeployedFiles(
-  std::optional<ProgressNode*> progress_node) const
+  std::optional<ProgressNode*> progress_node, sfs::path dest_path) const
 {
+  if(dest_path == "")
+    dest_path = dest_path_;
   if(progress_node)
   {
     (*progress_node)->addChildren({ 1, 2 });
     (*progress_node)->child(0).setTotalSteps(1);
   }
   std::map<sfs::path, int> deployed_files;
-  sfs::path deployed_files_path = dest_path_ / deployed_files_name_;
+  sfs::path deployed_files_path = dest_path / deployed_files_name_;
   if(!sfs::exists(deployed_files_path))
     return deployed_files;
   std::ifstream file(deployed_files_path, std::fstream::binary);
