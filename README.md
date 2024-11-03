@@ -156,11 +156,11 @@ When you first use the AUR version of Limo, you'll notice that the UI is slightl
 
 #### Here's a quick glance of what deployer you should create and where it should point to.
 
-| Name   |     Deployer Type      |                                                       Target Directory                                            | Deployment Method |
-| ----   | ---------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Bin    | Case Matching Deployer | ~/.local/share/Steam/steamapps/common/Skyrim Special Edition                                                      | Anything          |
-| Data   | Case Matching Deployer | ~/.local/share/Steam/steamapps/common/Skyrim Special Edition/Data                                                 | Anything          |
-| Prefix | Loot Deployer          | ~/.local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/AppData/Local/Skyrim Special Edition | Anything          |
+| Name    |     Deployer Type      |                                                       Target Directory                                            | Deployment Method |
+| ------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Bin     | Case Matching Deployer | ~/.local/share/Steam/steamapps/common/Skyrim Special Edition                                                      | Anything          |
+| Data    | Case Matching Deployer | ~/.local/share/Steam/steamapps/common/Skyrim Special Edition/Data                                                 | Anything          |
+| Plugins | Loot Deployer          | ~/.local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/AppData/Local/Skyrim Special Edition | Anything          |
 
 For GOG users of these games, just find the game's folder. It should be almost similar, except the prefix folder.
 
