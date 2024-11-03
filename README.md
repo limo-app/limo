@@ -52,6 +52,12 @@ longer active.
     <img width='240' alt='Download on Flathub' src='https://flathub.org/api/badge?locale=en'/>
 </a>
 
+### Arch Linux (via Arch User Repository)
+
+<a href='https://aur.archlinux.org/packages/limo-git'>
+	<img width='240' alt='Get on AUR' src='https://upload.wikimedia.org/wikipedia/commons/e/e8/Archlinux-logo-standard-version.png'/>
+</a>
+
 ### Build from source
 
 ####  Install the dependencies
