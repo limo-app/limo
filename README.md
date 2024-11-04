@@ -145,7 +145,7 @@ From version 1.0.7 onwards, Limo supports specialized deployer and auto tag impo
 #### To add tools and run the executable directly to Limo, use:
 
 ```
---directory=/tool/directory/protontricks-launch --appid [steamappid i.e., 489830 for Skyrim SE] tool.exe
+--directory="/tool/directory/" protontricks-launch --appid [steamappid i.e., 489830 for Skyrim SE] tool.exe
 ```
 
 ### AUR version of Limo
