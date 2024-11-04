@@ -19,23 +19,20 @@ ImportFromSteamDialog::ImportFromSteamDialog(bool is_flatpak, QWidget* parent) :
   setWindowTitle("Import App");
   QString path = QSettings(QCoreApplication::applicationName()).value("import/path", "").toString();
   if(!path.isEmpty() && pathIsValid(path.toStdString()))
-  {
     ui->path_field->setText(path);
-    updateTable(path.toStdString());
-  }
   else
   {
+    const sfs::path flatpak_path(".var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps");
+    const sfs::path native_path(".steam/steam/steamapps");
     sfs::path default_path =
       QStandardPaths::writableLocation(QStandardPaths::HomeLocation).toStdString();
-    if(is_flatpak_)
-      default_path = default_path / ".var" / "app" / "com.valvesoftware.Steam" / ".local" /
-                     "share" / "Steam" / "steamapps";
+    if(pathIsValid(default_path / flatpak_path))
+      default_path /= flatpak_path;
     else
-      default_path = default_path / ".steam" / "steam" / "steamapps";
+      default_path /= native_path;
     if(pathIsValid(default_path))
     {
       ui->path_field->setText(default_path.string().c_str());
-      updateTable(default_path);
     }
   }
 }
@@ -52,6 +49,7 @@ void ImportFromSteamDialog::init()
   for(int i = 0; i < ui->app_table->rowCount(); i++)
     ui->app_table->setRowHidden(i, false);
   ui->search_field->setFocus();
+  updateTable(ui->path_field->text().toStdString());
 }
 
 void ImportFromSteamDialog::on_pick_path_button_clicked()
@@ -75,16 +73,21 @@ void ImportFromSteamDialog::updateTable(sfs::path steam_dir)
   ui->app_table->setRowCount(0);
   if(!pathIsValid(steam_dir))
   {
-    showError("Invalid Path", "Could not find \"libraryfolders.vdf\"!");
+    showError(
+      "Invalid Path",
+      std::format("Could not find \"libraryfolders.vdf\" in \"{}\"!", steam_dir.string()).c_str());
     return;
   }
   ui->path_field->setText(steam_dir.c_str());
-  QSettings(QCoreApplication::applicationName()).setValue("import/path", steam_dir.c_str());
+  QSettings settings(QCoreApplication::applicationName());
+  settings.setValue("import/path", steam_dir.c_str());
 
   std::ifstream file(steam_dir / library_file_name_);
   if(!file.is_open())
   {
-    showError("IO Error", "Could not open \"libraryfolders.vdf\"!");
+    showError(
+      "IO Error",
+      std::format("Could not open \"{}\"!", (steam_dir / library_file_name_).string()).c_str());
     return;
   }
   std::string line;
