@@ -882,8 +882,21 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       else
         mods_per_tag[tag.getName()] = tag.getNumMods();
     }
-    return { mod_names, loadorder,   deployers_[deployer]->getConflictGroups(), false, manual_tags,
-             auto_tags, mods_per_tag };
+    return { mod_names,
+             loadorder,
+             deployers_[deployer]->getConflictGroups(),
+             false,
+             manual_tags,
+             auto_tags,
+             mods_per_tag,
+             false,
+             false,
+             deployers_[deployer]->supportsSorting(),
+             deployers_[deployer]->supportsReordering(),
+             deployers_[deployer]->supportsModConflicts(),
+             deployers_[deployer]->supportsFileConflicts(),
+             deployers_[deployer]->supportsFileBrowsing(),
+             deployers_[deployer]->getType() };
   }
   else
   {
@@ -908,7 +921,8 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->supportsReordering(),
              deployers_[deployer]->supportsModConflicts(),
              deployers_[deployer]->supportsFileConflicts(),
-             deployers_[deployer]->supportsFileBrowsing() };
+             deployers_[deployer]->supportsFileBrowsing(),
+             deployers_[deployer]->getType() };
   }
 }
 
@@ -1591,6 +1605,17 @@ void ModdedApplication::updateIgnoredFiles(int deployer)
   }
   auto depl = static_cast<ReverseDeployer*>(deployers_[deployer].get());
   depl->updateIgnoredFiles(true);
+}
+
+void ModdedApplication::addModToIgnoreList(int deployer, int mod_id)
+{
+  if(deployers_[deployer]->getType() != DeployerFactory::REVERSEDEPLOYER)
+  {
+    log_(Log::LOG_DEBUG, "Ignored files can only be updated for ReverseDeployers.");
+    return;
+  }
+  auto depl = static_cast<ReverseDeployer*>(deployers_[deployer].get());
+  depl->addModToIgnoreList(mod_id);
 }
 
 sfs::path ModdedApplication::iconPath() const

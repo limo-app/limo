@@ -973,3 +973,9 @@ void ApplicationManager::updateIgnoredFiles(int app_id, int deployer)
     handleExceptions<&ModdedApplication::updateIgnoredFiles>(app_id, deployer);
   emit completedOperations("Ignore list updated");
 }
+
+void ApplicationManager::addModToIgnoreList(int app_id, int deployer, int mod_id)
+{
+  if(appIndexIsValid(app_id) && deployerIndexIsValid(app_id, deployer))
+    handleExceptions<&ModdedApplication::addModToIgnoreList>(app_id, deployer, mod_id);
+}

@@ -978,4 +978,11 @@ public slots:
    * \param deployer Target deployer.
    */
   void updateIgnoredFiles(int app_id, int deployer);
+  /*!
+   * \brief Adds the given mod to the ignore list of the given ReverseDeployer.
+   * \param app_id Target app.
+   * \param deployer Target deployer.
+   * \param mod_id Mod to be ignored.
+   */
+  void addModToIgnoreList(int app_id, int deployer, int mod_id);
 };

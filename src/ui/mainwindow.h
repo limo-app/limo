@@ -1056,6 +1056,11 @@ private slots:
    * \param deployer Target deployer.
    */
   void onUpdateIgnoredFiles(int app_id, int deployer);
+  /*!
+   * \brief Adds the currently selected mod in the deployer list to the ignore list of the
+   * current ReverseDeployer.
+   */
+  void on_actionAdd_to_Ignore_List_triggered();
 
 signals:
   /*!
@@ -1555,4 +1560,11 @@ signals:
    * \param deployer Target deployer.
    */
   void updateIgnoredFiles(int app_id, int deployer);
+  /*!
+   * \brief Adds the given mod to the ignore list of the given ReverseDeployer.
+   * \param app_id Target app.
+   * \param deployer Target deployer.
+   * \param mod_id Mod to be ignored.
+   */
+  void addModToIgnoreList(int app_id, int deployer, int mod_id);
 };

@@ -391,6 +391,8 @@ void MainWindow::setupConnections()
           this, &MainWindow::onUpdateIgnoredFiles);
   connect(this, &MainWindow::updateIgnoredFiles,
           app_manager_, &ApplicationManager::updateIgnoredFiles);
+  connect(this, &MainWindow::addModToIgnoreList,
+          app_manager_, &ApplicationManager::addModToIgnoreList);
 }
 // clang-format on
 
@@ -508,7 +510,8 @@ void MainWindow::setupMenus()
   QList<QAction*> deployer_list_actions{
     ui->actionremove_from_deployer, ui->actionget_file_conflicts,
     ui->actionget_mod_conflicts,    ui->actionmove_mod,
-    ui->actionbrowse_mod_files,     ui->actionSort_Mods
+    ui->actionbrowse_mod_files,     ui->actionSort_Mods,
+    ui->actionAdd_to_Ignore_List
   };
   std::sort(deployer_list_actions.begin(), deployer_list_actions.end(), sort_actions);
   deployer_list_menu_->addActions(deployer_list_actions);
@@ -1339,10 +1342,11 @@ void MainWindow::onGetDeployerInfo(DeployerInfo depl_info)
   ui->actionremove_from_deployer->setVisible(!depl_info.is_autonomous);
   ui->actionget_file_conflicts->setVisible(depl_info.supports_file_conflicts);
   ui->actionget_mod_conflicts->setVisible(depl_info.supports_mod_conflicts);
-  ui->actionbrowse_mod_files->setVisible(
-    ui->app_tab_widget->currentIndex() != deployer_tab_idx || depl_info.supports_file_browsing);
+  ui->actionbrowse_mod_files->setVisible(ui->app_tab_widget->currentIndex() != deployer_tab_idx ||
+                                         depl_info.supports_file_browsing);
   ui->actionSort_Mods->setVisible(depl_info.supports_sorting);
   ui->actionmove_mod->setVisible(depl_info.supports_reordering);
+  ui->actionAdd_to_Ignore_List->setVisible(depl_info.type == DeployerFactory::REVERSEDEPLOYER);
   ui->deployer_list->setEnableDragReorder(depl_info.supports_reordering);
 
   for(auto cb : depl_tag_cbs_)
@@ -3340,4 +3344,13 @@ void MainWindow::onUpdateIgnoredFiles(int app_id, int deployer)
   emit updateIgnoredFiles(app_id, deployer);
   if(app_id == currentApp() && deployer == currentDeployer())
     emit getDeployerInfo(currentApp(), currentDeployer());
+}
+
+void MainWindow::on_actionAdd_to_Ignore_List_triggered()
+{
+  const auto index =
+    deployer_list_proxy_->mapToSource(ui->deployer_list->selectionModel()->currentIndex());
+  int mod_id = deployer_model_->data(index, ModListModel::mod_id_role).toInt();
+  emit addModToIgnoreList(currentApp(), currentDeployer(), mod_id);
+  emit getDeployerInfo(currentApp(), currentDeployer());
 }

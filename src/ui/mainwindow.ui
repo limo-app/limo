@@ -153,8 +153,7 @@
              <string/>
             </property>
             <property name="icon">
-             <iconset theme="preferences-other">
-              <normaloff>.</normaloff>.</iconset>
+             <iconset theme="preferences-other"/>
             </property>
            </widget>
           </item>
@@ -300,8 +299,7 @@
                   <string>Check for Mod Updates</string>
                  </property>
                  <property name="icon">
-                  <iconset theme="view-refresh">
-                   <normaloff>.</normaloff>.</iconset>
+                  <iconset theme="view-refresh"/>
                  </property>
                 </widget>
                </item>
@@ -536,8 +534,7 @@
                   <string/>
                  </property>
                  <property name="icon">
-                  <iconset theme="preferences-other">
-                   <normaloff>.</normaloff>.</iconset>
+                  <iconset theme="preferences-other"/>
                  </property>
                 </widget>
                </item>
@@ -646,8 +643,8 @@
                  <rect>
                   <x>0</x>
                   <y>0</y>
-                  <width>539</width>
-                  <height>331</height>
+                  <width>546</width>
+                  <height>330</height>
                  </rect>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -806,8 +803,7 @@
                         <string/>
                        </property>
                        <property name="icon">
-                        <iconset theme="preferences-other">
-                         <normaloff>.</normaloff>.</iconset>
+                        <iconset theme="preferences-other"/>
                        </property>
                       </widget>
                      </item>
@@ -878,8 +874,7 @@
                         <string/>
                        </property>
                        <property name="icon">
-                        <iconset theme="view-refresh">
-                         <normaloff>.</normaloff>.</iconset>
+                        <iconset theme="view-refresh"/>
                        </property>
                       </widget>
                      </item>
@@ -892,8 +887,7 @@
                         <string/>
                        </property>
                        <property name="icon">
-                        <iconset theme="preferences-other">
-                         <normaloff>.</normaloff>.</iconset>
+                        <iconset theme="preferences-other"/>
                        </property>
                       </widget>
                      </item>
@@ -1142,8 +1136,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>406</width>
-                     <height>289</height>
+                     <width>415</width>
+                     <height>285</height>
                     </rect>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1370,15 +1364,14 @@
      <x>0</x>
      <y>0</y>
      <width>1167</width>
-     <height>19</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionadd_to_deployer">
    <property name="icon">
-    <iconset theme="preferences-other">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="preferences-other"/>
    </property>
    <property name="text">
     <string>Manage Deployers</string>
@@ -1389,8 +1382,7 @@
   </action>
   <action name="actionremove_from_deployer">
    <property name="icon">
-    <iconset theme="list-remove">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="list-remove"/>
    </property>
    <property name="text">
     <string>Remove from Deployer</string>
@@ -1413,8 +1405,7 @@
   </action>
   <action name="actionAdd_to_Group">
    <property name="icon">
-    <iconset theme="list-add">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="list-add"/>
    </property>
    <property name="text">
     <string>Add to Group</string>
@@ -1422,8 +1413,7 @@
   </action>
   <action name="actionRemove_from_Group">
    <property name="icon">
-    <iconset theme="list-remove">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="list-remove"/>
    </property>
    <property name="text">
     <string>Remove from Group</string>
@@ -1431,8 +1421,7 @@
   </action>
   <action name="actionbrowse_mod_files">
    <property name="icon">
-    <iconset theme="folder-open">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="folder-open"/>
    </property>
    <property name="text">
     <string>Browse Files</string>
@@ -1440,8 +1429,7 @@
   </action>
   <action name="actionbrowse_deployer_files">
    <property name="icon">
-    <iconset theme="folder-open">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="folder-open"/>
    </property>
    <property name="text">
     <string>Browse Files</string>
@@ -1449,8 +1437,7 @@
   </action>
   <action name="actionSort_Mods">
    <property name="icon">
-    <iconset theme="view-sort-ascending">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="view-sort-ascending"/>
    </property>
    <property name="text">
     <string>Sort Mods</string>
@@ -1461,8 +1448,7 @@
   </action>
   <action name="actionAdd_Backup">
    <property name="icon">
-    <iconset theme="list-add">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="list-add"/>
    </property>
    <property name="text">
     <string>Add Backup</string>
@@ -1473,8 +1459,7 @@
   </action>
   <action name="actionRemove_Backup">
    <property name="icon">
-    <iconset theme="list-remove">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="list-remove"/>
    </property>
    <property name="text">
     <string>Remove Backup</string>
@@ -1485,8 +1470,7 @@
   </action>
   <action name="actionBrowse_backup_files">
    <property name="icon">
-    <iconset theme="folder-open">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="folder-open"/>
    </property>
    <property name="text">
     <string>Browse Files</string>
@@ -1505,8 +1489,7 @@
   </action>
   <action name="actionRemove_Mods">
    <property name="icon">
-    <iconset theme="user-trash">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="user-trash"/>
    </property>
    <property name="text">
     <string>Remove Mods</string>
@@ -1517,8 +1500,7 @@
   </action>
   <action name="actionRemove_Other_Versions">
    <property name="icon">
-    <iconset theme="user-trash">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="user-trash"/>
    </property>
    <property name="text">
     <string>Remove Other Versions</string>
@@ -1537,8 +1519,7 @@
   </action>
   <action name="actionUpdate_Tags">
    <property name="icon">
-    <iconset theme="view-refresh">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="view-refresh"/>
    </property>
    <property name="text">
     <string>Update Auto Tags</string>
@@ -1546,8 +1527,7 @@
   </action>
   <action name="actionEdit_Mod_Sources">
    <property name="icon">
-    <iconset theme="drive-harddisk">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="drive-harddisk"/>
    </property>
    <property name="text">
     <string>Edit Sources</string>
@@ -1555,8 +1535,7 @@
   </action>
   <action name="actionShow_Nexus_Page">
    <property name="icon">
-    <iconset theme="document-open">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="document-open"/>
    </property>
    <property name="text">
     <string>Show Nexus Page</string>
@@ -1564,8 +1543,7 @@
   </action>
   <action name="actionReinstall_From_Local">
    <property name="icon">
-    <iconset theme="view-refresh">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="view-refresh"/>
    </property>
    <property name="text">
     <string>Reinstall From Local</string>
@@ -1581,8 +1559,7 @@
   </action>
   <action name="actionCheck_For_Updates">
    <property name="icon">
-    <iconset theme="view-refresh">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="view-refresh"/>
    </property>
    <property name="text">
     <string>Check For Updates</string>
@@ -1590,14 +1567,27 @@
   </action>
   <action name="actionSuppress_Update">
    <property name="icon">
-    <iconset theme="edit-clear">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="edit-clear"/>
    </property>
    <property name="text">
     <string>Suppress Update</string>
    </property>
    <property name="toolTip">
     <string>Temporarily disable the update notification</string>
+   </property>
+  </action>
+  <action name="actionAdd_to_Ignore_List">
+   <property name="icon">
+    <iconset theme="list-remove"/>
+   </property>
+   <property name="text">
+    <string>Add to Ignore List</string>
+   </property>
+   <property name="toolTip">
+    <string>Adds the selected mod to the ignore list</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
  </widget>

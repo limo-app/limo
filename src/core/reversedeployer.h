@@ -275,6 +275,11 @@ public:
    * \return True if supported.
    */
   virtual bool supportsFileBrowsing() const override;
+  /*!
+   * \brief Adds the file matching the given position in the current loadorder to the ignore list.
+   * \param mod_id Position in the current loadorder.
+   */
+  void addModToIgnoreList(int mod_id);
 
 private:
   /*! \brief Name of the file containing paths of ignored files. */

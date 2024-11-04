@@ -448,6 +448,27 @@ bool ReverseDeployer::supportsFileBrowsing() const
   return false;
 }
 
+void ReverseDeployer::addModToIgnoreList(int mod_id)
+{
+  if(mod_id < 0 || mod_id >= current_loadorder_.size())
+  {
+    log_(Log::LOG_DEBUG,
+         std::format("Deployer '{}': Could not find mod with id: {}.", name_, mod_id));
+    return;
+  }
+
+  sfs::path relative_path = current_loadorder_[mod_id].first;
+  current_loadorder_.erase(current_loadorder_.begin() + mod_id);
+  for(int prof = 0; prof < managed_files_.size(); prof++)
+  {
+    if(prof == current_profile_ || !separate_profile_dirs_)
+      managed_files_[current_profile_].erase(relative_path);
+  }
+  ignored_files_.insert(relative_path);
+  writeIgnoredFiles();
+  writeManagedFiles();
+}
+
 void ReverseDeployer::readIgnoredFiles()
 {
   ignored_files_.clear();

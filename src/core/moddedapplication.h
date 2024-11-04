@@ -663,6 +663,12 @@ public:
    * \param deployer Target deployer.
    */
   void updateIgnoredFiles(int deployer);
+  /*!
+   * \brief Adds the given mod to the ignore list of the given ReverseDeployer.
+   * \param deployer Target deployer.
+   * \param mod_id Mod to be ignored.
+   */
+  void addModToIgnoreList(int deployer, int mod_id);
 
 private:
   /*! \brief The name of this application. */
