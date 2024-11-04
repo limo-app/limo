@@ -271,3 +271,9 @@ void AddDeployerDialog::on_rev_depl_separate_cb_stateChanged(int new_state)
   if(ret != QMessageBox::Ok)
     ui->rev_depl_separate_cb->setCheckState(Qt::Checked);
 }
+
+void AddDeployerDialog::on_rev_depl_ignore_button_clicked()
+{
+  emit updateIgnoredFiles(app_id_, deployer_id_);
+}
+

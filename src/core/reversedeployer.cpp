@@ -8,6 +8,12 @@
 #include <iostream>
 #include <ranges>
 
+
+#include <chrono>
+#define NOW std::chrono::high_resolution_clock::now()
+#define DUR(a, b) std::chrono::duration_cast<std::chrono::milliseconds>(b - a).count()
+
+
 namespace sfs = std::filesystem;
 namespace pu = path_utils;
 namespace str = std::ranges;
@@ -59,6 +65,11 @@ std::map<int, unsigned long> ReverseDeployer::deploy(std::optional<ProgressNode*
   updateManagedFiles();
   deployManagedFiles();
   writeManagedFiles();
+  if(progress_node)
+  {
+    (*progress_node)->setTotalSteps(1);
+    (*progress_node)->advance();
+  }
   return {};
 }
 
@@ -70,7 +81,10 @@ std::map<int, unsigned long> ReverseDeployer::deploy(const std::vector<int>& loa
 
 void ReverseDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
 {
-  for(const auto& [path, _] : current_loadorder_)
+  if(deployed_profile_ < 0 || deployed_profile_ >= managed_files_.size())
+    return;
+
+  for(const auto& [path, _] : managed_files_[deployed_profile_])
   {
     const sfs::path full_dest_path = dest_path_ / path;
     if(sfs::exists(full_dest_path))
@@ -303,7 +317,21 @@ void ReverseDeployer::updateIgnoredFiles(bool write)
 void ReverseDeployer::deleteIgnoredFiles()
 {
   ignored_files_.clear();
+  for(int prof = 0; prof < managed_files_.size(); prof++)
+  {
+    const sfs::path source_dir = getSourcePath("");
+    for(const auto& dir_entry : sfs::recursive_directory_iterator(source_dir))
+    {
+      if(dir_entry.is_directory())
+        continue;
+      const sfs::path relative_path = pu::getRelativePath(dir_entry.path(), source_dir);
+      if(!managed_files_[prof].contains(relative_path))
+        managed_files_[prof][relative_path] = true;
+    }
+  }
+  updateCurrentLoadorder();
   writeIgnoredFiles();
+  writeManagedFiles();
 }
 
 std::vector<std::string> ReverseDeployer::getIgnoredFiles() const
@@ -366,6 +394,12 @@ void ReverseDeployer::enableSeparateDirs(bool enabled)
     }
     sfs::remove_all(source_path_ / temp_dir);
   }
+  for(int prof = 0; prof < managed_files_.size(); prof++)
+  {
+    if(prof != current_profile_)
+      managed_files_[prof].clear();
+  }
+  separate_profile_dirs_ = enabled;
   writeManagedFiles();
 }
 
@@ -382,6 +416,36 @@ int ReverseDeployer::getNumIgnoredFiles() const
 int ReverseDeployer::getNumProfiles() const
 {
   return managed_files_.size();
+}
+
+int ReverseDeployer::getDeployPriority() const
+{
+  return 2;
+}
+
+bool ReverseDeployer::supportsSorting() const
+{
+  return false;
+}
+
+bool ReverseDeployer::supportsReordering() const
+{
+  return false;
+}
+
+bool ReverseDeployer::supportsModConflicts() const
+{
+  return false;
+}
+
+bool ReverseDeployer::supportsFileConflicts() const
+{
+  return false;
+}
+
+bool ReverseDeployer::supportsFileBrowsing() const
+{
+  return false;
 }
 
 void ReverseDeployer::readIgnoredFiles()
@@ -452,6 +516,8 @@ void ReverseDeployer::writeManagedFiles() const
   }
 
   const sfs::path managed_files_path = source_path_ / managed_files_name_;
+  if(!sfs::exists(managed_files_path.parent_path()))
+    sfs::create_directories(managed_files_path.parent_path());
   std::ofstream f_stream(managed_files_path, std::ios::binary);
   if(!f_stream.is_open())
     throw std::runtime_error("Could not open \"" + managed_files_path.string() + "\".");
@@ -472,7 +538,6 @@ void ReverseDeployer::updateFilesInDir(const sfs::path& target_dir,
   {
     current_deployer_path = target_dir;
     found_new_deployer = true;
-    // TODO: Progress Notes
     for(const auto& path : std::views::keys(loadDeployedFiles({}, target_dir)))
       new_deployed_files.insert(target_dir / path);
   }
@@ -584,7 +649,7 @@ void ReverseDeployer::updateCurrentLoadorder()
               const int depth_r = str::count(path_r, sfs::path::preferred_separator);
               if(depth_l == depth_r)
                 return path_l < path_r;
-              // TODO: Should this be inverted?
+              // TODO: Sorting alphabetically might be better
               return depth_l < depth_r;
             });
 }

@@ -91,7 +91,10 @@ std::string normalizePath(const std::string& path)
 std::string getRelativePath(sfs::path target, sfs::path source)
 {
   std::string relative_path = target.string();
-  relative_path.erase(0, source.string().size() + 1);
+  const std::string source_string = source.string();
+  const bool ends_with_separator = source_string.ends_with(sfs::path::preferred_separator) ||
+                                   source_string.ends_with('/');
+  relative_path.erase(0, source_string.size() + (ends_with_separator ? 0 : 1));
   return relative_path;
 }
 

@@ -41,26 +41,33 @@ void ModdedApplication::deployMods()
   deployModsFor(deployers);
 }
 
-void ModdedApplication::deployModsFor(const std::vector<int>& deployers)
+void ModdedApplication::deployModsFor(std::vector<int> deployers)
 {
+  str::sort(deployers,
+            [this](int depl_l, int depl_r)
+            {
+              return this->deployers_[depl_l]->getDeployPriority() <
+                     this->deployers_[depl_r]->getDeployPriority();
+            });
+
   std::vector<float> weights;
   for(int deployer : deployers)
   {
     const int num_mods = deployers_[deployer]->getNumMods();
-    if(deployers_[deployer]->isAutonomous() || num_mods == 0)
+    if(deployers_[deployer]->getType() == DeployerFactory::REVERSEDEPLOYER)
+      weights.push_back((int)(num_mods / 3));
+    else if(deployers_[deployer]->isAutonomous() || num_mods == 0)
       weights.push_back(1);
     else
       weights.push_back(num_mods);
   }
 
-  // always deploy normal deployers first, since some autonomous deployers
-  // may depend on their output
   ProgressNode node(progress_callback_, weights);
   for(auto [i, deployer] : str::enumerate_view(deployers))
   {
+    const auto mod_sizes = deployers_[deployer]->deploy(&(node.child(i)));
     if(!deployers_[deployer]->isAutonomous())
     {
-      const auto mod_sizes = deployers_[deployer]->deploy(&(node.child(i)));
       for(const auto [mod_id, mod_size] : mod_sizes)
       {
         auto mod_iter =
@@ -69,12 +76,6 @@ void ModdedApplication::deployModsFor(const std::vector<int>& deployers)
           mod_iter->size_on_disk = mod_size;
       }
     }
-  }
-
-  for(auto [i, deployer] : str::enumerate_view(deployers))
-  {
-    if(deployers_[deployer]->isAutonomous())
-      deployers_[deployer]->deploy(&(node.child(i)));
   }
 
   updateSettings(true);
@@ -88,8 +89,15 @@ void ModdedApplication::unDeployMods()
   unDeployModsFor(deployers);
 }
 
-void ModdedApplication::unDeployModsFor(const std::vector<int>& deployers)
+void ModdedApplication::unDeployModsFor(std::vector<int> deployers)
 {
+  str::sort(deployers,
+            [this](int depl_l, int depl_r)
+            {
+              return this->deployers_[depl_l]->getDeployPriority() <
+                     this->deployers_[depl_r]->getDeployPriority();
+            });
+
   std::vector<float> weights;
   for(int deployer : deployers)
   {
@@ -100,20 +108,9 @@ void ModdedApplication::unDeployModsFor(const std::vector<int>& deployers)
       weights.push_back(num_mods);
   }
 
-  // always un-deploy normal deployers first, since some autonomous deployers
-  // may depend on their output
   ProgressNode node(progress_callback_, weights);
   for(auto [i, deployer] : str::enumerate_view(deployers))
-  {
-    if(!deployers_[deployer]->isAutonomous())
-      deployers_[deployer]->unDeploy(&(node.child(i)));
-  }
-
-  for(auto [i, deployer] : str::enumerate_view(deployers))
-  {
-    if(deployers_[deployer]->isAutonomous())
-      deployers_[deployer]->unDeploy(&(node.child(i)));
-  }
+    deployers_[deployer]->unDeploy(&(node.child(i)));
 
   updateSettings(true);
 }
@@ -302,11 +299,17 @@ void ModdedApplication::addDeployer(const EditDeployerInfo& info)
   }
   else if(is_autonomous)
     source_dir = info.source_dir;
-  deployers_.push_back(DeployerFactory::makeDeployer(
-    info.type, source_dir, info.target_dir, info.name, info.deploy_mode));
+  deployers_.push_back(DeployerFactory::makeDeployer(info.type,
+                                                     source_dir,
+                                                     info.target_dir,
+                                                     info.name,
+                                                     info.deploy_mode,
+                                                     info.separate_profile_dirs,
+                                                     info.update_ignore_list));
   for(int i = 0; i < profile_names_.size(); i++)
-    deployers_[deployers_.size() - 1]->addProfile();
-  deployers_[deployers_.size() - 1]->setProfile(current_profile_);
+    deployers_.back()->addProfile();
+  deployers_.back()->setProfile(current_profile_);
+  deployers_.back()->setLog(log_);
   if(!is_autonomous)
   {
     for(int i = 0; i < installed_mods_.size(); i++)
@@ -900,7 +903,12 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->getAutoTags(),
              deployers_[deployer]->getAutoTagMap(),
              separate_dirs,
-             has_ignored_files };
+             has_ignored_files,
+             deployers_[deployer]->supportsSorting(),
+             deployers_[deployer]->supportsReordering(),
+             deployers_[deployer]->supportsModConflicts(),
+             deployers_[deployer]->supportsFileConflicts(),
+             deployers_[deployer]->supportsFileBrowsing() };
   }
 }
 
@@ -1572,6 +1580,17 @@ void ModdedApplication::exportConfiguration(const std::vector<int>& deployers,
        std::format("Exporting configuration for '{}' to '{}'", name_, path.string()));
   std::ofstream file(path, std::fstream::binary);
   file << json;
+}
+
+void ModdedApplication::updateIgnoredFiles(int deployer)
+{
+  if(deployers_[deployer]->getType() != DeployerFactory::REVERSEDEPLOYER)
+  {
+    log_(Log::LOG_DEBUG, "Ignored files can only be updated for ReverseDeployers.");
+    return;
+  }
+  auto depl = static_cast<ReverseDeployer*>(deployers_[deployer].get());
+  depl->updateIgnoredFiles(true);
 }
 
 sfs::path ModdedApplication::iconPath() const

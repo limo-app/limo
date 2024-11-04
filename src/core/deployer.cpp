@@ -897,3 +897,33 @@ void Deployer::fixInvalidLinkDeployMode()
     log_(Log::LOG_ERROR, "Failed to write to disk. Ensure that permissions are set correctly.");
   }
 }
+
+int Deployer::getDeployPriority() const
+{
+  return 0;
+}
+
+bool Deployer::supportsSorting() const
+{
+  return true;
+}
+
+bool Deployer::supportsReordering() const
+{
+  return true;
+}
+
+bool Deployer::supportsModConflicts() const
+{
+  return true;
+}
+
+bool Deployer::supportsFileConflicts() const
+{
+  return true;
+}
+
+bool Deployer::supportsFileBrowsing() const
+{
+  return true;
+}

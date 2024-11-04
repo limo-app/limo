@@ -181,6 +181,7 @@ void ApplicationManager::handleAddAppError(int code, sfs::path staging_dir)
   else
     emit sendError("Error",
                    "Could not parse config file in " + QString(staging_dir.string().c_str()) + "!");
+  emit completedOperations();
 }
 
 void ApplicationManager::handleAddDeployerError(int code,
@@ -212,6 +213,7 @@ void ApplicationManager::handleParseError(std::string path, std::string message)
                   "\n\n A backup of the last known good state, named \"." +
                   ModdedApplication::CONFIG_FILE_NAME + ".bak\", exists in the same directory.")
                    .c_str());
+  emit completedOperations();
 }
 
 void ApplicationManager::sendUpdateProgress(float progress)
@@ -244,6 +246,7 @@ void ApplicationManager::addApplication(EditApplicationInfo info)
       for(const auto& tag : info.auto_tags)
         apps_.back().addAutoTag(tag, true);
       updateSettings();
+      emit completedOperations("Application added");
     }
     catch(Json::RuntimeError& error)
     {
@@ -401,6 +404,7 @@ void ApplicationManager::addDeployer(int app_id, EditDeployerInfo info)
 {
   if(appIndexIsValid(app_id))
     handleExceptions<&ModdedApplication::addDeployer>(app_id, info);
+  emit completedOperations("Deployer added");
 }
 
 void ApplicationManager::removeDeployer(int app_id, int deployer, bool cleanup)
@@ -961,4 +965,11 @@ void ApplicationManager::exportAppConfiguration(int app_id,
   if(appIndexIsValid(app_id))
     handleExceptions<&ModdedApplication::exportConfiguration>(app_id, deployers, tag_vector);
   emit completedOperations("Configuration exported");
+}
+
+void ApplicationManager::updateIgnoredFiles(int app_id, int deployer)
+{
+  if(appIndexIsValid(app_id) && deployerIndexIsValid(app_id, deployer))
+    handleExceptions<&ModdedApplication::updateIgnoredFiles>(app_id, deployer);
+  emit completedOperations("Ignore list updated");
 }

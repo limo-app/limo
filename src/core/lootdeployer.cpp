@@ -407,6 +407,21 @@ void LootDeployer::setDeployMode(DeployMode deploy_mode)
   deploy_mode_ = copy;
 }
 
+int LootDeployer::getDeployPriority() const
+{
+  return 1;
+}
+
+bool LootDeployer::supportsFileConflicts() const
+{
+  return false;
+}
+
+bool LootDeployer::supportsFileBrowsing() const
+{
+  return false;
+}
+
 void LootDeployer::updatePlugins()
 {
   std::vector<std::string> plugin_files;

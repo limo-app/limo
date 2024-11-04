@@ -36,4 +36,14 @@ struct DeployerInfo
   bool separate_profile_dirs = false;
   /*! \brief Used by ReverseDeployers: If true: Deployer has files on the ignore list. */
   bool has_ignored_files = false;
+  /*! \brief Whether or not this deployer type supports sorting mods. */
+  bool supports_sorting = true;
+  /*! \brief Whether or not this deployer type supports reordering mods. */
+  bool supports_reordering = true;
+  /*! \brief Whether or not this deployer type supports showing mod conflicts. */
+  bool supports_mod_conflicts = true;
+  /*! \brief Whether or not this deployer type supports showing file conflicts. */
+  bool supports_file_conflicts = true;
+  /*! \brief Whether or not this deployer type supports browsing mod files. */
+  bool supports_file_browsing = true;
 };

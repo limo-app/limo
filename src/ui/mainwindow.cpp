@@ -387,6 +387,10 @@ void MainWindow::setupConnections()
           app_manager_, &ApplicationManager::unDeployMods);
   connect(this, &MainWindow::unDeployModsFor,
           app_manager_, &ApplicationManager::unDeployModsFor);
+  connect(add_deployer_dialog_.get(), &AddDeployerDialog::updateIgnoredFiles,
+          this, &MainWindow::onUpdateIgnoredFiles);
+  connect(this, &MainWindow::updateIgnoredFiles,
+          app_manager_, &ApplicationManager::updateIgnoredFiles);
 }
 // clang-format on
 
@@ -803,9 +807,6 @@ void MainWindow::showEditDeployerDialog(int deployer)
     deploy_mode = Deployer::sym_link;
   else if(deploy_mode_string == deploy_mode_copy)
     deploy_mode = Deployer::copy;
-  const auto index = ui->deployer_list->currentIndex();
-  const bool has_ignore_list = index.data(DeployerListModel::has_ignored_files_role).toBool();
-  const bool has_separate_dirs = index.data(DeployerListModel::has_separate_dirs_role).toBool();
   add_deployer_dialog_->setEditMode(
     ui->info_deployer_list->item(deployer, getColumnIndex(ui->info_deployer_list, "Type"))->text(),
     ui->info_deployer_list->item(deployer, getColumnIndex(ui->info_deployer_list, "Name"))->text(),
@@ -814,8 +815,8 @@ void MainWindow::showEditDeployerDialog(int deployer)
     deploy_mode,
     currentApp(),
     deployer,
-    has_separate_dirs,
-    has_ignore_list);
+    deployer_model_->hasSeparateDirs(),
+    deployer_model_->hasIgnoredFiles());
   setBusyStatus(true, false);
   add_deployer_dialog_->show();
 }
@@ -1336,9 +1337,13 @@ void MainWindow::onGetDeployerInfo(DeployerInfo depl_info)
 {
   setWindowTitle(ui->app_selection_box->currentText() + " - Limo");
   ui->actionremove_from_deployer->setVisible(!depl_info.is_autonomous);
-  ui->actionget_file_conflicts->setVisible(!depl_info.is_autonomous);
+  ui->actionget_file_conflicts->setVisible(depl_info.supports_file_conflicts);
+  ui->actionget_mod_conflicts->setVisible(depl_info.supports_mod_conflicts);
   ui->actionbrowse_mod_files->setVisible(
-    !(ui->app_tab_widget->currentIndex() == deployer_tab_idx && depl_info.is_autonomous));
+    ui->app_tab_widget->currentIndex() != deployer_tab_idx || depl_info.supports_file_browsing);
+  ui->actionSort_Mods->setVisible(depl_info.supports_sorting);
+  ui->actionmove_mod->setVisible(depl_info.supports_reordering);
+  ui->deployer_list->setEnableDragReorder(depl_info.supports_reordering);
 
   for(auto cb : depl_tag_cbs_)
     delete cb;
@@ -1364,6 +1369,8 @@ void MainWindow::onGetDeployerInfo(DeployerInfo depl_info)
 void MainWindow::onAddAppDialogComplete(EditApplicationInfo info)
 {
   Log::info("Adding new application '" + info.name + "'");
+  setBusyStatus(true);
+  setStatusMessage("Adding application");
   emit addApplication(info);
   emit getApplicationNames(true);
 }
@@ -1371,6 +1378,8 @@ void MainWindow::onAddAppDialogComplete(EditApplicationInfo info)
 void MainWindow::onAddDeployerDialogComplete(EditDeployerInfo info, int app_id)
 {
   Log::info("Adding new deployer '" + info.name + "'");
+  setBusyStatus(true);
+  setStatusMessage("Adding deployer");
   emit addDeployer(app_id, info);
   if(currentApp() == app_id)
     emit getDeployerNames(app_id, true);
@@ -1521,6 +1530,17 @@ void MainWindow::onModListContextMenu(QPoint pos)
 
 void MainWindow::onDeployerListContextMenu(QPoint pos)
 {
+  bool has_visible_actions = false;
+  for(auto&& action : deployer_list_menu_->actions())
+  {
+    if(action->isVisible())
+    {
+      has_visible_actions = true;
+      break;
+    }
+  }
+  if(!has_visible_actions)
+    return;
   auto idx = ui->deployer_list->indexAt(pos);
   pos.setY(pos.y() + ui->deployer_list->horizontalHeader()->sizeHint().height());
   pos.setX(pos.x() + ui->deployer_list->verticalHeader()->sizeHint().width());
@@ -1808,7 +1828,6 @@ void MainWindow::onAddModAborted(QString temp_dir)
     }
     box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     int answer = box.exec();
-    qDebug() << answer << QMessageBox::No << QMessageBox::Yes;
     if(answer == QMessageBox::Yes)
       mod_import_queue_ = std::priority_queue<ImportModInfo>();
     else
@@ -3312,4 +3331,13 @@ void MainWindow::on_undeploy_button_clicked()
     emit getExternalChanges(currentApp(), 0, false);
   else
     emit getExternalChanges(currentApp(), currentDeployer(), false);
+}
+
+void MainWindow::onUpdateIgnoredFiles(int app_id, int deployer)
+{
+  setStatusMessage("Updating ignore list");
+  setBusyStatus(true, true, true);
+  emit updateIgnoredFiles(app_id, deployer);
+  if(app_id == currentApp() && deployer == currentDeployer())
+    emit getDeployerInfo(currentApp(), currentDeployer());
 }

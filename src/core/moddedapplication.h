@@ -61,14 +61,14 @@ public:
    * \brief Deploys mods using Deployer objects with given ids.
    * \param deployers The Deployer ids used for deployment.
    */
-  void deployModsFor(const std::vector<int>& deployers);
+  void deployModsFor(std::vector<int> deployers);
   /*! \brief Undeploys mods for all managed deployers. */
   void unDeployMods();
   /*!
    * \brief Undeploys mods for the given deployers.
    * \param deployers Target deployers.
    */
-  void unDeployModsFor(const std::vector<int>& deployers);
+  void unDeployModsFor(std::vector<int> deployers);
   /*!
    * \brief Installs a new mod using the given Installer type.
    * \param info Contains all data needed to install the mod.
@@ -658,6 +658,11 @@ public:
    */
   void exportConfiguration(const std::vector<int>& deployers,
                            const std::vector<std::string>& auto_tags);
+  /*!
+   * \brief Updates the file ignore list for ReverseDeployers.
+   * \param deployer Target deployer.
+   */
+  void updateIgnoredFiles(int deployer);
 
 private:
   /*! \brief The name of this application. */

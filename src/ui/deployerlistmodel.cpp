@@ -94,10 +94,6 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
       tags.append(tag.c_str());
     return tags;
   }
-  if(role == has_ignored_files_role)
-    return deployer_info_.has_ignored_files;
-  if(role == has_separate_dirs_role)
-    return deployer_info_.separate_profile_dirs;
   return QVariant();
 }
 
@@ -131,4 +127,14 @@ void DeployerListModel::setDeployerInfo(const DeployerInfo& info)
     }
   }
   emit layoutChanged();
+}
+
+bool DeployerListModel::hasSeparateDirs() const
+{
+  return deployer_info_.separate_profile_dirs;
+}
+
+bool DeployerListModel::hasIgnoredFiles() const
+{
+  return deployer_info_.has_ignored_files;
 }

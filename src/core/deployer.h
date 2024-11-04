@@ -314,6 +314,37 @@ public:
                                          std::optional<ProgressNode*> progress_node = {}) const;
   /*! \brief If using hard_link deploy mode and links cannot be created: Switch to sym links. */
   virtual void fixInvalidLinkDeployMode();
+  /*!
+   * \brief Returns the order in which the deploy function of different
+   *  deployers should be called.
+   * \return The priority.
+   */
+  virtual int getDeployPriority() const;
+  /*!
+   * \brief Returns whether or not this deployer type supports sorting mods.
+   * \return True if supported.
+   */
+  virtual bool supportsSorting() const;
+  /*!
+   * \brief Returns whether or not this deployer type supports reordering mods.
+   * \return True if supported.
+   */
+  virtual bool supportsReordering() const;
+  /*!
+   * \brief Returns whether or not this deployer type supports showing mod conflicts.
+   * \return True if supported.
+   */
+  virtual bool supportsModConflicts() const;
+  /*!
+   * \brief Returns whether or not this deployer type supports showing file conflicts.
+   * \return True if supported.
+   */
+  virtual bool supportsFileConflicts() const;
+  /*!
+   * \brief Returns whether or not this deployer type supports browsing mod files.
+   * \return True if supported.
+   */
+  virtual bool supportsFileBrowsing() const;
 
 protected:
   /*! \brief Type of this deployer, e.g. Simple Deployer. */

@@ -229,6 +229,22 @@ public:
    * \param deploy_mode ignored.
    */
   virtual void setDeployMode(DeployMode deploy_mode) override;
+  /*!
+   * \brief Returns the order in which the deploy function of different
+   *  deployers should be called.
+   * \return The priority.
+   */
+  virtual int getDeployPriority() const override;
+  /*!
+   * \brief Returns whether or not this deployer type supports showing file conflicts.
+   * \return True if supported.
+   */
+  virtual bool supportsFileConflicts() const override;
+  /*!
+   * \brief Returns whether or not this deployer type supports browsing mod files.
+   * \return True if supported.
+   */
+  virtual bool supportsFileBrowsing() const override;
 
 private:
   /*! \brief Name of the file containing plugin load order. */

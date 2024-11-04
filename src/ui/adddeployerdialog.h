@@ -135,6 +135,8 @@ private slots:
    * \param new_state The new check state.
    */
   void on_rev_depl_separate_cb_stateChanged(int new_state);
+  /*! \brief Emits a signal to update the ignored files for the current ReverseDeployer. */
+  void on_rev_depl_ignore_button_clicked();
 
 signals:
   /*!
@@ -150,4 +152,10 @@ signals:
    * \param deployer_id Id of the edited Deployer.
    */
   void deployerEdited(EditDeployerInfo info, int app_id, int deployer_id);
+  /*!
+   * \brief Updates the file ignore list for ReverseDeployers.
+   * \param app_id Target app.
+   * \param deployer Target deployer.
+   */
+  void updateIgnoredFiles(int app_id, int deployer);
 };

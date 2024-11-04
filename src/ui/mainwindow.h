@@ -1050,6 +1050,12 @@ private slots:
                                        QStringList auto_tags);
   /*! \brief Checks for external changes and reverts mod deployment. */
   void on_undeploy_button_clicked();
+  /*!
+   * \brief Updates the file ignore list for ReverseDeployers
+   * \param app_id Target app.
+   * \param deployer Target deployer.
+   */
+  void onUpdateIgnoredFiles(int app_id, int deployer);
 
 signals:
   /*!
@@ -1543,4 +1549,10 @@ signals:
    * \param auto_tags Auto tags to export.
    */
   void exportAppConfiguration(int app_id, std::vector<int> deployers, QStringList auto_tags);
+  /*!
+   * \brief Updates the file ignore list for ReverseDeployers
+   * \param app_id Target app.
+   * \param deployer Target deployer.
+   */
+  void updateIgnoredFiles(int app_id, int deployer);
 };

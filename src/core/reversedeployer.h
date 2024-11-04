@@ -244,6 +244,37 @@ public:
    * \return The number of profiles.
    */
   int getNumProfiles() const;
+  /*!
+   * \brief Returns the order in which the deploy function of different
+   *  deployers should be called.
+   * \return The priority.
+   */
+  virtual int getDeployPriority() const override;
+  /*!
+   * \brief Returns whether or not this deployer type supports sorting mods.
+   * \return True if supported.
+   */
+  virtual bool supportsSorting() const override;
+  /*!
+   * \brief Returns whether or not this deployer type supports reordering mods.
+   * \return True if supported.
+   */
+  virtual bool supportsReordering() const override;
+  /*!
+   * \brief Returns whether or not this deployer type supports showing mod conflicts.
+   * \return True if supported.
+   */
+  virtual bool supportsModConflicts() const override;
+  /*!
+   * \brief Returns whether or not this deployer type supports showing file conflicts.
+   * \return True if supported.
+   */
+  virtual bool supportsFileConflicts() const override;
+  /*!
+   * \brief Returns whether or not this deployer type supports browsing mod files.
+   * \return True if supported.
+   */
+  virtual bool supportsFileBrowsing() const override;
 
 private:
   /*! \brief Name of the file containing paths of ignored files. */
@@ -260,6 +291,11 @@ private:
   int deployed_profile_ = -1;
   /*! \brief If true: Store files on a per profile basis. Else: All profiles use the same files. */
   bool separate_profile_dirs_ = false;
+  /*!
+   *  \brief Determines the order in which the deploy function of different
+   *  deployers should be called
+   */
+  const int deploy_priority_ = 2;
 
   /*! \brief Reads a list of ignored files from the ignore list file. */
   void readIgnoredFiles();

@@ -37,16 +37,6 @@ public:
   static constexpr int mod_status_role = 300;
   /*! \brief Role representing all tags added to a mod. */
   static constexpr int mod_tags_role = 301;
-  /*!
-   * \brief Only for ReverseDeployers:
-   *  Role representing whether or not profiles use separate directories.
-   */
-  static constexpr int has_separate_dirs_role = 302;
-  /*!
-   * \brief Only for ReverseDeployers:
-   *  Role representing whether or not the deployer's ignore list contains files.
-   */
-  static constexpr int has_ignored_files_role = 303;
 
   /*!
    * \brief Returns the horizontal header section names and vertical header section indices.
@@ -86,6 +76,16 @@ public:
    * \param mods Data for all mods managed by this model.
    */
   void setDeployerInfo(const DeployerInfo& info);
+  /*!
+   * \brief Only for ReverseDeployers: Whether or not profiles use separate directories.
+   * \return True if separate directories are used.
+   */
+  bool hasSeparateDirs() const;
+  /*!
+   * \brief Only for ReverseDeployers: Whether or not the deployer's ignore list contains files.
+   * \return True if at least one file is ignored.
+   */
+  bool hasIgnoredFiles() const;
 
 private:
   /*! \brief Contains all mods managed by this model. */

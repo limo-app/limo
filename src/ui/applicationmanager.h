@@ -972,4 +972,10 @@ public slots:
    * \param auto_tags Auto tags to export.
    */
   void exportAppConfiguration(int app_id, std::vector<int> deployers, QStringList auto_tags);
+  /*!
+   * \brief Updates the file ignore list for ReverseDeployers
+   * \param app_id Target app.
+   * \param deployer Target deployer.
+   */
+  void updateIgnoredFiles(int app_id, int deployer);
 };
