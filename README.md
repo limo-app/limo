@@ -52,6 +52,12 @@ longer active.
     <img width='240' alt='Download on Flathub' src='https://flathub.org/api/badge?locale=en'/>
 </a>
 
+### Arch Linux (via Arch User Repository)
+
+<a href='https://aur.archlinux.org/packages/limo-git'>
+	<img width='240' alt='Get on AUR' src='https://upload.wikimedia.org/wikipedia/commons/e/e8/Archlinux-logo-standard-version.png'/>
+</a>
+
 ### Build from source
 
 ####  Install the dependencies
@@ -128,6 +134,40 @@ tests/build/tests
 
 ```
 doxygen src/lmm_Doxyfile
+```
+
+## Usage Notes
+
+### Flatpak version of Limo
+
+From version 1.0.7 onwards, Limo supports specialized deployer and auto tag imports for Steam games. Currently it only supports Bethesda Games on Steam such as Skyrim, Skyrim SE, and Skyrim VR. ***Flatpak users who want to mod these games using Limo are automatically configured, but it is still recommended to read Limo's [Wiki](https://github.com/limo-app/limo/wiki) even if you are modding these games or not.***
+
+#### To add tools and run the executable directly to Limo, use:
+
+```
+--directory=/tool/directory/protontricks-launch --appid [steamappid i.e., 489830 for Skyrim SE] tool.exe
+```
+
+### AUR version of Limo
+
+The Flatpak version of Limo is the officially supported version. There is no reason to use the AUR version of Limo, unless you like the instant download initialization (not the download speed) when downloading via mod manager on NexusMods, and early access to new features such as Reverse Deployer (unreleased as of 1.0.7). If you decided to use the AUR version, please don't spam and harass the main developer.
+
+When you first use the AUR version of Limo, you'll notice that the UI is slightly different than the Flatpak version. ***Moreover, you'll notice that when importing games from steam such as Skyrim SE, the deployers are not pointing to the right directory, hence, one should read Limo's [Wiki](https://github.com/limo-app/limo/wiki) to properly configure them.*** 
+
+#### Here's a quick glance of what deployer you should create and where it should point to.
+
+| Name    |     Deployer Type      |                                                       Target Directory                                            | Deployment Method |
+| ------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Bin     | Case Matching Deployer | ~/.local/share/Steam/steamapps/common/Skyrim Special Edition                                                      | Anything          |
+| Data    | Case Matching Deployer | ~/.local/share/Steam/steamapps/common/Skyrim Special Edition/Data                                                 | Anything          |
+| Plugins | Loot Deployer          | ~/.local/share/Steam/steamapps/compatdata/489830/pfx/drive_c/users/steamuser/AppData/Local/Skyrim Special Edition | Anything          |
+
+For GOG users of these games, just find the game's folder. It should be almost similar, except the prefix folder.
+
+#### To add tools and run the executable directly to AUR version Limo, use:
+
+```
+cd "/tool/directory"; protontricks-launch --appid [steamappid i.e., 489830 for SkyrimSE] tool.exe
 ```
 
 ## Contributing configurations
