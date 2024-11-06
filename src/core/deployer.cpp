@@ -796,7 +796,7 @@ std::vector<std::pair<sfs::path, int>> Deployer::getExternallyModifiedFiles(
   return modified_files;
 }
 
-void Deployer::keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) const
+void Deployer::keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep)
 {
   if(deploy_mode_ == copy)
     return;

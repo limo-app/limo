@@ -212,7 +212,7 @@ public:
    * \param changes_to_keep Ignored.
    */
   virtual void keepOrRevertFileModifications(
-    const FileChangeChoices& changes_to_keep) const override;
+    const FileChangeChoices& changes_to_keep) override;
   /*!
    * \brief Updates the deployed files for one mod to match those in the mod's source directory.
    * This is not supported for this deployer type.

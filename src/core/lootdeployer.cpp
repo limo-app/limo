@@ -394,7 +394,7 @@ std::vector<std::pair<sfs::path, int>> LootDeployer::getExternallyModifiedFiles(
   return {};
 }
 
-void LootDeployer::keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) const {}
+void LootDeployer::keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) {}
 
 void LootDeployer::updateDeployedFilesForMod(int mod_id,
                                              std::optional<ProgressNode*> progress_node) const

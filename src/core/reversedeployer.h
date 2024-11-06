@@ -185,21 +185,22 @@ public:
    */
   virtual std::map<std::string, int> getAutoTagMap() override;
   /*!
-   * \brief Not supported by this Deployer type.
-   * \param progress_node Ignored
-   * \return An empty vector
+   * \brief Iterates over all deployed files in the source and target directory
+   * and checks if they have been deleted externally.
+   * \param progress_node Used to inform about progress.
+   * \return A vector containing pairs of paths to deleted files and the corresponding mod id.
    */
   virtual std::vector<std::pair<std::filesystem::path, int>> getExternallyModifiedFiles(
     std::optional<ProgressNode*> progress_node = {}) const override;
   /*!
-   * \brief Not supported by this Deployer type.
-   * \param changes_to_keep Ignored.
+   * \brief For all given files: If change is to be kept: Delete the file, else: Restore the file.
+   * \param changes_to_keep Contains vectors of relative file paths and decision of whether or not
+   * to keep the change for that file.
    */
   virtual void keepOrRevertFileModifications(
-    const FileChangeChoices& changes_to_keep) const override;
+    const FileChangeChoices& changes_to_keep) override;
   /*!
-   * \brief Updates the deployed files for one mod to match those in the mod's source directory.
-   * This is not supported for this deployer type.
+   * \brief This is not supported for this deployer type.
    * \param mod_id Ignored.
    * \param progress_node Ignored.
    */
@@ -331,7 +332,16 @@ private:
   /*!
    * \brief Returns the full path pointing to the given file in source_path_.
    * \param path Relative path to to convert.
+   * \param profile The profile for which to determine the path.
    * \return The full path.
    */
-  std::filesystem::path getSourcePath(const std::filesystem::path& path) const;
+  std::filesystem::path getSourcePath(const std::filesystem::path& path, int profile) const;
+  /*!
+   * \brief Deletes the given file from disk and the given profile. If separate directories are NOT used:
+   * Deletes the file from all profiles.
+   * Does NOT write manged files or update the current loadorder.
+   * \param path Relative path to the file which is to be delete.
+   * \param profile Profile from which to delete the file.
+   */
+  void deleteFile(const std::filesystem::path& path, int profile);
 };

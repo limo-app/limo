@@ -167,9 +167,7 @@ void ReverseDeployer::removeProfile(int profile)
       deployManagedFiles();
   }
   else if(profile < current_profile_)
-  {
     current_profile_--;
-  }
   writeManagedFiles();
 }
 
@@ -281,19 +279,97 @@ std::map<std::string, int> ReverseDeployer::getAutoTagMap()
   return {};
 }
 
-std::vector<std::pair<std::filesystem::__cxx11::path, int>>
-ReverseDeployer::getExternallyModifiedFiles(std::optional<ProgressNode*> progress_node) const
+std::vector<std::pair<sfs::path, int>> ReverseDeployer::getExternallyModifiedFiles(
+  std::optional<ProgressNode*> progress_node) const
 {
+  const bool no_deployed_profile =
+    deployed_profile_ < 0 || deployed_profile_ >= managed_files_.size();
   if(progress_node)
   {
-    (*progress_node)->setTotalSteps(1);
-    (*progress_node)->advance();
+    if(no_deployed_profile)
+      (*progress_node)->setTotalSteps(1);
+    else
+      (*progress_node)->setTotalSteps(managed_files_[deployed_profile_].size());
   }
-  return {};
+  if(no_deployed_profile)
+  {
+    if(progress_node)
+      (*progress_node)->advance();
+    return {};
+  }
+
+  std::vector<std::pair<sfs::path, int>> modified_files;
+  for(const auto& [i, pair] : str::enumerate_view(managed_files_[deployed_profile_]))
+  {
+    const auto& [path, enabled] = pair;
+    if(enabled && !sfs::exists(dest_path_ / path) ||
+       !sfs::exists(getSourcePath(path, deployed_profile_)))
+      modified_files.emplace_back(path, i);
+    if(progress_node)
+      (*progress_node)->advance();
+  }
+  return modified_files;
 }
 
-void ReverseDeployer::keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) const
-{}
+void ReverseDeployer::keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep)
+{
+  for(const auto& [path, keep] :
+      str::zip_view(changes_to_keep.paths, changes_to_keep.changes_to_keep))
+  {
+    const sfs::path full_source_path(getSourcePath(path, deployed_profile_));
+    const sfs::path full_dest_path(dest_path_ / path);
+
+    if(keep)
+      deleteFile(path, deployed_profile_);
+    else
+    {
+      const bool source_exists = sfs::exists(full_source_path);
+      const bool dest_exists = sfs::exists(full_dest_path);
+      if(dest_exists && source_exists)
+      {
+        log_(
+          Log::LOG_DEBUG,
+          std::format("Deployer '{}': Tried to restore existing file: '{}'", name_, path.string()));
+      }
+      else if(dest_exists && !source_exists)
+      {
+        if(deploy_mode_ == hard_link)
+          sfs::create_hard_link(full_dest_path, full_source_path);
+        else if(deploy_mode_ == sym_link)
+        {
+          log_(Log::LOG_ERROR,
+               std::format("Deployer '{}': File '{}' could not be restored. File does not exist.",
+                           name_,
+                           path.string()));
+          deleteFile(path, deployed_profile_);
+        }
+        else
+          sfs::copy(full_dest_path, full_source_path);
+      }
+      else if(source_exists && !dest_exists)
+      {
+        if(deploy_mode_ == hard_link)
+          sfs::create_hard_link(full_source_path, full_dest_path);
+        else if(deploy_mode_ == sym_link)
+          sfs::create_symlink(full_source_path, full_dest_path);
+        else
+          sfs::copy(full_source_path, full_dest_path);
+      }
+      else
+      {
+        log_(Log::LOG_ERROR,
+             std::format("Deployer '{}': File '{}' could not be restored. File does not exist.",
+                         name_,
+                         path.string()));
+        deleteFile(path, deployed_profile_);
+      }
+    }
+  }
+
+  if(deployed_profile_ == current_profile_)
+    updateCurrentLoadorder();
+  writeManagedFiles();
+}
 
 void ReverseDeployer::updateDeployedFilesForMod(int mod_id,
                                                 std::optional<ProgressNode*> progress_node) const
@@ -319,7 +395,7 @@ void ReverseDeployer::deleteIgnoredFiles()
   ignored_files_.clear();
   for(int prof = 0; prof < managed_files_.size(); prof++)
   {
-    const sfs::path source_dir = getSourcePath("");
+    const sfs::path source_dir = getSourcePath("", prof);
     for(const auto& dir_entry : sfs::recursive_directory_iterator(source_dir))
     {
       if(dir_entry.is_directory())
@@ -458,10 +534,15 @@ void ReverseDeployer::addModToIgnoreList(int mod_id)
   }
 
   sfs::path relative_path = current_loadorder_[mod_id].first;
+  const sfs::path source_path = getSourcePath(relative_path, current_profile_);
+  if(sfs::exists(source_path))
+    sfs::remove(source_path);
+
   current_loadorder_.erase(current_loadorder_.begin() + mod_id);
   for(int prof = 0; prof < managed_files_.size(); prof++)
   {
-    if(prof == current_profile_ || !separate_profile_dirs_)
+    if((prof == current_profile_ || !separate_profile_dirs_) &&
+       managed_files_[prof].contains(relative_path))
       managed_files_[current_profile_].erase(relative_path);
   }
   ignored_files_.insert(relative_path);
@@ -614,14 +695,17 @@ void ReverseDeployer::moveFilesFromTargetToSource() const
   for(const auto& [path, enabled] : current_loadorder_)
   {
     const sfs::path full_dest_path = dest_path_ / path;
-    const sfs::path full_source_path = getSourcePath(path);
-    if(!sfs::exists(full_dest_path))
+    const sfs::path full_source_path = getSourcePath(path, current_profile_);
+    const bool dest_exists = sfs::exists(full_dest_path);
+    const bool source_exists = sfs::exists(full_source_path);
+    if(!dest_exists)
     {
-      log_(Log::LOG_DEBUG,
-           std::format("Deployer {} could not find file {}.", name_, full_dest_path.string()));
+      if(!source_exists)
+        log_(Log::LOG_DEBUG,
+             std::format("Deployer '{}' could not find file {}.", name_, full_dest_path.string()));
       continue;
     }
-    if(sfs::exists(full_dest_path) && sfs::exists(full_source_path) &&
+    if(dest_exists && source_exists &&
        (deploy_mode_ == hard_link && sfs::equivalent(full_source_path, full_dest_path) ||
         deploy_mode_ == sym_link && sfs::read_symlink(full_dest_path) == full_source_path))
     {
@@ -681,7 +765,17 @@ void ReverseDeployer::deployManagedFiles()
   for(const auto& [path, enabled] : current_loadorder_)
   {
     const sfs::path full_dest_path = dest_path_ / path;
-    const sfs::path full_source_path = getSourcePath(path);
+    const sfs::path full_source_path = getSourcePath(path, current_profile_);
+
+    if(!sfs::exists(full_source_path))
+    {
+      log_(Log::LOG_ERROR,
+           std::format("Deployer '{}': Failed to deploy file '{}'. Source does not exist.",
+                       name_,
+                       path.string()));
+      continue;
+    }
+
     if(sfs::exists(full_dest_path))
       sfs::remove(full_dest_path);
     if(!enabled)
@@ -697,9 +791,23 @@ void ReverseDeployer::deployManagedFiles()
   deployed_profile_ = current_profile_;
 }
 
-sfs::path ReverseDeployer::getSourcePath(const sfs::path& path) const
+sfs::path ReverseDeployer::getSourcePath(const sfs::path& path, int profile) const
 {
   if(separate_profile_dirs_)
-    return source_path_ / std::to_string(current_profile_) / path;
+    return source_path_ / std::to_string(profile) / path;
   return source_path_ / path;
+}
+
+void ReverseDeployer::deleteFile(const sfs::path& path, int profile)
+{
+  if(sfs::exists(dest_path_ / path))
+    sfs::remove(dest_path_ / path);
+  if(sfs::exists(getSourcePath(path, profile)))
+    sfs::remove(getSourcePath(path, profile));
+
+  for(int cur_prof = 0; cur_prof < managed_files_.size(); cur_prof++)
+  {
+    if((!separate_profile_dirs_ || cur_prof == profile) && managed_files_[cur_prof].contains(path))
+      managed_files_[cur_prof].erase(path);
+  }
 }

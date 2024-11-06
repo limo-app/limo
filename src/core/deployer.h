@@ -304,7 +304,7 @@ public:
    * responsible for that file and a bool which indicates whether or not changes to
    * that file should be kept.
    */
-  virtual void keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) const;
+  virtual void keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep);
   /*!
    * \brief Updates the deployed files for one mod to match those in the mod's source directory.
    * \param mod_id Target mod.
