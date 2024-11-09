@@ -12,7 +12,7 @@
 #include "backuplistview.h"
 #include "colors.h"
 #include "core/cryptography.h"
-#include "core/current_version.h"
+#include "core/consts.h"
 #include "core/installer.h"
 #include "deployerlistview.h"
 #include "editmanualtagsdialog.h"
@@ -1085,7 +1085,8 @@ std::vector<bool> MainWindow::getAutonomousDeployers()
 
 void MainWindow::enableModifyApps(bool enabled)
 {
-  for(auto action : mod_list_menu_->actions())
+  const auto actions = mod_list_menu_->actions();
+  for(auto action : actions)
     if(action != ui->actionbrowse_mod_files || enabled)
       action->setEnabled(enabled);
 
@@ -1101,7 +1102,8 @@ void MainWindow::enableModifyApps(bool enabled)
 
 void MainWindow::enableModifyDeployers(bool enabled)
 {
-  for(auto action : deployer_list_menu_->actions())
+  const auto actions = deployer_list_menu_->actions();
+  for(auto action : actions)
     if(action != ui->actionbrowse_mod_files || enabled)
       action->setEnabled(enabled);
 
@@ -1121,7 +1123,8 @@ void MainWindow::enableModifyDeployers(bool enabled)
 
 void MainWindow::enableModifyBackups(bool enabled)
 {
-  for(auto action : backup_list_menu_->actions())
+  const auto actions = backup_list_menu_->actions();
+  for(auto action : actions)
     action->setEnabled(enabled);
 
   backup_list_model_->setIsEditable(enabled);
@@ -1163,7 +1166,6 @@ bool MainWindow::initNexusApiKey()
     return true;
   }
   std::string api_key;
-  bool failed = false;
   try
   {
     api_key = cryptography::decrypt(cipher, pw, nonce, tag);
@@ -2096,14 +2098,6 @@ void MainWindow::setupIcons()
 
 void MainWindow::on_deploy_button_clicked()
 {
-  // Log::info("Deploying mods for '" + ui->app_selection_box->currentText().toStdString() + "'");
-  // setStatusMessage("Deploying mods");
-  // setBusyStatus(true, true, true);
-  // if(deploy_for_all_)
-  //   emit deployMods(currentApp());
-  // else
-  //   emit deployModsFor(currentApp(), { currentDeployer() });
-  // emit getDeployerInfo(currentApp(), currentDeployer());
   setStatusMessage("Checking for external changes");
   setBusyStatus(true, true, true);
   if(deploy_for_all_)

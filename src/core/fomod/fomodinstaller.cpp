@@ -21,7 +21,6 @@ void FomodInstaller::init(const sfs::path& config_file,
   config_file_.reset();
   files_.clear();
   steps_.clear();
-  int cur_step_ = -1;
   flags_.clear();
   prev_selections_.clear();
   target_path_ = target_path;

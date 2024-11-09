@@ -448,7 +448,6 @@ void Installer::extractRarArchive(const sfs::path& source_path, const sfs::path&
   if(archive.OpenResult != 0)
     throw CompressionError("Failed to open RAR archive.");
   auto header_data = std::make_unique<RARHeaderDataEx>();
-  int i = 0;
   int header_state = RARReadHeaderEx(hArcData, header_data.get());
   while(header_state == 0)
   {

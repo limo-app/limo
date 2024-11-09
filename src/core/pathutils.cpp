@@ -20,7 +20,6 @@ std::optional<sfs::path> pathExists(const sfs::path& path_to_check,
     path_to_check.string().ends_with("/") ? path_to_check.parent_path() : path_to_check;
 
   sfs::path actual_path;
-  int i = 0;
   for(auto iter = target.begin(); iter != target.end(); iter++)
   {
     if(sfs::exists(base_path / actual_path / *iter))

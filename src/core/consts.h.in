@@ -1,3 +1,4 @@
 #pragma once
 
 constexpr char APP_VERSION[] = "@PROJECT_VERSION@";
+constexpr char APP_INSTALL_PREFIX[] = "@LIMO_INSTALL_PREFIX@";

@@ -282,6 +282,8 @@ std::map<std::string, int> ReverseDeployer::getAutoTagMap()
 std::vector<std::pair<sfs::path, int>> ReverseDeployer::getExternallyModifiedFiles(
   std::optional<ProgressNode*> progress_node) const
 {
+  log_(Log::LOG_INFO, std::format("Deployer '{}': Checking for external changes...", name_));
+
   const bool no_deployed_profile =
     deployed_profile_ < 0 || deployed_profile_ >= managed_files_.size();
   if(progress_node)
@@ -295,6 +297,7 @@ std::vector<std::pair<sfs::path, int>> ReverseDeployer::getExternallyModifiedFil
   {
     if(progress_node)
       (*progress_node)->advance();
+    log_(Log::LOG_INFO, "No changes found");
     return {};
   }
 
@@ -308,6 +311,12 @@ std::vector<std::pair<sfs::path, int>> ReverseDeployer::getExternallyModifiedFil
     if(progress_node)
       (*progress_node)->advance();
   }
+
+  if(modified_files.empty())
+    log_(Log::LOG_INFO, "No changes found");
+  else
+    log_(Log::LOG_INFO, std::format("Found {} modified files", modified_files.size()));
+
   return modified_files;
 }
 

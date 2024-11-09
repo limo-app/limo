@@ -1,6 +1,7 @@
 #include "addappdialog.h"
-#include "../core/autotag.h"
-#include "../core/deployerfactory.h"
+#include "core/autotag.h"
+#include "core/consts.h"
+#include "core/deployerfactory.h"
 #include "core/parseerror.h"
 #include "importfromsteamdialog.h"
 #include "ui_addappdialog.h"
@@ -17,7 +18,7 @@ namespace str = std::ranges;
 
 
 AddAppDialog::AddAppDialog(bool is_flatpak, QWidget* parent) :
-  is_flatpak_(is_flatpak), QDialog(parent), ui(new Ui::AddAppDialog)
+  QDialog(parent), ui(new Ui::AddAppDialog), is_flatpak_(is_flatpak)
 {
   ui->setupUi(this);
   ui->move_dir_box->setVisible(false);
@@ -91,7 +92,19 @@ void AddAppDialog::initConfigForApp()
 {
   deployers_.clear();
   auto_tags_.clear();
-  sfs::path config_path(is_flatpak_ ? "/app/share/steam_app_configs" : "steam_app_configs");
+  sfs::path config_path =
+    sfs::path(is_flatpak_ ? "/app/share" : APP_INSTALL_PREFIX) / "share/limo/steam_app_configs";
+  // Overwrite for local build
+  if(!is_flatpak_ && sfs::exists("steam_app_configs"))
+    config_path = "steam_app_configs";
+  Log::debug("Config path: " + config_path.string());
+  if(!sfs::exists(config_path))
+  {
+    Log::error("Could not find \"steam_app_configs\" directory. "
+               "Make sure Limo is installed correctly");
+    initDefaultAppConfig();
+    return;
+  }
 
   config_path /= (std::to_string(app_id_) + ".json");
   if(!sfs::exists(config_path))

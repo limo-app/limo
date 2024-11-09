@@ -19,7 +19,7 @@ ModdedApplication::ModdedApplication(sfs::path staging_dir,
                                      std::string command,
                                      std::filesystem::path icon_path,
                                      std::string app_version) :
-  staging_dir_(staging_dir), name_(name), command_(command), icon_path_(icon_path)
+  name_(name), staging_dir_(staging_dir), command_(command), icon_path_(icon_path)
 {
   if(sfs::exists(staging_dir / CONFIG_FILE_NAME))
     updateState(true);
@@ -1971,7 +1971,7 @@ void ModdedApplication::updateDeployerGroups(std::optional<ProgressNode*> progre
       deployers_[depl]->setProfile(profile);
       std::vector<bool> completed_groups(active_group_members_.size());
       std::fill(completed_groups.begin(), completed_groups.end(), false);
-      for(const auto [mod_id, _] : deployers_[depl]->getLoadorder())
+      for(const auto& [mod_id, _] : deployers_[depl]->getLoadorder())
       {
         if(!group_map_.contains(mod_id))
           continue;

@@ -235,7 +235,7 @@ std::unordered_set<int> Deployer::getModConflicts(int mod_id,
   sfs::path mod_base_path = source_path_ / std::to_string(mod_id);
   if(progress_node)
     (*progress_node)->setTotalSteps(loadorders_[current_profile_].size());
-  for(const auto [cur_id, _] : loadorders_[current_profile_])
+  for(const auto& [cur_id, _] : loadorders_[current_profile_])
   {
     if(!checkModPathExistsAndMaybeLogError(cur_id))
       continue;
@@ -763,7 +763,7 @@ std::vector<std::pair<sfs::path, int>> Deployer::getExternallyModifiedFiles(
   if(deploy_mode_ == copy)
     return {};
 
-  log_(Log::LOG_INFO, std::format("Deployer '{}' checking for external changes...", name_));
+  log_(Log::LOG_INFO, std::format("Deployer '{}': Checking for external changes...", name_));
 
   std::vector<std::pair<sfs::path, int>> modified_files;
   const auto deployed_files = loadDeployedFiles();

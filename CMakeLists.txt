@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(Limo VERSION 1.0.5 LANGUAGES CXX)
+project(Limo VERSION 1.0.8 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(IS_FLATPAK "Whether this is being built for a flatpak." OFF)
+option(USE_SYSTEM_LIBUNRAR "Whether to use the system version of libunrar." OFF)
 
 # jsoncpp
 find_package(PkgConfig REQUIRED)
@@ -39,17 +40,37 @@ if(NOT DEFINED LIBUNRAR_INCLUDE_DIR)
     if(IS_FLATPAK)
         set(LIBUNRAR_INCLUDE_DIR "/app/include/unrar")
     else()
-        set(LIBUNRAR_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/unrar")
+        if(USE_SYSTEM_LIBUNRAR)
+            find_file(LIBUNRAR_DLL_PATH "unrar/dll.hpp" REQUIRED)
+            cmake_path(GET LIBUNRAR_DLL_PATH PARENT_PATH LIBUNRAR_INCLUDE_DIR)
+        else()
+            set(LIBUNRAR_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/unrar")
+        endif()
     endif()
 endif()
 if(NOT DEFINED LIBUNRAR_PATH)
     if(IS_FLATPAK)
         set(LIBUNRAR_PATH "/app/lib/libunrar.a")
     else()
-        set(LIBUNRAR_PATH "${PROJECT_SOURCE_DIR}/unrar/libunrar.a")
+        if(USE_SYSTEM_LIBUNRAR)
+            find_library(LIBUNRAR_PATH libunrar.a)
+            if(${LIBUNRAR_PATH} STREQUAL "LIBUNRAR_PATH-NOTFOUND")
+                find_library(LIBUNRAR_PATH libunrar.so REQUIRED)
+            endif()
+        else()
+            set(LIBUNRAR_PATH "${PROJECT_SOURCE_DIR}/unrar/libunrar.a")
+        endif()
     endif()
 endif()
 
+# libloot
+if(NOT DEFINED LIBLOOT_INCLUDE_DIR)
+    find_file(LIBLOOT_API_PATH "loot/api.h" REQUIRED)
+    cmake_path(GET LIBLOOT_API_PATH PARENT_PATH LIBLOOT_INCLUDE_DIR)
+endif()
+if(NOT DEFINED LIBLOOT_PATH)
+    find_library(LIBLOOT_PATH libloot.so REQUIRED)
+endif()
 
 set(PROJECT_SOURCES
         resources/icons.qrc
@@ -65,6 +86,7 @@ set(PROJECT_SOURCES
         src/core/casematchingdeployer.h
         src/core/compressionerror.h
         src/core/conflictinfo.h
+        src/core/consts.h
         src/core/cryptography.cpp
         src/core/cryptography.h
         src/core/deployer.cpp
@@ -115,6 +137,8 @@ set(PROJECT_SOURCES
         src/core/pathutils.h
         src/core/progressnode.cpp
         src/core/progressnode.h
+        src/core/reversedeployer.cpp
+        src/core/reversedeployer.h
         src/core/tag.cpp
         src/core/tag.h
         src/core/tagcondition.h
@@ -248,32 +272,38 @@ set(PROJECT_SOURCES
         src/ui/versionboxdelegate.h
 )
 
-add_executable(Limo
-    ${PROJECT_SOURCES}
-    src/core/reversedeployer.h src/core/reversedeployer.cpp)
+# Set install target so app config files can be found
+if(NOT DEFINED LIMO_INSTALL_PREFIX)
+    set(LIMO_INSTALL_PREFIX "/usr/local")
+endif()
 
-target_include_directories(Limo
-    PRIVATE "${PROJECT_SOURCE_DIR}/src"
+configure_file(src/core/consts.h.in
+               ${PROJECT_SOURCE_DIR}/src/core/consts.h)
+
+add_executable(limo
+    ${PROJECT_SOURCES})
+
+target_include_directories(limo
+    PRIVATE ${PROJECT_SOURCE_DIR}/src
     PRIVATE ${LibArchive_INCLUDE_DIRS}
-    PRIVATE /usr/include/loot
+    PRIVATE ${LIBLOOT_INCLUDE_DIR}
     PRIVATE ${JSONCPP_INCLUDE_DIRS}
     PRIVATE ${LIBUNRAR_INCLUDE_DIR})
 
-target_link_libraries(Limo
+target_link_libraries(limo
     PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
     PRIVATE ${JSONCPP_LIBRARIES}
     PRIVATE ${LibArchive_LIBRARIES}
     PRIVATE ${PUGIXML_LIBRARIES}
-    PRIVATE libloot.so
+    PRIVATE ${LIBLOOT_PATH}
     PRIVATE Qt${QT_VERSION_MAJOR}::Svg
     PRIVATE cpr::cpr
     PRIVATE OpenSSL::SSL
     PRIVATE Qt${QT_VERSION_MAJOR}::Network
     PRIVATE ${LIBUNRAR_PATH})
 
-install(TARGETS Limo
-    BUNDLE DESTINATION .
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+install(TARGETS limo
+    DESTINATION bin)
 
 if(IS_FLATPAK)
     install(FILES flatpak/io.github.limo_app.limo.png
@@ -284,4 +314,11 @@ if(IS_FLATPAK)
             DESTINATION /app/share/applications)
     install(DIRECTORY steam_app_configs
             DESTINATION /app/share)
+else()
+    install(DIRECTORY steam_app_configs
+            DESTINATION ${LIMO_INSTALL_PREFIX}/share/limo)
+    install(FILES install_files/limo.png
+            DESTINATION ${LIMO_INSTALL_PREFIX}/share/icons/hicolor/512x512/apps)
+    install(FILES install_files/limo.desktop
+            DESTINATION ${LIMO_INSTALL_PREFIX}/share/applications)
 endif()
