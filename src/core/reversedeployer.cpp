@@ -8,12 +8,6 @@
 #include <iostream>
 #include <ranges>
 
-
-#include <chrono>
-#define NOW std::chrono::high_resolution_clock::now()
-#define DUR(a, b) std::chrono::duration_cast<std::chrono::milliseconds>(b - a).count()
-
-
 namespace sfs = std::filesystem;
 namespace pu = path_utils;
 namespace str = std::ranges;
@@ -41,10 +35,13 @@ ReverseDeployer::ReverseDeployer(const sfs::path& source_path,
     writeIgnoredFiles();
 }
 
-void ReverseDeployer::updateManagedFiles(bool write)
+void ReverseDeployer::updateManagedFiles(bool write, std::optional<ProgressNode*> progress_node)
 {
   log_(Log::LOG_INFO, std::format("Deployer '{}': Updating managed files...", name_));
-  updateFilesInDir(dest_path_, {}, dest_path_);
+  if(progress_node)
+    (*progress_node)->setTotalSteps(std::max(number_of_files_in_target_, 0));
+  number_of_files_in_target_ =
+    updateFilesInDir(dest_path_, {}, dest_path_, false, progress_node);
   updateCurrentLoadorder();
   moveFilesFromTargetToSource();
   if(write)
@@ -53,23 +50,31 @@ void ReverseDeployer::updateManagedFiles(bool write)
 
 std::map<int, unsigned long> ReverseDeployer::deploy(std::optional<ProgressNode*> progress_node)
 {
-  if(deployed_profile_ != current_profile_ && deployed_profile_ > -1)
+  const bool other_profile_is_deployed =
+    deployed_profile_ != current_profile_ && deployed_profile_ > -1;
+  if(progress_node)
+  {
+    if(other_profile_is_deployed && separate_profile_dirs_)
+      (*progress_node)->addChildren({ 1.0f, 1.0f });
+    else
+      (*progress_node)->addChildren({ 1.0f });
+  }
+
+  if(other_profile_is_deployed)
   {
     const int cur_profile = current_profile_;
     current_profile_ = deployed_profile_;
     if(separate_profile_dirs_)
-      updateManagedFiles(false);
+      updateManagedFiles(false, { &(*progress_node)->child(1) });
     unDeploy();
     current_profile_ = cur_profile;
   }
-  updateManagedFiles();
+  if(progress_node)
+    updateManagedFiles(false, { &(*progress_node)->child(0) });
+  else
+    updateManagedFiles(false);
   deployManagedFiles();
   writeManagedFiles();
-  if(progress_node)
-  {
-    (*progress_node)->setTotalSteps(1);
-    (*progress_node)->advance();
-  }
   return {};
 }
 
@@ -597,6 +602,7 @@ void ReverseDeployer::readManagedFiles()
   managed_files_.clear();
   deployed_profile_ = json_object["deployed_profile"].asInt();
   separate_profile_dirs_ = json_object["separate_profile_dirs"].asBool();
+  number_of_files_in_target_ = json_object["number_of_files_in_target"].asInt();
   for(int prof = 0; prof < json_object["managed_files"].size(); prof++)
   {
     managed_files_.push_back({});
@@ -615,6 +621,7 @@ void ReverseDeployer::writeManagedFiles() const
   Json::Value json_object;
   json_object["separate_profile_dirs"] = separate_profile_dirs_;
   json_object["deployed_profile"] = deployed_profile_;
+  json_object["number_of_files_in_target"] = number_of_files_in_target_;
   for(int prof = 0; prof < managed_files_.size(); prof++)
   {
     json_object["managed_files"][prof]["profile"] = prof;
@@ -635,10 +642,11 @@ void ReverseDeployer::writeManagedFiles() const
   f_stream << json_object;
 }
 
-void ReverseDeployer::updateFilesInDir(const sfs::path& target_dir,
-                                       const std::unordered_set<sfs::path>& deployed_files,
-                                       sfs::path current_deployer_path,
-                                       bool update_ignored_files)
+int ReverseDeployer::updateFilesInDir(const sfs::path& target_dir,
+                                      const std::unordered_set<sfs::path>& deployed_files,
+                                      sfs::path current_deployer_path,
+                                      bool update_ignored_files,
+                                      std::optional<ProgressNode*> progress_node)
 {
   std::vector<sfs::path> dirs;
   std::vector<sfs::path> files;
@@ -665,6 +673,9 @@ void ReverseDeployer::updateFilesInDir(const sfs::path& target_dir,
 
   for(const auto& file : files)
   {
+    if(progress_node)
+      (*progress_node)->advance();
+
     const sfs::path file_name = file.filename();
     const sfs::path path_relative_to_target = pu::getRelativePath(file, dest_path_);
     if(file_name == deployed_files_name_ || file_name == ignore_list_file_name_ ||
@@ -694,8 +705,14 @@ void ReverseDeployer::updateFilesInDir(const sfs::path& target_dir,
     }
   }
 
+  int total_num_files = files.size();
   for(const auto& dir : dirs)
-    updateFilesInDir(dir, current_deployed_files, current_deployer_path, update_ignored_files);
+    total_num_files += updateFilesInDir(dir,
+                                        current_deployed_files,
+                                        current_deployer_path,
+                                        update_ignored_files,
+                                        progress_node);
+  return total_num_files;
 }
 
 void ReverseDeployer::moveFilesFromTargetToSource() const
@@ -716,7 +733,8 @@ void ReverseDeployer::moveFilesFromTargetToSource() const
     }
     if(dest_exists && source_exists &&
        (deploy_mode_ == hard_link && sfs::equivalent(full_source_path, full_dest_path) ||
-        deploy_mode_ == sym_link && sfs::read_symlink(full_dest_path) == full_source_path))
+        deploy_mode_ == sym_link && sfs::is_symlink(full_dest_path) &&
+          sfs::read_symlink(full_dest_path) == full_source_path))
     {
       continue;
     }

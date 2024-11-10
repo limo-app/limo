@@ -249,6 +249,7 @@ void AddDeployerDialog::on_rev_depl_ignore_cb_stateChanged(int new_state)
     return;
 
   QMessageBox box;
+  box.setIcon(QMessageBox::Warning);
   box.setWindowTitle("Confirm deletion");
   box.setText("This will delete the current ignore list.\nThis action cannot be undone.");
   box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -263,6 +264,7 @@ void AddDeployerDialog::on_rev_depl_separate_cb_stateChanged(int new_state)
     return;
 
   QMessageBox box;
+  box.setIcon(QMessageBox::Warning);
   box.setWindowTitle("Confirm deletion");
   box.setText("This will delete all files except those managed by the current profile.\n"
               "This action cannot be undone.");

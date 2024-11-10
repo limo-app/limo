@@ -54,8 +54,9 @@ void ModdedApplication::deployModsFor(std::vector<int> deployers)
   for(int deployer : deployers)
   {
     const int num_mods = deployers_[deployer]->getNumMods();
+    // Reverse deployer operations are faster than other operations
     if(deployers_[deployer]->getType() == DeployerFactory::REVERSEDEPLOYER)
-      weights.push_back((int)(num_mods / 3));
+      weights.push_back((int)(num_mods / 8));
     else if(deployers_[deployer]->isAutonomous() || num_mods == 0)
       weights.push_back(1);
     else

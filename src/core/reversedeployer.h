@@ -36,8 +36,9 @@ public:
   /*!
    *  \brief Scans the target directory for files not managed by other deployers.
    *  \param write If true: Write managed files to file.
+   *  \param progress_node Used to inform about progress.
    */
-  void updateManagedFiles(bool write=false);
+  void updateManagedFiles(bool write = false, std::optional<ProgressNode*> progress_node = {});
   /*!
    * \brief Updates all managed files and links / unlinks files depending on whether or not
    * they are disabled.
@@ -197,8 +198,7 @@ public:
    * \param changes_to_keep Contains vectors of relative file paths and decision of whether or not
    * to keep the change for that file.
    */
-  virtual void keepOrRevertFileModifications(
-    const FileChangeChoices& changes_to_keep) override;
+  virtual void keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) override;
   /*!
    * \brief This is not supported for this deployer type.
    * \param mod_id Ignored.
@@ -212,7 +212,7 @@ public:
    * to the list of ignored files.
    * \param write If true: Write new list to disk.
    */
-  void updateIgnoredFiles(bool write=false);
+  void updateIgnoredFiles(bool write = false);
   /*! \brief Removes all currently ignored files from the list. */
   void deleteIgnoredFiles();
   /*!
@@ -302,6 +302,8 @@ private:
    *  deployers should be called
    */
   const int deploy_priority_ = 2;
+  /*! \brief The total number of files in the target directory during previous deployment. */
+  int number_of_files_in_target_ = 0;
 
   /*! \brief Reads a list of ignored files from the ignore list file. */
   void readIgnoredFiles();
@@ -318,11 +320,13 @@ private:
    * \param deployed_files Contains relative paths to all files deployed by another deployer.
    * \param current_deployer_path Target directory of another deployer managing this directory.
    * \param update_ignored_files If true: Update the list of ignored files instead.
+   * \param progress_node Used to inform about progress.
    */
-  void updateFilesInDir(const std::filesystem::path& target_dir,
-                               const std::unordered_set<std::filesystem::path>& deployed_files,
-                               std::filesystem::path current_deployer_path,
-                               bool update_ignored_files = false);
+  int updateFilesInDir(const std::filesystem::path& target_dir,
+                       const std::unordered_set<std::filesystem::path>& deployed_files,
+                       std::filesystem::path current_deployer_path,
+                       bool update_ignored_files = false,
+                       std::optional<ProgressNode*> progress_node = {});
   /*! \brief Moves all managed files from dest_path_ to source_path_. */
   void moveFilesFromTargetToSource() const;
   /*! \brief Updates current_loadorder_ to reflect managed_files_[current_profile_]. */
