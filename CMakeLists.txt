@@ -280,17 +280,17 @@ endif()
 configure_file(src/core/consts.h.in
                ${PROJECT_SOURCE_DIR}/src/core/consts.h)
 
-add_executable(limo
+add_executable(Limo
     ${PROJECT_SOURCES})
 
-target_include_directories(limo
+target_include_directories(Limo
     PRIVATE ${PROJECT_SOURCE_DIR}/src
     PRIVATE ${LibArchive_INCLUDE_DIRS}
     PRIVATE ${LIBLOOT_INCLUDE_DIR}
     PRIVATE ${JSONCPP_INCLUDE_DIRS}
     PRIVATE ${LIBUNRAR_INCLUDE_DIR})
 
-target_link_libraries(limo
+target_link_libraries(Limo
     PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
     PRIVATE ${JSONCPP_LIBRARIES}
     PRIVATE ${LibArchive_LIBRARIES}
@@ -302,8 +302,8 @@ target_link_libraries(limo
     PRIVATE Qt${QT_VERSION_MAJOR}::Network
     PRIVATE ${LIBUNRAR_PATH})
 
-install(TARGETS limo
-    DESTINATION bin)
+install(PROGRAMS ${CMAKE_BINARY_DIR}/Limo
+    DESTINATION bin RENAME limo)
 
 if(IS_FLATPAK)
     install(FILES flatpak/io.github.limo_app.limo.png
