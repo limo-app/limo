@@ -40,8 +40,7 @@ void ReverseDeployer::updateManagedFiles(bool write, std::optional<ProgressNode*
   log_(Log::LOG_INFO, std::format("Deployer '{}': Updating managed files...", name_));
   if(progress_node)
     (*progress_node)->setTotalSteps(std::max(number_of_files_in_target_, 0));
-  number_of_files_in_target_ =
-    updateFilesInDir(dest_path_, {}, dest_path_, false, progress_node);
+  number_of_files_in_target_ = updateFilesInDir(dest_path_, {}, dest_path_, false, progress_node);
   updateCurrentLoadorder();
   moveFilesFromTargetToSource();
   if(write)
@@ -96,6 +95,7 @@ void ReverseDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
       sfs::remove(full_dest_path);
   }
   deployed_profile_ = -1;
+  deployed_loadorder_.clear();
 }
 
 void ReverseDeployer::changeLoadorder(int from_index, int to_index)
@@ -296,7 +296,7 @@ std::vector<std::pair<sfs::path, int>> ReverseDeployer::getExternallyModifiedFil
     if(no_deployed_profile)
       (*progress_node)->setTotalSteps(1);
     else
-      (*progress_node)->setTotalSteps(managed_files_[deployed_profile_].size());
+      (*progress_node)->setTotalSteps(deployed_loadorder_.size());
   }
   if(no_deployed_profile)
   {
@@ -307,7 +307,7 @@ std::vector<std::pair<sfs::path, int>> ReverseDeployer::getExternallyModifiedFil
   }
 
   std::vector<std::pair<sfs::path, int>> modified_files;
-  for(const auto& [i, pair] : str::enumerate_view(managed_files_[deployed_profile_]))
+  for(const auto& [i, pair] : str::enumerate_view(deployed_loadorder_))
   {
     const auto& [path, enabled] = pair;
     if(enabled && !sfs::exists(dest_path_ / path) ||
@@ -613,6 +613,12 @@ void ReverseDeployer::readManagedFiles()
       managed_files_[prof][path] = enabled;
     }
   }
+  deployed_loadorder_.clear();
+  for(int i = 0; i < json_object["deployed_loadorder"].size(); i++)
+  {
+    deployed_loadorder_.emplace_back(json_object["deployed_loadorder"][i]["path"].asString(),
+                                     json_object["deployed_loadorder"][i]["enabled"].asBool());
+  }
   updateCurrentLoadorder();
 }
 
@@ -631,6 +637,12 @@ void ReverseDeployer::writeManagedFiles() const
       json_object["managed_files"][prof]["files"][(int)i]["path"] = path.string();
       json_object["managed_files"][prof]["files"][(int)i]["enabled"] = enabled;
     }
+  }
+  for(const auto& [i, pair] : str::enumerate_view(deployed_loadorder_))
+  {
+    const auto& [path, enabled] = pair;
+    json_object["deployed_loadorder"][(int)i]["path"] = path.string();
+    json_object["deployed_loadorder"][(int)i]["enabled"] = enabled;
   }
 
   const sfs::path managed_files_path = source_path_ / managed_files_name_;
@@ -707,11 +719,8 @@ int ReverseDeployer::updateFilesInDir(const sfs::path& target_dir,
 
   int total_num_files = files.size();
   for(const auto& dir : dirs)
-    total_num_files += updateFilesInDir(dir,
-                                        current_deployed_files,
-                                        current_deployer_path,
-                                        update_ignored_files,
-                                        progress_node);
+    total_num_files += updateFilesInDir(
+      dir, current_deployed_files, current_deployer_path, update_ignored_files, progress_node);
   return total_num_files;
 }
 
@@ -816,6 +825,7 @@ void ReverseDeployer::deployManagedFiles()
       sfs::copy(full_source_path, full_dest_path);
   }
   deployed_profile_ = current_profile_;
+  deployed_loadorder_ = current_loadorder_;
 }
 
 sfs::path ReverseDeployer::getSourcePath(const sfs::path& path, int profile) const

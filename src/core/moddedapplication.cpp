@@ -529,14 +529,24 @@ void ModdedApplication::editDeployer(int deployer, const EditDeployerInfo& info)
   }
   else
   {
-    json_settings_["deployers"][deployer]["source_path"] = info.source_dir;
+    if(info.type == DeployerFactory::REVERSEDEPLOYER)
+    {
+      long id = 0;
+      sfs::path source_dir = staging_dir_ / std::format("rev_depl_{}", id);
+      while(sfs::exists(source_dir))
+        source_dir = staging_dir_ / std::format("rev_depl_{}", ++id);
+      json_settings_["deployers"][deployer]["source_path"] = source_dir.string();
+      json_settings_["deployers"][deployer]["update_profiles"] = true;
+    }
+    else
+      json_settings_["deployers"][deployer]["source_path"] = info.source_dir;
     json_settings_["deployers"][deployer]["name"] = info.name;
     json_settings_["deployers"][deployer]["dest_path"] = info.target_dir;
     json_settings_["deployers"][deployer]["type"] = info.type;
     json_settings_["deployers"][deployer]["deploy_mode"] = info.deploy_mode;
     updateState();
   }
-  if(deployers_[deployer]->isAutonomous())
+  if(deployers_[deployer]->isAutonomous() && info.type != DeployerFactory::REVERSEDEPLOYER)
     deployers_[deployer]->setSourcePath(info.source_dir);
   if(info.type == DeployerFactory::REVERSEDEPLOYER)
   {
@@ -1899,6 +1909,12 @@ void ModdedApplication::updateState(bool read)
     }
     if(type == DeployerFactory::REVERSEDEPLOYER)
     {
+      if(deployers[depl].get("update_profiles", false).asBool())
+      {
+        json_settings_["deployers"][depl]["update_profiles"] = false;
+        for(int i = 0; i < profile_names_.size(); i++)
+          deployers_[depl]->addProfile();
+      }
       auto rev_depl = static_cast<ReverseDeployer*>(deployers_[depl].get());
       if(rev_depl->getNumProfiles() != profile_names_.size())
         throw ParseError(std::format(

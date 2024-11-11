@@ -287,10 +287,14 @@ private:
   const std::string ignore_list_file_name_ = ".revdepl-ignored_files.json";
   /*! \brief Name of the file containing file paths and activation status for every profile. */
   const std::string managed_files_name_ = ".revdepl-managed_files.json";
+  /*! \brief Name of the file containing the currently deployed load order. */
+  const std::string deployed_loadorder_name_ = ".revdepl-deployed_files.json";
   /*! \brief For every profile: A vector containing every file that is not to be deployed. */
   std::vector<std::map<std::filesystem::path, bool>> managed_files_;
   /*! \brief Contains all files and their enabled status for the current load order. */
   std::vector<std::pair<std::filesystem::path, bool>> current_loadorder_;
+  /*! \brief Contains all files and their enabled status for the currently deployed load order. */
+  std::vector<std::pair<std::filesystem::path, bool>> deployed_loadorder_;
   /*! \brief Contains all files which should be ignored by this deployer. */
   std::unordered_set<std::string> ignored_files_;
   /*! \brief Currently deployed profile. */
