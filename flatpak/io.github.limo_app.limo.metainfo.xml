@@ -44,9 +44,9 @@
         <p>Added Reverse Deployer</p>
         <ul>
           <li>Added new deployer type: Reverse Deployer</li>
-          <li>Added an Undeploy Button</li>
+          <li>Added an Undeploy button</li>
           <li>Improved detection of Steam library folders</li>
-          <li>Fixed busy status not ending when certain dialogs where closed</li>
+          <li>Fixed busy status not ending when certain dialogs were closed</li>
           <li>Fixed issue with removing profiles for backups</li>
           <li>Fixed case of FOMOD installation failing</li>
         </ul>
