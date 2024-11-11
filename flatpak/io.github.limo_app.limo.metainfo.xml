@@ -39,6 +39,19 @@
   <content_rating type="oars-1.1" />
   
   <releases>
+    <release version="1.0.8" date="2024-11-11">
+      <description>
+        <p>Added Reverse Deployer</p>
+        <ul>
+          <li>Added new deployer type: Reverse Deployer</li>
+          <li>Added an Undeploy Button</li>
+          <li>Improved detection of Steam library folders</li>
+          <li>Fixed busy status not ending when certain dialogs where closed</li>
+          <li>Fixed issue with removing profiles for backups</li>
+          <li>Fixed case of FOMOD installation failing</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.7" date="2024-09-19">
       <description>
         <p>Added per app Steam imports</p>
