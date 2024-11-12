@@ -147,7 +147,7 @@ unsigned long Installer::install(const sfs::path& source,
       {
         if(sfs::exists(destination / dest_file) && !sfs::is_directory(destination / dest_file))
           sfs::remove(destination / dest_file);
-        if(dest_file.empty())
+        if(!dest_file.has_filename())
           pu::copyOrMoveFiles(
             tmp_dir / source_file, destination / source_file.filename(), contains_no_duplicates);
         else
