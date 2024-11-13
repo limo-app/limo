@@ -184,12 +184,6 @@ Skyrim SE, and move it to the *steam_app_configs* directory.
 sym links will automatically used instead if hard links do not work.
 
 ## Planned features
-
-**Reverse Deployer**  
-Optionally either moves all files or all files not belonging to the base game from its target directory to its source directory,
-displays them as mods and links them back in.
-This is similar to how MO2's overwrite directory works.
-
 **BG3 Deployer**  
 Similar to how the *LOOT Deployer* currently works, this will automatically add mods to the *modsettings.lsx* file in
 order to better support modding Baldurs Gate 3.
