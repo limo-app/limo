@@ -455,8 +455,13 @@ std::vector<ConflictInfo> ModdedApplication::getFileConflicts(int deployer,
 {
   ProgressNode node(progress_callback_);
   auto conflicts = deployers_[deployer]->getFileConflicts(mod_id, show_disabled, &node);
-  for(auto& [_, id, name] : conflicts)
-    name = getModName(id);
+  if(deployers_[deployer]->isAutonomous())
+    return conflicts;
+  for(auto& [_, ids, names] : conflicts)
+  {
+    for(int id : ids)
+      names.push_back(getModName(id));
+  }
   return conflicts;
 }
 

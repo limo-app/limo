@@ -6,6 +6,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 
 /*!
@@ -16,16 +17,7 @@ struct ConflictInfo
   /*! \brief Name of the conflicting file. */
   std::string file;
   /*! \brief Id of the conflicts winning mod. */
-  int mod_id;
+  std::vector<int> mod_ids;
   /*! \brief Name of the conflicts winning mod. */
-  std::string mod_name;
-  /*!
-   * \brief Constructor. Simply initializes members.
-   * \param file Name of the conflicting file.
-   * \param mod_id Id of the conflicts winning mod.
-   * \param mod_name Name of the conflicts winning mod.
-   */
-  ConflictInfo(std::string file, int mod_id, std::string mod_name) :
-    file(std::move(file)), mod_id(mod_id), mod_name(std::move(mod_name))
-  {}
+  std::vector<std::string> mod_names;
 };

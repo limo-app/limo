@@ -25,10 +25,10 @@ public:
 
   /*! \brief Index of the file path column. */
   static constexpr int file_col = 0;
-  /*! \brief Index of the winning mod name column. */
-  static constexpr int name_col = 1;
-  /*! \brief Index of the winning mod id column. */
-  static constexpr int id_col = 2;
+  /*! \brief Index of the winning mod column. */
+  static constexpr int winner_col = 1;
+  /*! \brief Index of the overwrite order column. */
+  static constexpr int order_col = 2;
 
   /*!
    * \brief Returns the horizontal header section names and vertical header section indices.

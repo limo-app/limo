@@ -413,13 +413,13 @@ protected:
   void saveDeployedFiles(const std::map<std::filesystem::path, int>& deployed_files,
                          std::optional<ProgressNode*> progress_node = {}) const;
   /*!
-   * \brief Creates a set containing every file contained in one mod. Files are
+   * \brief Creates a vector containing every file contained in one mod. Files are
    * represented as paths relative to the mods root directory.
    * \param mod_id Target mod.
    * \param include_directories If true: Also include all directories in the mod.
-   * \return The set of files.
+   * \return The vector of files.
    */
-  std::unordered_set<std::string> getModFiles(int mod_id, bool include_directories = false) const;
+  std::vector<std::string> getModFiles(int mod_id, bool include_directories = false) const;
   /*! \brief Callback for logging. */
   std::function<void(Log::LogLevel, const std::string&)> log_ = [](Log::LogLevel a,
                                                                    const std::string& b) {};

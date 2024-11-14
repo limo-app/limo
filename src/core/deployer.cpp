@@ -166,46 +166,37 @@ std::vector<ConflictInfo> Deployer::getFileConflicts(
   std::vector<ConflictInfo> conflicts;
   if(!checkModPathExistsAndMaybeLogError(mod_id))
     return conflicts;
-  std::map<std::string, int> conflict_map;
-  std::unordered_set<std::string> mod_files = getModFiles(mod_id, false);
-  sfs::path mod_base_path = source_path_ / std::to_string(mod_id);
+  std::vector<std::string> mod_files = getModFiles(mod_id, false);
   std::vector<int> loadorder;
-  for(auto const& [id, enabled] : loadorders_[current_profile_])
+  for(const auto& [id, enabled] : loadorders_[current_profile_])
   {
     if(enabled || show_disabled)
       loadorder.push_back(id);
   }
 
   if(progress_node)
-    (*progress_node)->setTotalSteps(loadorder.size());
-  bool mod_found = false;
-  for(int cur_id : loadorder)
+    (*progress_node)->setTotalSteps(loadorder.size() * mod_files.size());
+  std::vector<std::vector<int>> overwrite_orders;
+  overwrite_orders.reserve(mod_files.size());
+  for(const auto& [i, path] : str::enumerate_view(mod_files))
   {
-    if(cur_id == mod_id)
+    overwrite_orders.push_back({});
+    for(int cur_id : loadorder)
     {
-      mod_found = true;
-      continue;
+      if(!checkModPathExistsAndMaybeLogError(cur_id))
+        continue;
+      if(sfs::exists(source_path_ / std::to_string(cur_id) / path))
+        overwrite_orders[i].push_back(cur_id);
+      if(progress_node)
+        (*progress_node)->advance();
     }
-    if(!checkModPathExistsAndMaybeLogError(cur_id))
-      continue;
-    mod_base_path = source_path_ / std::to_string(cur_id);
-    for(const auto& dir_entry : sfs::recursive_directory_iterator(mod_base_path))
-    {
-      const auto relative_path = pu::getRelativePath(dir_entry.path(), mod_base_path);
-      if(mod_files.contains(relative_path))
-      {
-        if(mod_found)
-          conflict_map[relative_path] = cur_id;
-        else
-          conflict_map[relative_path] = mod_id;
-      }
-    }
-    if(progress_node)
-      (*progress_node)->advance();
   }
 
-  for(const auto& [path, mod_id] : conflict_map)
-    conflicts.emplace_back(path, mod_id, "");
+  for(const auto& [path, order] : str::zip_view(mod_files, overwrite_orders))
+  {
+    if(order.size() > 1)
+      conflicts.push_back({ path, order, {} });
+  }
 
   return conflicts;
 }
@@ -229,21 +220,18 @@ std::unordered_set<int> Deployer::getModConflicts(int mod_id,
                                                   std::optional<ProgressNode*> progress_node)
 {
   std::unordered_set<int> conflicts{ mod_id };
-  std::unordered_set<std::string> mod_files = getModFiles(mod_id, false);
+  std::vector<std::string> mod_files = getModFiles(mod_id, false);
   if(!checkModPathExistsAndMaybeLogError(mod_id))
     return conflicts;
-  sfs::path mod_base_path = source_path_ / std::to_string(mod_id);
   if(progress_node)
     (*progress_node)->setTotalSteps(loadorders_[current_profile_].size());
   for(const auto& [cur_id, _] : loadorders_[current_profile_])
   {
     if(!checkModPathExistsAndMaybeLogError(cur_id))
       continue;
-    mod_base_path = source_path_ / std::to_string(cur_id);
-    for(const auto& dir_entry : sfs::recursive_directory_iterator(mod_base_path))
+    for(const auto& path : mod_files)
     {
-      const auto relative_path = pu::getRelativePath(dir_entry.path(), mod_base_path);
-      if(mod_files.contains(relative_path))
+      if(sfs::exists(source_path_ / std::to_string(cur_id) / path))
       {
         conflicts.insert(cur_id);
         break;
@@ -538,8 +526,8 @@ void Deployer::deployFiles(const std::map<sfs::path, int>& source_files,
   }
 }
 
-std::map<sfs::path, int> Deployer::loadDeployedFiles(
-  std::optional<ProgressNode*> progress_node, sfs::path dest_path) const
+std::map<sfs::path, int> Deployer::loadDeployedFiles(std::optional<ProgressNode*> progress_node,
+                                                     sfs::path dest_path) const
 {
   if(dest_path == "")
     dest_path = dest_path_;
@@ -601,16 +589,16 @@ void Deployer::saveDeployedFiles(const std::map<sfs::path, int>& deployed_files,
     (*progress_node)->child(1).advance();
 }
 
-std::unordered_set<std::string> Deployer::getModFiles(int mod_id, bool include_directories) const
+std::vector<std::string> Deployer::getModFiles(int mod_id, bool include_directories) const
 {
-  std::unordered_set<std::string> mod_files;
+  std::vector<std::string> mod_files;
   if(!checkModPathExistsAndMaybeLogError(mod_id))
     return mod_files;
   sfs::path mod_base_path = source_path_ / std::to_string(mod_id);
   for(const auto& dir_entry : sfs::recursive_directory_iterator(mod_base_path))
   {
     if(!dir_entry.is_directory() || include_directories)
-      mod_files.insert(pu::getRelativePath(dir_entry.path(), mod_base_path));
+      mod_files.push_back(pu::getRelativePath(dir_entry.path(), mod_base_path));
   }
   return mod_files;
 }
@@ -892,7 +880,7 @@ void Deployer::fixInvalidLinkDeployMode()
     if(sfs::exists(dest_path_ / file_name))
       sfs::remove(dest_path_ / file_name);
   }
-  catch (...)
+  catch(...)
   {
     log_(Log::LOG_ERROR, "Failed to write to disk. Ensure that permissions are set correctly.");
   }

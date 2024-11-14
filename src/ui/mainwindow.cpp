@@ -478,7 +478,7 @@ void MainWindow::setupLists()
   conflicts_list_->horizontalHeader()->setStretchLastSection(true);
   conflicts_list_->setAlternatingRowColors(true);
   conflicts_list_->verticalHeader()->setVisible(false);
-  conflicts_window_->resize(900, 600);
+  conflicts_window_->resize(1200, 600);
 }
 
 void MainWindow::setupMenus()
@@ -1583,6 +1583,7 @@ void MainWindow::onGetFileConflicts(std::vector<ConflictInfo> conflicts)
                                  deployer_model_->data(index, ModListModel::mod_id_role).toInt());
   conflicts_list_->resizeColumnToContents(0);
   conflicts_list_->resizeColumnToContents(1);
+  conflicts_list_->resizeColumnToContents(2);
   conflicts_window_->setWindowTitle(
     "File conflicts for \"" + deployer_model_->data(index, ModListModel::mod_name_role).toString() +
     "\"");
