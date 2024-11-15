@@ -6,5 +6,5 @@ Name=Limo
 Categories=Utility;FileTools;
 Icon=limo
 MimeType=x-scheme-handler/nxm;
-Exec=limo %u
+Exec=Limo %u
 Terminal=false
