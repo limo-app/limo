@@ -119,6 +119,11 @@ public:
    * \return Pairs of tag names and bools indicating if they should be kept or removed while filtering.
    */
   std::vector<std::pair<QString, bool>> getTagFilters() const;
+  /*!
+   * \brief Sets the string to use for filtering.
+   * \param filter_string The new filter string.
+   */
+  void setFilterString(const QString& filter_string);
 
 protected:
   /*!
@@ -140,4 +145,14 @@ private:
   std::vector<std::pair<QString, bool>> tag_filters_;
   /*! \brief Used to display to total number of rows. */
   QLabel* row_count_label_;
+  /*! \brief String used to filter rows. */
+  QString filter_string_;
+  /*! \brief Regex used to check if filter_string_ is used to filter for ids. */
+  const QRegularExpression id_regex_;
+  /*! \brief True if the current filter string is an integer. */
+  bool filter_string_is_int_ = false;
+  /*! \brief If the current filter string is an integer, this contains that integer. */
+  QString filter_string_id_;
+  /*! \brief True if filter string matches id_regex_. */
+  bool filter_string_targets_id_ = false;
 };

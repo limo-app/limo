@@ -94,7 +94,7 @@
           <item row="0" column="6">
            <widget class="QLineEdit" name="search_field">
             <property name="placeholderText">
-             <string>Search mods</string>
+             <string>Search mods by name or id</string>
             </property>
             <property name="clearButtonEnabled">
              <bool>true</bool>

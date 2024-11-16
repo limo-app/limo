@@ -2,7 +2,6 @@
 #include "colors.h"
 #include "deployerlistmodel.h"
 #include "modlistmodel.h"
-#include "qdebug.h"
 #include <QApplication>
 #include <ranges>
 
@@ -10,7 +9,8 @@ namespace str = std::ranges;
 
 
 DeployerListProxyModel::DeployerListProxyModel(QLabel* row_count_label, QObject* parent) :
-  row_count_label_(row_count_label), QSortFilterProxyModel{ parent }
+  QSortFilterProxyModel(parent), row_count_label_(row_count_label),
+  id_regex_(R"(id:\s*(\d+))", QRegularExpression::CaseInsensitiveOption)
 {}
 
 QVariant DeployerListProxyModel::data(const QModelIndex& index, int role) const
@@ -67,8 +67,27 @@ void DeployerListProxyModel::removeFilter(FilterMode mode, bool invalidate_filte
 bool DeployerListProxyModel::filterAcceptsRow(int source_row,
                                               const QModelIndex& source_parent) const
 {
-  bool show = QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
+  bool show = true;
   const auto index = sourceModel()->index(source_row, 0, source_parent);
+  if(filter_string_targets_id_)
+  {
+    show *=
+      QString::number(index.data(ModListModel::mod_id_role).toInt()).contains(filter_string_id_);
+  }
+  else if(filter_string_is_int_)
+  {
+    show *=
+      QString::number(index.data(ModListModel::mod_id_role).toInt()).contains(filter_string_);
+    show |= index.data(ModListModel::mod_name_role)
+              .toString()
+              .contains(filter_string_, Qt::CaseInsensitive);
+  }
+  else
+  {
+    show *= index.data(ModListModel::mod_name_role)
+              .toString()
+              .contains(filter_string_, Qt::CaseInsensitive);
+  }
   if(filter_mode_ & filter_active)
     show *= index.data(DeployerListModel::mod_status_role).toBool();
   else if(filter_mode_ & filter_inactive)
@@ -178,4 +197,22 @@ void DeployerListProxyModel::updateFilter(bool invalidate)
 std::vector<std::pair<QString, bool>> DeployerListProxyModel::getTagFilters() const
 {
   return tag_filters_;
+}
+
+void DeployerListProxyModel::setFilterString(const QString& filter_string)
+{
+  filter_string_ = filter_string;
+  filter_string.toInt(&filter_string_is_int_);
+  if(!filter_string_is_int_)
+  {
+    const QRegularExpressionMatch match = id_regex_.match(filter_string);
+    if(match.hasMatch())
+    {
+      filter_string_targets_id_ = true;
+      filter_string_id_ = match.captured(1);
+    }
+    else
+      filter_string_targets_id_ = false;
+  }
+  invalidateFilter();
 }

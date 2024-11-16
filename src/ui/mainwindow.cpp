@@ -711,13 +711,13 @@ int MainWindow::currentProfile()
 
 void MainWindow::filterModList()
 {
-  mod_list_proxy_->setFilterFixedString(search_term_);
+  mod_list_proxy_->setFilterString(search_term_);
   mod_list_proxy_->updateRowCountLabel();
 }
 
 void MainWindow::filterDeployerList()
 {
-  deployer_list_proxy_->setFilterFixedString(search_term_);
+  deployer_list_proxy_->setFilterString(search_term_);
   deployer_list_proxy_->updateFilter(false);
   // deployer_list_proxy_->updateRowCountLabel();
 }

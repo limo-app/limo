@@ -6,7 +6,8 @@ namespace str = std::ranges;
 
 
 ModListProxyModel::ModListProxyModel(QLabel* row_count_label, QObject* parent) :
-  row_count_label_(row_count_label), QSortFilterProxyModel(parent)
+  QSortFilterProxyModel(parent), row_count_label_(row_count_label),
+  id_regex_(R"(id:\s*(\d+))", QRegularExpression::CaseInsensitiveOption)
 {}
 
 QVariant ModListProxyModel::data(const QModelIndex& index, int role) const
@@ -58,8 +59,27 @@ void ModListProxyModel::removeFilter(FilterMode mode, bool invalidate_filter)
 
 bool ModListProxyModel::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const
 {
-  bool show = QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
+  bool show = true;
   const auto index = sourceModel()->index(source_row, 0, source_parent);
+  if(filter_string_targets_id_)
+  {
+    show *=
+      QString::number(index.data(ModListModel::mod_id_role).toInt()).contains(filter_string_id_);
+  }
+  else if(filter_string_is_int_)
+  {
+    show *=
+      QString::number(index.data(ModListModel::mod_id_role).toInt()).contains(filter_string_);
+    show |= index.data(ModListModel::mod_name_role)
+              .toString()
+              .contains(filter_string_, Qt::CaseInsensitive);
+  }
+  else
+  {
+    show *= index.data(ModListModel::mod_name_role)
+              .toString()
+              .contains(filter_string_, Qt::CaseInsensitive);
+  }
   if(filter_mode_ & filter_groups)
     show *= index.data(ModListModel::mod_group_role).toInt() >= 0;
   else if(filter_mode_ & filter_no_groups)
@@ -157,4 +177,22 @@ bool ModListProxyModel::lessThan(const QModelIndex& left, const QModelIndex& rig
 std::vector<std::pair<QString, bool>> ModListProxyModel::getTagFilters() const
 {
   return tag_filters_;
+}
+
+void ModListProxyModel::setFilterString(const QString& filter_string)
+{
+  filter_string_ = filter_string;
+  filter_string.toInt(&filter_string_is_int_);
+  if(!filter_string_is_int_)
+  {
+    const QRegularExpressionMatch match = id_regex_.match(filter_string);
+    if(match.hasMatch())
+    {
+      filter_string_targets_id_ = true;
+      filter_string_id_ = match.captured(1);
+    }
+    else
+      filter_string_targets_id_ = false;
+  }
+  invalidateFilter();
 }
