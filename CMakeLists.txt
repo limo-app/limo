@@ -144,6 +144,8 @@ set(PROJECT_SOURCES
         src/core/tagcondition.h
         src/core/tagconditionnode.cpp
         src/core/tagconditionnode.h
+        src/core/tool.cpp
+        src/core/tool.h
         src/main.cpp
         src/ui/addapikeydialog.cpp
         src/ui/addapikeydialog.h

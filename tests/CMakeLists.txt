@@ -91,6 +91,8 @@ set(TEST_SOURCES
         ../src/core/tagcondition.h
         ../src/core/tagconditionnode.cpp
         ../src/core/tagconditionnode.h
+        ../src/core/tool.cpp
+        ../src/core/tool.h
         test_backupmanager.cpp
         test_cryptography.cpp
         test_deployer.cpp
@@ -100,6 +102,7 @@ set(TEST_SOURCES
         test_moddedapplication.cpp
         test_reversedeployer.cpp
         test_tagconditionnode.cpp
+        test_tool.cpp
         test_utils.cpp
         test_utils.h
         tests.cpp
