@@ -30,6 +30,7 @@ LootDeployer::LootDeployer(const sfs::path& source_path,
     loadSettings();
   if(init_tags)
     readPluginTags();
+  readSourceMods();
   // make sure no hard link related checks are performed
   deploy_mode_ = copy;
 }
@@ -40,6 +41,7 @@ std::map<int, unsigned long> LootDeployer::deploy(std::optional<ProgressNode*> p
   restoreUndeployBackupIfExists();
   updatePlugins();
   updatePluginTags();
+  updateSourceMods();
   return {};
 }
 
@@ -50,6 +52,7 @@ std::map<int, unsigned long> LootDeployer::deploy(const std::vector<int>& loador
   restoreUndeployBackupIfExists();
   updatePlugins();
   updatePluginTags();
+  updateSourceMods();
   return {};
 }
 
@@ -189,9 +192,9 @@ void LootDeployer::setProfile(int profile)
 
 void LootDeployer::setConflictGroups(const std::vector<std::vector<int>>& newConflict_groups)
 {
-  log_(Log::LOG_DEBUG,
-       "WARNING: You are trying to set a load order for an autonomous"
-       " deployer. This will have no effect");
+  log_(
+    Log::LOG_DEBUG,
+    "WARNING: You are trying to set a load order for an autonomous" " deployer. This will have " "n" "o" " " "e" "f" "f" "e" "c" "t");
 }
 
 int LootDeployer::getNumMods() const
@@ -203,24 +206,32 @@ std::vector<std::tuple<int, bool>> LootDeployer::getLoadorder() const
 {
   std::vector<std::tuple<int, bool>> loadorder;
   loadorder.reserve(plugins_.size());
-  for(int i = 0; i < plugins_.size(); i++)
-    loadorder.emplace_back(i, plugins_[i].second);
+  // for(int i = 0; i < plugins_.size(); i++)
+  //   loadorder.emplace_back(i, plugins_[i].second);
+  for(const auto& [plugin, enabled] : plugins_)
+  {
+    auto iter = source_mods_.find(plugin);
+    int id = -1;
+    if(iter != source_mods_.end())
+      id = iter->second;
+    loadorder.emplace_back(id, enabled);
+  }
   return loadorder;
 }
 
 bool LootDeployer::addMod(int mod_id, bool enabled, bool update_conflicts)
 {
-  log_(Log::LOG_DEBUG,
-       "WARNING: You are trying to add a mod to an autonomous"
-       " deployer. This will have no effect");
+  log_(
+    Log::LOG_DEBUG,
+    "WARNING: You are trying to add a mod to an autonomous" " deployer. This will have no effect");
   return false;
 }
 
 bool LootDeployer::removeMod(int mod_id)
 {
-  log_(Log::LOG_DEBUG,
-       "WARNING: You are trying to remove a mod from an autonomous"
-       " deployer. This will have no effect");
+  log_(
+    Log::LOG_DEBUG,
+    "WARNING: You are trying to remove a mod from an autonomous" " deployer. This will have no " "e" "f" "f" "e" "c" "t");
   return false;
 }
 
@@ -231,9 +242,9 @@ bool LootDeployer::hasMod(int mod_id) const
 
 bool LootDeployer::swapMod(int old_id, int new_id)
 {
-  log_(Log::LOG_DEBUG,
-       "WARNING: You are trying to swap a mod in an autonomous"
-       " deployer. This will have no effect");
+  log_(
+    Log::LOG_DEBUG,
+    "WARNING: You are trying to swap a mod in an autonomous" " deployer. This will have no effect");
   return false;
 }
 
@@ -420,6 +431,11 @@ bool LootDeployer::supportsFileConflicts() const
 bool LootDeployer::supportsFileBrowsing() const
 {
   return false;
+}
+
+bool LootDeployer::idsAreSourceReferences() const
+{
+  return true;
 }
 
 void LootDeployer::updatePlugins()
@@ -724,4 +740,87 @@ void LootDeployer::restoreUndeployBackupIfExists()
     sfs::rename(plugin_backup_path, dest_path_ / plugin_file_name_);
     loadPlugins();
   }
+}
+
+void LootDeployer::updateSourceMods()
+{
+  // TODO: Progress nodes
+  log_(Log::LOG_INFO, std::format("Deployer '{}': Finding source mods...", name_));
+  source_mods_.clear();
+  const sfs::path managed_file_path = source_path_ / managed_dir_file_name_;
+  if(!sfs::exists(managed_file_path))
+    return;
+
+  std::ifstream file(managed_file_path, std::ios::binary);
+  if(!file.is_open())
+  {
+    log_(Log::LOG_ERROR,
+         std::format("Deployer '{}': Could not read from '{}'", name_, managed_file_path.string()));
+    return;
+  }
+  Json::Value json_object;
+  file >> json_object;
+  file.close();
+  sfs::path deployed_source_path(json_object["target_path"].asString());
+  if(!sfs::exists(deployed_source_path / deployed_files_name_))
+  {
+    log_(Log::LOG_ERROR,
+         std::format("Deployer '{}': Could not find deployed files at '{}'",
+                     name_,
+                     deployed_source_path.string()));
+    return;
+  }
+  auto deployed_files = loadDeployedFiles({}, deployed_source_path);
+  const sfs::path relative_path(pu::getRelativePath(source_path_, deployed_source_path));
+  for(const auto& [name, _] : plugins_)
+  {
+    auto iter = deployed_files.find((relative_path / name).string());
+    if(iter != deployed_files.end())
+      source_mods_[name] = iter->second;
+  }
+  writeSourceMods();
+}
+
+void LootDeployer::writeSourceMods() const
+{
+  Json::Value json_object;
+  for(const auto& [i, pair] : str::enumerate_view(source_mods_))
+  {
+    const auto& [plugin, source] = pair;
+    json_object["source_mods"][(int)i]["plugin"] = plugin;
+    json_object["source_mods"][(int)i]["source"] = source;
+  }
+
+  std::ofstream file(dest_path_ / SOURCE_MODS_FILE_NAME, std::ios::binary);
+  if(!file.is_open())
+  {
+    log_(Log::LOG_ERROR,
+         std::format(
+           "Deployed '{}': Failed to write mod sources to '{}'", name_, dest_path_.string()));
+    return;
+  }
+  file << json_object;
+}
+
+void LootDeployer::readSourceMods()
+{
+  const sfs::path dest_path = dest_path_ / SOURCE_MODS_FILE_NAME;
+  if(!sfs::exists(dest_path))
+    return;
+
+  std::ifstream file(dest_path, std::ios::binary);
+  if(!file.is_open())
+  {
+    log_(Log::LOG_ERROR,
+         std::format(
+           "Deployed '{}': Failed to read mod sources from '{}'", name_, dest_path_.string()));
+    return;
+  }
+  Json::Value json_object;
+  file >> json_object;
+  file.close();
+  source_mods_.clear();
+  for(int i = 0; i < json_object["source_mods"].size(); i++)
+    source_mods_[json_object["source_mods"][i]["plugin"].asString()] =
+      json_object["source_mods"][(int)i]["source"].asInt();
 }

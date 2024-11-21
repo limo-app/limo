@@ -8,7 +8,7 @@ std::vector<std::string> getFiles(sfs::path dir, bool get_contents = false)
   std::vector<std::string> files;
   for(const auto& dir_entry : sfs::recursive_directory_iterator(dir))
   {
-    if(dir_entry.path().filename() == ".lmmfiles")
+    if(dir_entry.path().filename() == ".lmmfiles" || dir_entry.path().filename() == ".lmm_managed_dir")
       continue;
     std::string entry = dir_entry.path().string().erase(0, dir.string().size());
     if(get_contents && dir_entry.is_regular_file())

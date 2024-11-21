@@ -2050,6 +2050,7 @@ void MainWindow::resizeDeployerListColumns()
 {
   ui->deployer_list->setColumnWidth(DeployerListModel::status_col, 60);
   ui->deployer_list->resizeColumnToContents(DeployerListModel::name_col);
+  ui->deployer_list->resizeColumnToContents(DeployerListModel::id_col);
 }
 
 void MainWindow::setupProgressBar()

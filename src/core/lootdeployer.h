@@ -245,6 +245,12 @@ public:
    * \return True if supported.
    */
   virtual bool supportsFileBrowsing() const override;
+  /*!
+   * \brief Returns whether or not this deployer type uses mod ids as references to
+   * source mods. This is usually done by autonomous deployers.
+   * \return True
+   */
+  virtual bool idsAreSourceReferences() const override;
 
 private:
   /*! \brief Name of the file containing plugin load order. */
@@ -257,6 +263,8 @@ private:
   static constexpr std::string TAGS_FILE_NAME = ".loot_tags";
   /*! \brief File extension for plugins.txt and loadorder.txt backup files. */
   static constexpr std::string UNDEPLOY_BACKUP_EXTENSION = ".undeplbak";
+  /*! \brief Name of the file containing source mod ids for plugins. */
+  static constexpr char SOURCE_MODS_FILE_NAME[] = ".lmm_mod_sources";
   /*! \brief Maps supported game type to a path to a file unique to that type. */
   static inline const std::map<loot::GameType, std::filesystem::path> TYPE_IDENTIFIERS = {
     { loot::GameType::fo3, "Fallout3.esm" },
@@ -304,6 +312,8 @@ private:
   int num_standard_plugins_ = 0;
   /*! \brief For every plugin: Every loot tag associated with that plugin. */
   std::vector<std::vector<std::string>> tags_;
+  /*! \brief Maps every plugin to a source mod, if that plugin was created by another deployer. */
+  std::map<std::string, int> source_mods_;
 
   /*! \brief Updates current plugins to reflect plugins actually in the source directory. */
   void updatePlugins();
@@ -339,4 +349,10 @@ private:
   void downloadList(std::string url, const std::string& file_name);
   /*! \brief If loadorder and plugin file backups exist, restore them and override the current files. */
   void restoreUndeployBackupIfExists();
+  /*! \brief Updates the source mod map with files created by another deployer. */
+  void updateSourceMods();
+  /*! \brief Writes the source mods to disk. */
+  void writeSourceMods() const;
+  /*! \brief Reads the source mods from disk. */
+  void readSourceMods();
 };

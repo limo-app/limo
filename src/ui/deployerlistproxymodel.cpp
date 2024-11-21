@@ -87,6 +87,12 @@ bool DeployerListProxyModel::filterAcceptsRow(int source_row,
     show *= index.data(ModListModel::mod_name_role)
               .toString()
               .contains(filter_string_, Qt::CaseInsensitive);
+    if(index.data(DeployerListModel::ids_are_source_references_role).toBool())
+    {
+      show |= index.data(DeployerListModel::source_mod_name_role)
+                .toString()
+                .contains(filter_string_, Qt::CaseInsensitive);
+    }
   }
   if(filter_mode_ & filter_active)
     show *= index.data(DeployerListModel::mod_status_role).toBool();

@@ -345,6 +345,12 @@ public:
    * \return True if supported.
    */
   virtual bool supportsFileBrowsing() const;
+  /*!
+   * \brief Returns whether or not this deployer type uses mod ids as references to
+   * source mods. This is usually done by autonomous deployers.
+   * \return False
+   */
+  virtual bool idsAreSourceReferences() const;
 
 protected:
   /*! \brief Type of this deployer, e.g. Simple Deployer. */
@@ -357,6 +363,8 @@ protected:
   const std::string backup_extension_ = ".lmmbak";
   /*! \brief The file name for a file in the target directory containing names of deployed files*/
   const std::string deployed_files_name_ = ".lmmfiles";
+  /*! \brief Name of the file indicating that the directory is managed by a deployer. */
+  const std::string managed_dir_file_name_ = ".lmm_managed_dir";
   /*! \brief The name of this deployer. */
   std::string name_;
   /*! \brief The currently active profile. */
@@ -401,6 +409,8 @@ protected:
   /*!
    * \brief Creates a map of currently deployed files to their source mods.
    * \param progress_node Used to inform about the current progress.
+   * \param dest_path Directory containing the file in which deployed file names are stored.
+   * If empty: Use the location in dest_path_ instead.
    * \return The map.
    */
   std::map<std::filesystem::path, int> loadDeployedFiles(
@@ -435,4 +445,10 @@ protected:
    * \return True if the directory exists, else false.
    */
   bool checkModPathExistsAndMaybeLogError(int mod_id) const;
+  /*!
+   * \brief Writes a file to the given directory that contains this deployer's target directory.
+   * \param directory Directory to which to write the file.
+   * \param overwrite If true: Overwrite an existing file.
+   */
+  void writeManagedDirFile(const std::filesystem::path& directory, bool overwrite = false) const;
 };

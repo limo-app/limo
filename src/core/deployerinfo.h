@@ -48,4 +48,8 @@ struct DeployerInfo
   bool supports_file_browsing = true;
   /*! \brief The type of this deployer. */
   std::string type = "";
+  /*! \brief Whether or not this deployer type uses mod ids as references to source mods. */
+  bool ids_are_source_references = false;
+  /*! \brief If ids_are_source_references: For every mod: The source mod's name. Else: Empty */
+  std::vector<std::string> source_mod_names_ = {};
 };

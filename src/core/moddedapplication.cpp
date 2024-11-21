@@ -909,10 +909,31 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->supportsModConflicts(),
              deployers_[deployer]->supportsFileConflicts(),
              deployers_[deployer]->supportsFileBrowsing(),
-             deployers_[deployer]->getType() };
+             deployers_[deployer]->getType(),
+             deployers_[deployer]->idsAreSourceReferences() };
   }
   else
   {
+    const auto loadorder = deployers_[deployer]->getLoadorder();
+    std::vector<std::string> mod_names;
+    if(deployers_[deployer]->idsAreSourceReferences())
+    {
+      mod_names.reserve(loadorder.size());
+      for(const auto& [id, _] : loadorder)
+      {
+        if(id == -1)
+        {
+          mod_names.push_back("Vanilla");
+          continue;
+        }
+        auto iter =
+          std::ranges::find_if(installed_mods_, [id = id](auto& mod) { return mod.id == id; });
+        if(iter == installed_mods_.end())
+          mod_names.push_back("Vanilla");
+        else
+          mod_names.push_back(iter->name);
+      }
+    }
     bool separate_dirs = false;
     bool has_ignored_files = false;
     if(deployers_[deployer]->getType() == DeployerFactory::REVERSEDEPLOYER)
@@ -935,7 +956,9 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->supportsModConflicts(),
              deployers_[deployer]->supportsFileConflicts(),
              deployers_[deployer]->supportsFileBrowsing(),
-             deployers_[deployer]->getType() };
+             deployers_[deployer]->getType(),
+             deployers_[deployer]->idsAreSourceReferences(),
+             mod_names };
   }
 }
 
@@ -2084,11 +2107,12 @@ void ModdedApplication::splitMod(int mod_id, int deployer)
     info.files = {};
     info.root_level = 0;
     info.source_path = mod_dir;
-    log_(Log::LOG_WARNING,
-         std::format("Mod '{}' has been split because it contains"
-                     " a sub-directory managed by deployer '{}'.",
-                     iter->name,
-                     deployers_[depl]->getName()));
+    log_(
+      Log::LOG_WARNING,
+      std::format(
+        "Mod '{}' has been split because it contains" " a sub-directory managed by deployer '{}'.",
+        iter->name,
+        deployers_[depl]->getName()));
     installMod(info);
     if(sfs::exists(mod_dir))
       sfs::remove_all(mod_dir);

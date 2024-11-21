@@ -57,9 +57,10 @@ std::string getRelativePath(std::filesystem::path target, std::filesystem::path 
 /*!
  * \brief Returns true if directory is empty or contains only empty directories.
  * \param directory Directory to check.
+ * \param ignored_files Vector of file names to ignore.
  * \return True if empty, else false.
  */
-bool directoryIsEmpty(const std::filesystem::path& directory);
+bool directoryIsEmpty(const std::filesystem::path& directory, std::vector<std::string> ignored_files={});
 /*!
  * \brief Returns the number of elements in given path.
  * \param path Path to be checked.

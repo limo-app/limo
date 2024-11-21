@@ -268,7 +268,8 @@ TEST_CASE("Files are deployed as sym links", "[.deployer]")
     // exclude directories, files which are not overwritten and .lmmfiles
     if(!dir_entry.is_directory() && dir_entry.path().extension() != ".lmmbak"
       && dir_entry.path().filename() != ".lmmfiles" && dir_entry.path().filename() != "file.cfg"
-      && dir_entry.path().filename() != "wasd" && dir_entry.path().filename() != "0")
+      && dir_entry.path().filename() != "wasd" && dir_entry.path().filename() != "0"
+      && dir_entry.path().filename() != ".lmm_managed_dir")
         REQUIRE(std::filesystem::is_symlink(dir_entry.path()));
   }
 }

@@ -477,7 +477,7 @@ void Deployer::backupOrRestoreFiles(const std::map<sfs::path, int>& source_files
   for(const auto& [path, id] : restore_directories)
   {
     sfs::path absolute_path = dest_path_ / path;
-    if(pu::directoryIsEmpty(absolute_path))
+    if(pu::directoryIsEmpty(absolute_path, {managed_dir_file_name_}))
       sfs::remove_all(absolute_path);
   }
 
@@ -512,7 +512,9 @@ void Deployer::deployFiles(const std::map<sfs::path, int>& source_files,
         (*progress_node)->advance();
       continue;
     }
-    sfs::create_directories(dest_path.parent_path());
+    const auto parent_path = dest_path.parent_path();
+    sfs::create_directories(parent_path);
+    writeManagedDirFile(parent_path);
     sfs::remove(dest_path);
     if(deploy_mode_ == copy)
       sfs::copy_file(source_path, dest_path);
@@ -914,4 +916,23 @@ bool Deployer::supportsFileConflicts() const
 bool Deployer::supportsFileBrowsing() const
 {
   return true;
+}
+
+bool Deployer::idsAreSourceReferences() const
+{
+  return false;
+}
+
+void Deployer::writeManagedDirFile(const sfs::path& directory, bool overwrite) const
+{
+  const sfs::path file_path = directory / managed_dir_file_name_;
+  if(!overwrite && sfs::exists(file_path))
+    return;
+
+  std::ofstream file(file_path, std::ios::binary);
+  if(!file.is_open())
+    throw std::runtime_error("Could not write \"" + file_path.string() + "\"");
+  Json::Value json_object;
+  json_object["target_path"] = dest_path_.string();
+  file << json_object;
 }

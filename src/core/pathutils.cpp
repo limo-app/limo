@@ -89,21 +89,25 @@ std::string normalizePath(const std::string& path)
 
 std::string getRelativePath(sfs::path target, sfs::path source)
 {
+  if(source == target)
+    return "";
   std::string relative_path = target.string();
   const std::string source_string = source.string();
-  const bool ends_with_separator = source_string.ends_with(sfs::path::preferred_separator) ||
-                                   source_string.ends_with('/');
+  const bool ends_with_separator =
+    source_string.ends_with(sfs::path::preferred_separator) || source_string.ends_with('/');
   relative_path.erase(0, source_string.size() + (ends_with_separator ? 0 : 1));
   return relative_path;
 }
 
-bool directoryIsEmpty(const sfs::path& directory)
+bool directoryIsEmpty(const sfs::path& directory, std::vector<std::string> ignored_files)
 {
   if(!sfs::is_directory(directory))
     return false;
   for(const auto& dir_entry : sfs::recursive_directory_iterator(directory))
   {
-    if(!dir_entry.is_directory())
+    if(!dir_entry.is_directory() &&
+       !std::ranges::any_of(
+         ignored_files, [&dir_entry](auto file) { return file == dir_entry.path().filename(); }))
       return false;
   }
   return true;

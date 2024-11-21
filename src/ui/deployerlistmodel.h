@@ -37,6 +37,10 @@ public:
   static constexpr int mod_status_role = 300;
   /*! \brief Role representing all tags added to a mod. */
   static constexpr int mod_tags_role = 301;
+  /*! \brief Rile representing whether ids are references to source mods. */
+  static constexpr int ids_are_source_references_role = 302;
+  /*! \brief Role representing the name of the source mod. */
+  static constexpr int source_mod_name_role = 303;
 
   /*!
    * \brief Returns the horizontal header section names and vertical header section indices.

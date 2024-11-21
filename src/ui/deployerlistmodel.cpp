@@ -24,7 +24,12 @@ QVariant DeployerListModel::headerData(int section, Qt::Orientation orientation,
     if(section == name_col)
       return QString("Name");
     if(section == id_col)
-      return QString("ID");
+    {
+      if(!deployer_info_.ids_are_source_references)
+        return QString("ID");
+      else
+        return QString("Source Mod");
+    }
     if(section == tags_col)
       return QString("Tags");
   }
@@ -69,7 +74,14 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
       return QString::fromStdString(deployer_info_.mod_names[row]);
     }
     if(col == id_col)
-      return std::get<0>(deployer_info_.loadorder[row]);
+    {
+      const int id = std::get<0>(deployer_info_.loadorder[row]);
+      if(!deployer_info_.ids_are_source_references)
+        return id;
+      if(id == -1)
+        return deployer_info_.source_mod_names_[row].c_str();
+      return std::format("{} [{}]", deployer_info_.source_mod_names_[row], id).c_str();
+    }
     if(col == tags_col)
     {
       if(tags_.empty())
@@ -84,7 +96,11 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
   if(role == mod_status_role)
     return std::get<1>(deployer_info_.loadorder[row]);
   if(role == ModListModel::mod_id_role)
-    return std::get<0>(deployer_info_.loadorder[row]);
+  {
+    if(!deployer_info_.ids_are_source_references)
+      return std::get<0>(deployer_info_.loadorder[row]);
+    return row;
+  }
   if(role == ModListModel::mod_name_role)
     return deployer_info_.mod_names[row].c_str();
   if(role == mod_tags_role)
@@ -93,6 +109,15 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
     for(const auto& tag : tags_.at(row))
       tags.append(tag.c_str());
     return tags;
+  }
+  if(role == ids_are_source_references_role)
+    return deployer_info_.ids_are_source_references;
+  if(role == source_mod_name_role)
+  {
+    if(deployer_info_.ids_are_source_references)
+      return deployer_info_.source_mod_names_[row].c_str();
+    else
+      return deployer_info_.mod_names[row].c_str();
   }
   return QVariant();
 }

@@ -691,7 +691,7 @@ int ReverseDeployer::updateFilesInDir(const sfs::path& target_dir,
     const sfs::path file_name = file.filename();
     const sfs::path path_relative_to_target = pu::getRelativePath(file, dest_path_);
     if(file_name == deployed_files_name_ || file_name == ignore_list_file_name_ ||
-       file_name.extension() == backup_extension_)
+       file_name.extension() == backup_extension_ || file_name == managed_dir_file_name_)
       continue;
     if(ignored_files_.contains(path_relative_to_target) || current_deployed_files.contains(file))
     {
