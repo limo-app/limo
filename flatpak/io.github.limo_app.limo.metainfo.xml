@@ -38,7 +38,20 @@
   
   <content_rating type="oars-1.1" />
   
+  
   <releases>
+    <release version="1.0.9" date="2024-11-21">
+      <description>
+        <p>Reworked tools section</p>
+        <ul>
+          <li>Reworked tools section</li>
+          <li>Added guided tool setup</li>
+          <li>Added overwrite order to file conflicts view</li>
+          <li>Added search by mod id function</li>
+          <li>Added source mod column to LOOT deployer</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.8.2" date="2024-11-12">
       <description>
         <p>Added Reverse Deployer</p>

@@ -744,7 +744,6 @@ void LootDeployer::restoreUndeployBackupIfExists()
 
 void LootDeployer::updateSourceMods()
 {
-  // TODO: Progress nodes
   log_(Log::LOG_INFO, std::format("Deployer '{}': Finding source mods...", name_));
   source_mods_.clear();
   const sfs::path managed_file_path = source_path_ / managed_dir_file_name_;
