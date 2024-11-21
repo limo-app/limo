@@ -32,8 +32,13 @@ bool ValidatingLineEdit::hasValidText()
     return validator_(text());
   QString path = text();
   if(path.isEmpty())
-    return false;
-  return std::filesystem::exists(path.toStdString());
+    return accept_empty_paths_;
+  if(validation_mode_ == VALID_PATH_EXISTS)
+    return std::filesystem::exists(path.toStdString());
+  if(validation_mode_ == VALID_IS_EXISTING_FILE)
+    return std::filesystem::is_regular_file(path.toStdString());
+  // validation_mode_ == VALID_IS_EXISTING_DIRECTORY
+  return std::filesystem::is_directory(path.toStdString());
 }
 
 void ValidatingLineEdit::setValidationMode(ValidationMode mode)
@@ -52,6 +57,27 @@ void ValidatingLineEdit::updateValidation()
   onTextChanged(text());
 }
 
+bool ValidatingLineEdit::acceptsEmptyPaths() const
+{
+  return accept_empty_paths_;
+}
+
+void ValidatingLineEdit::setAcceptsEmptyPaths(bool accept)
+{
+  accept_empty_paths_ = accept;
+  updateValidation();
+}
+
+bool ValidatingLineEdit::showsStatusTooltip() const
+{
+  return show_status_tooltip_;
+}
+
+void ValidatingLineEdit::setShowStatusTooltip(bool show)
+{
+  show_status_tooltip_ = show;
+}
+
 void ValidatingLineEdit::onTextChanged(const QString& new_text)
 {
   auto palette = QApplication::palette();
@@ -64,6 +90,22 @@ void ValidatingLineEdit::onTextChanged(const QString& new_text)
                      ratio * base.green() + (1 - ratio) * invalid.green(),
                      ratio * base.blue() + (1 - ratio) * invalid.blue());
     palette.setColor(QPalette::Base, mix_color);
+    if(show_status_tooltip_)
+    {
+      const QString empty_info = accept_empty_paths_ ? " or field must be empty" : "";
+      if(validation_mode_ == VALID_NOT_EMPTY)
+        setToolTip("Field must not be empty");
+      else if(validation_mode_ == VALID_CUSTOM)
+        setToolTip("Field contains invalid input");
+      else if(validation_mode_ == VALID_PATH_EXISTS)
+        setToolTip("Path must exist" + empty_info);
+      else if(validation_mode_ == VALID_IS_EXISTING_FILE)
+        setToolTip("Path must be existing file" + empty_info);
+      else if(validation_mode_ == VALID_IS_EXISTING_DIRECTORY)
+        setToolTip("Path must be existing directory" + empty_info);
+    }
   }
+  else if(show_status_tooltip_)
+    setToolTip("");
   setPalette(palette);
 }

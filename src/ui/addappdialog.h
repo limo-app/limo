@@ -28,7 +28,6 @@ public:
   /*!
    * \brief Initializes the UI.
    * \param parent Parent for this widget, this is passed to the constructor of QDialog.
-   * \param is_flatpak Whether or not this application is running as a flatpak.
    */
   explicit AddAppDialog(bool is_flatpak, QWidget* parent = nullptr);
   /*! \brief Deletes the UI. */

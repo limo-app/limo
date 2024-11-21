@@ -162,6 +162,8 @@ private:
   bool ask_remove_backup_target_ = true;
   /*! \brief If true: Show confirmation box before removing a backup. */
   bool ask_remove_backup_ = true;
+  /*! \brief If true: Show confirmation box before removing a tool. */
+  bool ask_remove_tool_ = true;
   /*! \brief Reusable dialog for adding new \ref ModdedApplication "applications". */
   std::unique_ptr<AddAppDialog> add_app_dialog_;
   /*! \brief Reusable dialog for adding new \ref Deployer "deployers". */
@@ -288,6 +290,8 @@ private:
   std::vector<QString> deployer_source_paths_;
   /*! \brief For every current deployer: The target path it uses. */
   std::vector<QString> deployer_target_paths_;
+  /*! \brief Contains all tools managed by the current app. */
+  std::vector<Tool> tools_;
 
   /*! \brief Creates signal/ slot connections between this and the ApplicationManager. */
   void setupConnections();
@@ -366,16 +370,18 @@ private:
   /*!
    * \brief Runs the given command and returns its output and return code.
    * \param command Command to be run.
+   * \param ignore_flatpak If true: Do not modify the command for use inside of a flatpak sandbox.
    * \return Output, return code
    */
-  QPair<QString, int> runCommand(QString command);
+  QPair<QString, int> runCommand(QString command, bool ignore_flatpak = false);
   /*!
    * \brief Runs the given command in a separate thread and prints its output to the log.
    * \param command Command to be run.
    * \param name Name of the command.
    * \param type Type of command, e.g. 'Tool'.
+   * \param ignore_flatpak If true: Do not modify the command for use inside of a flatpak sandbox.
    */
-  void runConcurrent(QString command, QString name, QString type);
+  void runConcurrent(QString command, QString name, QString type, bool ignore_flatpak = false);
   /*!
    * \brief Loads all stored settings from the settings file and updates the respective values.
    */
@@ -684,16 +690,6 @@ private slots:
   void onEditDeployerPressed();
   /*! \brief Shows a dialog to add a new tool. */
   void onAddToolClicked();
-  /*! \brief Removes the currently selected tool. */
-  void onRemoveToolClicked(int index);
-  /*! \brief Executes the command for the currently selected tool. */
-  void onRunToolClicked(int index);
-  /*!
-   * \brief Adds a new tool to the current ModdedApplication
-   * \param name The new tool's name.
-   * \param command Command used to run the new tool.
-   */
-  void onAddToolDialogComplete(QString name, QString command);
   /*! \brief Launches the current application. */
   void onLaunchAppButtonClicked();
   /*! \brief Shows a dialog to edit the currently active ModdedApplication. */
@@ -728,13 +724,6 @@ private slots:
    * \param message Message to be displayed.
    */
   void onReceiveError(QString title, QString message);
-  /*!
-   * \brief Called when a field in ui->info_tool_list is edited.
-   * Used to update tool name and command.
-   * \param row Row of edited item.
-   * \param col Column of edited item.
-   */
-  void on_info_tool_list_cellChanged(int row, int column);
   /*! \brief Adds a dialog to add the currently selected mod to a group. */
   void on_actionAdd_to_Group_triggered();
   /*! \brief Removes the currently selected mod from its group. */
@@ -1061,6 +1050,37 @@ private slots:
    * current ReverseDeployer.
    */
   void on_actionAdd_to_Ignore_List_triggered();
+  /*!
+   * \brief Launches the tool to which this button belongs.
+   * \param row Row of the button in the tools table.
+   * \param col Column of the button in the tools table.
+   */
+  void onLaunchToolButtonPressed(int row, int col);
+  /*!
+   * \brief Edits the tool to which this button belongs.
+   * \param row Row of the button in the tools table.
+   * \param col Column of the button in the tools table.
+   */
+  void onEditToolButtonPressed(int row, int col);
+  /*!
+   * \brief Deletes the tool to which this button belongs.
+   * \param row Row of the button in the tools table.
+   * \param col Column of the button in the tools table.
+   */
+  void onRemoveToolButtonPressed(int row, int col);
+  /*!
+   * \brief Adds a new tool with the given data.
+   * \param app_id App to which to add the tool.
+   * \param tool The new tool.
+   */
+  void onToolAdded(int app_id, Tool tool);
+  /*!
+   * \brief Replaces the given tool with the given new tool.
+   * \param app_id App to which to add the tool.
+   * \param tool_id Target tool.
+   * \param tool The new tool.
+   */
+  void onToolEdited(int app_id, int tool_id, Tool tool);
 
 signals:
   /*!
@@ -1209,10 +1229,9 @@ signals:
   /*!
    * \brief Adds a new tool to given \ref ModdedApplication "application".
    * \param app_id The target \ref ModdedApplication "application".
-   * \param name The tool's name.
-   * \param command The tool's command.
+   * \param tool The new tool.
    */
-  void addTool(int app_id, QString name, QString command);
+  void addTool(int app_id, Tool tool);
   /*!
    * \brief Removes a tool from given \ref ModdedApplication "application".
    * \param app_id The target \ref ModdedApplication "application".
@@ -1276,14 +1295,13 @@ signals:
    */
   void editProfile(int app_id, int profile, EditProfileInfo info);
   /*!
-   * \brief Used to set name and command for one tool of an
-   * \ref ModdedApplication "application".
+   * \brief Used to replace an existing to with a now one for a \ref ModdedApplication
+   * "application".
    * \param app_id The target \ref ModdedApplication "application".
-   * \param tool Target tool.
-   * \param name the new name.
-   * \param command The new command.
+   * \param tool_id Target tool.
+   * \param new_tool The new tool.
    */
-  void editTool(int app_id, int tool, QString name, QString command);
+  void editTool(int app_id, int tool_id, Tool new_tool);
   /*!
    * \brief Adds a mod to an existing group of an \ref ModdedApplication "application".
    * \param app_id The target \ref ModdedApplication "application".

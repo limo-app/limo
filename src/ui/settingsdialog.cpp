@@ -44,6 +44,8 @@ void SettingsDialog::init()
     settings.value("ask_remove_backup_target", true).toBool() ? Qt::Checked : Qt::Unchecked);
   ui->remove_bak_cb->setCheckState(
     settings.value("ask_remove_backup", true).toBool() ? Qt::Checked : Qt::Unchecked);
+  ui->remove_tool_cb->setCheckState(
+    settings.value("ask_remove_tool", true).toBool() ? Qt::Checked : Qt::Unchecked);
   ui->log_level_box->setCurrentIndex(settings.value("log_level", Log::LogLevel::LOG_INFO).toInt() -
                                      2);
   ui->fo3_url_field->setText(
@@ -165,6 +167,8 @@ void SettingsDialog::on_buttonBox_accepted()
 
   ask_remove_backup_ = ui->remove_bak_cb->isChecked();
   settings.setValue("ask_remove_backup", ask_remove_backup_);
+  ask_remove_tool_ = ui->remove_tool_cb->isChecked();
+  settings.setValue("ask_remove_tool", ask_remove_tool_);
 
   emit settingsDialogAccepted();
 }
@@ -172,6 +176,11 @@ void SettingsDialog::on_buttonBox_accepted()
 bool SettingsDialog::askRemoveBackup() const
 {
   return ask_remove_backup_;
+}
+
+bool SettingsDialog::askRemoveTool() const
+{
+  return ask_remove_tool_;
 }
 
 std::optional<std::tuple<std::string, std::string, std::string, bool>>

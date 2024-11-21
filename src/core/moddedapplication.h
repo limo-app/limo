@@ -20,6 +20,7 @@
 #include "manualtag.h"
 #include "modinfo.h"
 #include "nexus/api.h"
+#include "tool.h"
 #include <filesystem>
 #include <json/json.h>
 #include <string>
@@ -205,21 +206,19 @@ public:
   AppInfo getAppInfo() const;
   /*!
    * \brief Adds a new tool to this application.
-   * \param name The tool's name.
-   * \param command The tool's command.
+   * \param tool The new tool.
    */
-  void addTool(std::string name, std::string command);
+  void addTool(const Tool& tool);
   /*!
    * \brief Removes a tool.
    * \param tool_id The tool's id.
    */
   void removeTool(int tool_id);
   /*!
-   * \brief Getter for the tools of this application. The tuples contain the name (index 0)
-   * and the command (index 1).
-   * \return The vector of tuples.
+   * \brief Getter for the tools of this application.
+   * \return A vector of tools.
    */
-  const std::vector<std::tuple<std::string, std::string>>& getTools() const;
+  std::vector<Tool> getTools() const;
   /*!
    * \brief Getter for the command used to run this application.
    * \return The command.
@@ -271,12 +270,11 @@ public:
    */
   void editProfile(int profile, const EditProfileInfo& info);
   /*!
-   * \brief Used to set name and command for one tool.
-   * \param tool Target tool.
-   * \param name the new name.
-   * \param command The new command.
+   * \brief Used to replace an existing tool with a new tool.
+   * \param tool_id Target tool to be replaced.
+   * \param new_tool The new tool.
    */
-  void editTool(int tool, std::string name, std::string command);
+  void editTool(int tool_id, const Tool& new_tool);
   /*!
    * \brief Checks if files can be deployed.
    * \return A tuple containing:
@@ -681,8 +679,8 @@ private:
   std::vector<Mod> installed_mods_;
   /*! \brief Contains every Deployer used by this application. */
   std::vector<std::unique_ptr<Deployer>> deployers_;
-  /*! \brief Contains names and commands for every tool. */
-  std::vector<std::tuple<std::string, std::string>> tools_;
+  /*! \brief Contains all tools for this application. */
+  std::vector<Tool> tools_;
   /*! \brief The command used to run this application. */
   std::string command_ = "";
   /*! \brief The currently active profile id. */

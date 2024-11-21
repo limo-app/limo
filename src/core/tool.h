@@ -24,9 +24,13 @@ public:
     /*! \brief Tool is to be run through wine. */
     wine,
     /*! \brief Tool is to be run through proton by calling protontricks. */
-    protontricks
+    protontricks,
+    /*! \brief Tool is a steam app. */
+    steam
   };
 
+  /*! \brief Default constructor */
+  Tool() = default;
   /*!
    * \brief Constructs a tool that runs the given command directly.
    * \param name Name of the tool.
@@ -88,6 +92,17 @@ public:
        const std::string& arguments,
        const std::string& protontricks_arguments);
   /*!
+   * \brief Constructs a tool using the steam runtime.
+   * \param name Name of the tool.
+   * \param icon_path Path to the tool's icon.
+   * \param steam_app_id ID of the steam app to run.
+   * \param use_flatpak_steam If true: Use the flatpak version of steam.
+   */
+  Tool(const std::string& name,
+       const std::filesystem::path& icon_path,
+       int steam_app_id,
+       bool use_flatpak_steam);
+  /*!
    * \brief Constructs a new Tool from data contained in the given JSON object.
    * \param json_object Source JSON object.
    */
@@ -125,10 +140,10 @@ public:
    */
   Runtime getRuntime() const;
   /*!
-   * \brief Returns true if flatpak version of protontricks is used.
+   * \brief Returns true if flatpak version of protontricks or steam is used.
    * \return The status.
    */
-  bool usesFlatpakProtontricks() const;
+  bool usesFlatpakRuntime() const;
   /*!
    * \brief Returns the path to the wine prefix.
    * \return The path.
@@ -175,11 +190,14 @@ private:
   std::filesystem::path executable_path_;
   /*! \brief Runtime used to run the tool. */
   Runtime runtime_;
-  /*! \brief If runtime is proton: Whether to use flatpak protontricks. */
-  bool use_flatpak_protontricks_;
+  /*! \brief If runtime is proton or steam: Whether to use the flatpak version. */
+  bool use_flatpak_runtime_;
   /*! \brief If runtime is wine: Path to the wine prefix. */
   std::filesystem::path prefix_path_;
-  /*! \brief If runtime is proton: ID of the steam app containing the proton prefix. */
+  /*!
+   *  \brief If runtime is proton: ID of the steam app containing the proton prefix.
+   *  If runtime is Steam: ID of the steam app to run.
+   */
   int steam_app_id_;
   /*! \brief Working directory in which to run the command. */
   std::filesystem::path working_directory_;

@@ -22,9 +22,8 @@ public:
   /*!
    * \brief Initializes the UI.
    * \param parent Parent for this widget, this is passed to the constructor of QDialog.
-   * \param is_flatpak Whether or not this application is running as a flatpak.
    */
-  explicit ImportFromSteamDialog(bool is_flatpak, QWidget* parent = nullptr);
+  explicit ImportFromSteamDialog(QWidget* parent = nullptr);
   /*! \brief Deletes the UI. */
   ~ImportFromSteamDialog();
   /*! \brief Initializes the dialog. */
@@ -37,8 +36,6 @@ private:
   const std::string library_file_name_ = "libraryfolders.vdf";
   /*! \brief Indicates whether the dialog has been completed. */
   bool dialog_completed_ = false;
-  /*! \brief Whether or not this application is running as a flatpak. */
-  bool is_flatpak_;
 
   /*!
    * \brief Checks if given path contains the library file.

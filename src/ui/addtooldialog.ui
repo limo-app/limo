@@ -6,52 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>379</width>
-    <height>137</height>
+    <width>600</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>New Tool</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Enter a name and a command to run.</string>
-     </property>
-    </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="EditToolWidget" name="tool_widget" native="true"/>
    </item>
-   <item row="1" column="0">
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="toolTip">
-        <string>Tool name</string>
-       </property>
-       <property name="text">
-        <string>Name:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="ValidatingLineEdit" name="name_field"/>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_4">
-       <property name="toolTip">
-        <string>Command used to run the tool</string>
-       </property>
-       <property name="text">
-        <string>Command:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="ValidatingLineEdit" name="command_field"/>
-     </item>
-    </layout>
-   </item>
-   <item row="2" column="0">
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -64,7 +30,7 @@
      </property>
     </spacer>
    </item>
-   <item row="3" column="0">
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -78,9 +44,10 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>ValidatingLineEdit</class>
-   <extends>QLineEdit</extends>
-   <header>ui/validatinglineedit.h</header>
+   <class>EditToolWidget</class>
+   <extends>QWidget</extends>
+   <header>ui/edittoolwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

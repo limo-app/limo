@@ -492,11 +492,10 @@ void ApplicationManager::getAppInfo(int app_id)
   emit sendAppInfo(apps_[app_id].getAppInfo());
 }
 
-void ApplicationManager::addTool(int app_id, QString name, QString command)
+void ApplicationManager::addTool(int app_id, Tool tool)
 {
   if(appIndexIsValid(app_id))
-    handleExceptions<&ModdedApplication::addTool>(
-      app_id, name.toStdString(), command.toStdString());
+    handleExceptions<&ModdedApplication::addTool>(app_id, tool);
 }
 
 void ApplicationManager::removeTool(int app_id, int tool_id)
@@ -574,11 +573,10 @@ void ApplicationManager::editProfile(int app_id, int profile, EditProfileInfo in
     handleExceptions<&ModdedApplication::editProfile>(app_id, profile, info);
 }
 
-void ApplicationManager::editTool(int app_id, int tool, QString name, QString command)
+void ApplicationManager::editTool(int app_id, int tool_id, Tool new_tool)
 {
   if(appIndexIsValid(app_id))
-    handleExceptions<&ModdedApplication::editTool>(
-      app_id, tool, name.toStdString(), command.toStdString());
+    handleExceptions<&ModdedApplication::editTool>(app_id, tool_id, new_tool);
 }
 
 void ApplicationManager::addModToGroup(int app_id, int mod_id, int group)
@@ -960,7 +958,7 @@ void ApplicationManager::exportAppConfiguration(int app_id,
                                                 QStringList auto_tags)
 {
   std::vector<std::string> tag_vector;
-  for(const auto& tag: auto_tags)
+  for(const auto& tag : auto_tags)
     tag_vector.push_back(tag.toStdString());
   if(appIndexIsValid(app_id))
     handleExceptions<&ModdedApplication::exportConfiguration>(app_id, deployers, tag_vector);

@@ -77,6 +77,11 @@ public:
    */
   bool askRemoveBackup() const;
   /*!
+   * \brief Returns true if the ask when removing tool option has been selected.
+   * \return The selection.
+   */
+  bool askRemoveTool() const;
+  /*!
    * \brief Reads the key cipher, nonce, tag and the is_default flag for the Nexus API key from
    * the settings file.
    * \return The key cipher, nonce, tag and the is_default flag. An empty optional if no key exists
@@ -130,6 +135,8 @@ private:
   bool ask_remove_backup_target_ = true;
   /*! \brief True if the ask when removing a backup option has been selected. */
   bool ask_remove_backup_ = true;
+  /*! \brief True if the ask when removing a tool option has been selected. */
+  bool ask_remove_tool_ = true;
   /*! \brief Indicates whether the dialog has been completed. */
   bool dialog_completed_ = false;
   /*! \brief Icon used to indicate that the password is to be shown. */

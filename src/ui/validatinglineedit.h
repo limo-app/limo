@@ -25,7 +25,11 @@ public:
     /*! \brief Requires text to be a path to an existing file or directory. */
     VALID_PATH_EXISTS = 2,
     /*! \brief Uses a custom validation function. */
-    VALID_CUSTOM = 3
+    VALID_CUSTOM = 3,
+    /*! \brief Requires text to be a path to an existing file. */
+    VALID_IS_EXISTING_FILE = 4,
+    /*! \brief Requires text to be a path to an existing directory. */
+    VALID_IS_EXISTING_DIRECTORY = 5
   };
 
   /*!
@@ -63,6 +67,26 @@ public:
   void setCustomValidator(std::function<bool(QString)> validator);
   /*! \brief Updates the visual indicator using the current text. */
   void updateValidation();
+  /*!
+   * \brief Returns whether or not an empty path will be accepted.
+   * \return The state.
+   */
+  bool acceptsEmptyPaths() const;
+  /*!
+   * \brief Sets whether or not an empty path will be accepted.
+   * \param The new state.
+   */
+  void setAcceptsEmptyPaths(bool accept);
+  /*!
+   * \brief Returns whether or not the tooltip is used to show a reason for input rejection.
+   * \return The status.
+   */
+  bool showsStatusTooltip() const;
+  /*!
+   * \brief Sets whether or not the tooltip is used to show a reason for input rejection.
+   * \param show The new status.
+   */
+  void setShowStatusTooltip(bool show);
 
 private:
   /*! \brief Determines how the input text is validated, see \ref ValidationMode modes. */
@@ -71,6 +95,10 @@ private:
    * and be passed the current input text as argument, whenever the text
    * is changed. The new text is valid, if the function returns true. */
   std::function<bool(QString)> validator_ = [](QString s) { return true; };
+  /*! \brief If true: Empty paths will be accepted in VALID_PATH_EXISTS. */
+  bool accept_empty_paths_ = false;
+  /*! \brief If true: Use the tooltip to display a reason for input rejection. */
+  bool show_status_tooltip_ = true;
 
 private slots:
   /*!

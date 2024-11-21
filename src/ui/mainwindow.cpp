@@ -11,8 +11,8 @@
 #include "addtooldialog.h"
 #include "backuplistview.h"
 #include "colors.h"
-#include "core/cryptography.h"
 #include "core/consts.h"
+#include "core/cryptography.h"
 #include "core/installer.h"
 #include "deployerlistview.h"
 #include "editmanualtagsdialog.h"
@@ -20,7 +20,7 @@
 #include "modlistproxymodel.h"
 #include "movemoddialog.h"
 #include "settingsdialog.h"
-#include "tabletoolbutton.h"
+#include "tablepushbutton.h"
 #include "versionboxdelegate.h"
 #include <QCheckBox>
 #include <QDesktopServices>
@@ -61,6 +61,7 @@ Q_DECLARE_METATYPE(EditProfileInfo);
 Q_DECLARE_METATYPE(nexus::Page);
 Q_DECLARE_METATYPE(ExternalChangesInfo);
 Q_DECLARE_METATYPE(FileChangeChoices);
+Q_DECLARE_METATYPE(Tool);
 
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -115,6 +116,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
   settings.setValue("mod_list_slider_pos", ui->mod_list->verticalScrollBar()->sliderPosition());
   settings.setValue("ask_remove_profile", ask_remove_profile_);
   settings.setValue("ask_remove_backup_target", ask_remove_backup_target_);
+  settings.setValue("ask_remove_tool", ask_remove_tool_);
   ipc_server_->shutdown();
   event->accept();
 }
@@ -170,6 +172,7 @@ void MainWindow::setupConnections()
   qRegisterMetaType<nexus::Page>();
   qRegisterMetaType<ExternalChangesInfo>();
   qRegisterMetaType<FileChangeChoices>();
+  qRegisterMetaType<Tool>();
 
   connect(this, &MainWindow::getModInfo,
           app_manager_, &ApplicationManager::getModInfo);
@@ -479,6 +482,13 @@ void MainWindow::setupLists()
   conflicts_list_->setAlternatingRowColors(true);
   conflicts_list_->verticalHeader()->setVisible(false);
   conflicts_window_->resize(1200, 600);
+
+  // tools list
+  ui->info_tool_list->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Fixed);
+  ui->info_tool_list->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Fixed);
+  // ui->info_tool_list->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Fixed);
+  ui->info_tool_list->setColumnWidth(0, 50);
+  ui->info_tool_list->setColumnWidth(1, 50);
 }
 
 void MainWindow::setupMenus()
@@ -574,8 +584,8 @@ void MainWindow::setupDialogs()
           &MainWindow::onAddToDeployerAccept);
 
   add_tool_dialog_ = std::make_unique<AddToolDialog>();
-  connect(
-    add_tool_dialog_.get(), &AddToolDialog::toolAdded, this, &MainWindow::onAddToolDialogComplete);
+  connect(add_tool_dialog_.get(), &AddToolDialog::toolAdded, this, &MainWindow::onToolAdded);
+  connect(add_tool_dialog_.get(), &AddToolDialog::toolEdited, this, &MainWindow::onToolEdited);
 
   message_box_ = std::make_unique<QMessageBox>(
     QMessageBox::NoIcon, "Confirm Removal", "", QMessageBox::Yes | QMessageBox::No);
@@ -946,23 +956,29 @@ void MainWindow::setupLog()
   connect(button, &QPushButton::pressed, this, &MainWindow::onLogButtonPressed);
 }
 
-QPair<QString, int> MainWindow::runCommand(QString command)
+QPair<QString, int> MainWindow::runCommand(QString command, bool ignore_flatpak)
 {
   QString output;
   std::array<char, 128> buffer;
-  if(is_a_flatpak_)
+  if(is_a_flatpak_ && !ignore_flatpak)
     command = "flatpak-spawn --host " + command;
+  command += "  2>&1";
   auto pipe = popen(command.toStdString().c_str(), "r");
+  if(pipe == nullptr)
+  {
+    Log::error("Failed to run command: Pipe could not be opened");
+    return { "Error: Failed to open pipe!", -1 };
+  }
   while(!feof(pipe))
   {
     if(fgets(buffer.data(), buffer.size(), pipe) != nullptr)
       output += buffer.data();
   }
-  int ret_code = pclose(pipe);
+  int ret_code = pclose(pipe) / 256;
   return { output, ret_code };
 }
 
-void MainWindow::runConcurrent(QString command, QString name, QString type)
+void MainWindow::runConcurrent(QString command, QString name, QString type, bool ignore_flatpak)
 {
   Log::info(
     ("Running " + type.toLower() + " '" + name + "' with command '" + command + "'").toStdString());
@@ -979,7 +995,7 @@ void MainWindow::runConcurrent(QString command, QString name, QString type)
                 .toStdString());
             delete watcher;
           });
-  auto future = QtConcurrent::run(this, &MainWindow::runCommand, command);
+  auto future = QtConcurrent::run(this, &MainWindow::runCommand, command, ignore_flatpak);
   watcher->setFuture(future);
 }
 
@@ -1050,6 +1066,7 @@ void MainWindow::loadSettings()
     Log::log_level = Log::LOG_DEBUG;
   ask_remove_backup_target_ = settings.value("ask_remove_backup_target", true).toBool();
   ask_remove_backup_ = settings.value("ask_remove_backup", true).toBool();
+  ask_remove_tool_ = settings.value("ask_remove_tool", true).toBool();
   settings.beginGroup("nexus");
   const bool has_nexus_account = settings.value("info_is_valid", false).toBool();
   ui->check_mod_updates_button->setVisible(has_nexus_account);
@@ -1629,6 +1646,7 @@ void MainWindow::onGetAppInfo(AppInfo app_info)
     ui->auto_tags_widget->layout()->addWidget(cb);
   }
 
+  // app info
   ui->info_name_label->setText(app_info.name.c_str());
   ui->info_version_label->setText(app_info.app_version.c_str());
   ui->info_sdir_label->setText(app_info.staging_dir.c_str());
@@ -1667,46 +1685,46 @@ void MainWindow::onGetAppInfo(AppInfo app_info)
   ui->info_deployer_list->resizeColumnToContents(4);
   ui->info_deployer_list->resizeColumnToContents(5);
   ui->info_deployer_list->horizontalHeaderItem(5)->setTextAlignment(Qt::AlignLeft);
+
+  // tools
+  tools_ = app_info.tools;
   ui->info_tool_list->setRowCount(0);
+  ui->info_tool_list->setRowCount(app_info.tools.size() + 1);
   for(int i = 0; i < app_info.tools.size(); i++)
   {
-    ui->info_tool_list->setRowCount(i + 1);
-    TableToolButton* button = new TableToolButton(i);
-    QAction* run_action = new QAction(this);
-    run_action->setToolTip("Launch Tool");
-    run_action->setText("Launch");
-    run_action->setIcon(QIcon::fromTheme("system-run"));
-    connect(run_action, &QAction::triggered, button, &TableToolButton::onRunClicked);
-    connect(button, &TableToolButton::clickedRunAt, this, &MainWindow::onRunToolClicked);
-    button->setDefaultAction(run_action);
-    QAction* remove_action = new QAction(this);
-    remove_action->setToolTip("Remove Tool");
-    remove_action->setText("Remove");
-    remove_action->setIcon(QIcon::fromTheme("user-trash"));
-    connect(remove_action, &QAction::triggered, button, &TableToolButton::onRemoveClicked);
-    connect(button, &TableToolButton::clickedRemoveAt, this, &MainWindow::onRemoveToolClicked);
-    button->setToolButtonStyle(Qt::ToolButtonIconOnly);
-    button->setPopupMode(QToolButton::MenuButtonPopup);
-    QMenu* menu = new QMenu(this);
-    menu->addAction(run_action);
-    menu->addAction(remove_action);
-    button->setMenu(menu);
-    ui->info_tool_list->setCellWidget(i, 0, button);
-    ui->info_tool_list->setItem(i, 1, new QTableWidgetItem(std::get<0>(app_info.tools[i]).c_str()));
-    ui->info_tool_list->setItem(i, 2, new QTableWidgetItem(std::get<1>(app_info.tools[i]).c_str()));
+    const QString name(app_info.tools[i].getName().c_str());
+
+    auto remove_button = new TablePushButton(i, 0);
+    remove_button->setIcon(QIcon::fromTheme("user-trash"));
+    remove_button->setToolTip("Remove " + name);
+    connect(
+      remove_button, &TablePushButton::clickedAt, this, &MainWindow::onRemoveToolButtonPressed);
+    ui->info_tool_list->setCellWidget(i, 0, remove_button);
+
+    auto edit_button = new TablePushButton(i, 1);
+    edit_button->setIcon(QIcon::fromTheme("editor"));
+    edit_button->setToolTip("Edit " + name);
+    connect(edit_button, &TablePushButton::clickedAt, this, &MainWindow::onEditToolButtonPressed);
+    ui->info_tool_list->setCellWidget(i, 1, edit_button);
+
+    auto launch_button = new TablePushButton(i, 2);
+    launch_button->setText(name);
+    const QString icon_path(app_info.tools[i].getIconPath().c_str());
+    const QIcon icon(icon_path);
+    launch_button->setIcon(icon_path.isEmpty() || icon.availableSizes().size() <= 0
+                             ? QIcon::fromTheme("system-run")
+                             : icon);
+    launch_button->setToolTip("Launch " + name);
+    connect(
+      launch_button, &TablePushButton::clickedAt, this, &MainWindow::onLaunchToolButtonPressed);
+    ui->info_tool_list->setCellWidget(i, 2, launch_button);
   }
   QPushButton* button = new QPushButton();
   button->setIcon(QIcon::fromTheme("list-add"));
   button->setToolTip("Add Tool");
   button->adjustSize();
   connect(button, &QPushButton::clicked, this, &MainWindow::onAddToolClicked);
-  ui->info_tool_list->setRowCount(ui->info_tool_list->rowCount() + 1);
   ui->info_tool_list->setCellWidget(ui->info_tool_list->rowCount() - 1, 0, button);
-  ui->info_tool_list->setColumnWidth(0, 50);
-  ui->info_tool_list->resizeColumnToContents(1);
-  ui->info_tool_list->resizeColumnToContents(2);
-  ui->info_tool_list->horizontalHeaderItem(2)->setTextAlignment(Qt::AlignLeft);
-
   ignore_tool_changes_ = false;
 }
 
@@ -1950,6 +1968,7 @@ void MainWindow::onSettingsDialogComplete()
   show_log_on_warning_ = settings_dialog_->logOnWarning();
   ask_remove_backup_target_ = settings_dialog_->askRemoveBackupTarget();
   ask_remove_backup_ = settings_dialog_->askRemoveBackup();
+  ask_remove_tool_ = settings_dialog_->askRemoveTool();
   if(debug_mode_)
     Log::log_level = Log::LOG_DEBUG;
 }
@@ -2293,33 +2312,8 @@ void MainWindow::onEditDeployerPressed()
 
 void MainWindow::onAddToolClicked()
 {
-  add_tool_dialog_->setupDialog();
+  add_tool_dialog_->setAddMode(currentApp());
   add_tool_dialog_->exec();
-}
-
-void MainWindow::onRemoveToolClicked(int index)
-{
-  emit removeTool(currentApp(), index);
-  emit getAppInfo(currentApp());
-}
-
-void MainWindow::onRunToolClicked(int index)
-{
-  auto command =
-    ui->info_tool_list->item(index, getColumnIndex(ui->info_tool_list, "Command"))->text();
-  auto name = ui->info_tool_list->item(index, getColumnIndex(ui->info_tool_list, "Name"))->text();
-  if(command.isEmpty())
-  {
-    Log::error(("Command for tool '" + name + "' is empty").toStdString());
-    return;
-  }
-  runConcurrent(command, name, "Tool");
-}
-
-void MainWindow::onAddToolDialogComplete(QString name, QString command)
-{
-  emit addTool(currentApp(), name, command);
-  emit getAppInfo(currentApp());
 }
 
 void MainWindow::onLaunchAppButtonClicked()
@@ -2463,19 +2457,6 @@ void MainWindow::onReceiveError(QString title, QString message)
   QMessageBox error_box(QMessageBox::Critical, title, message, QMessageBox::Ok);
   error_box.exec();
 }
-
-
-void MainWindow::on_info_tool_list_cellChanged(int row, int column)
-{
-  if(ignore_tool_changes_)
-    return;
-  emit editTool(
-    currentApp(),
-    row,
-    ui->info_tool_list->item(row, getColumnIndex(ui->info_tool_list, "Name"))->text(),
-    ui->info_tool_list->item(row, getColumnIndex(ui->info_tool_list, "Command"))->text());
-}
-
 
 void MainWindow::on_actionAdd_to_Group_triggered()
 {
@@ -3348,4 +3329,55 @@ void MainWindow::on_actionAdd_to_Ignore_List_triggered()
   int mod_id = deployer_model_->data(index, ModListModel::mod_id_role).toInt();
   emit addModToIgnoreList(currentApp(), currentDeployer(), mod_id);
   emit getDeployerInfo(currentApp(), currentDeployer());
+}
+
+void MainWindow::onLaunchToolButtonPressed(int row, int col)
+{
+  const QString command(tools_[row].getCommand(is_a_flatpak_).c_str());
+  const QString name(tools_[row].getName().c_str());
+  if(command.isEmpty())
+  {
+    Log::error(("Command for tool '" + name + "' is empty").toStdString());
+    return;
+  }
+  runConcurrent(command, name, "Tool", true);
+}
+
+void MainWindow::onEditToolButtonPressed(int row, int col)
+{
+  add_tool_dialog_->setEditMode(currentApp(), row, tools_[row]);
+  add_tool_dialog_->exec();
+}
+
+void MainWindow::onRemoveToolButtonPressed(int row, int col)
+{
+  if(ask_remove_tool_)
+  {
+    message_box_->setText(
+      ("Are you sure you want to remove \"" + tools_[row].getName() + "\"?").c_str());
+    auto* check_box = message_box_->checkBox();
+    check_box->setHidden(false);
+    check_box->setCheckState(Qt::Unchecked);
+    check_box->setText("Don't ask again");
+    int answer = message_box_->exec();
+    ask_remove_tool_ = check_box->checkState() == Qt::Unchecked;
+    if(answer == QMessageBox::No)
+      return;
+  }
+  Log::info("Removing tool '" + tools_[row].getName() + "'");
+  emit removeTool(currentApp(), row);
+  emit getAppInfo(currentApp());
+}
+
+void MainWindow::onToolAdded(int app_id, Tool tool)
+{
+  Log::info("Adding tool '" + tool.getName() + "'");
+  emit addTool(app_id, tool);
+  emit getAppInfo(currentApp());
+}
+
+void MainWindow::onToolEdited(int app_id, int tool_id, Tool tool)
+{
+  emit editTool(app_id, tool_id, tool);
+  emit getAppInfo(currentApp());
 }

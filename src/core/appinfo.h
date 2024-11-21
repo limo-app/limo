@@ -7,6 +7,7 @@
 
 #include "deployer.h"
 #include "tagcondition.h"
+#include "tool.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -51,7 +52,7 @@ struct AppInfo
    * \brief Name and command for each tool belonging to the
    * \ref ModdedApplication "application".
    */
-  std::vector<std::tuple<std::string, std::string>> tools{};
+  std::vector<Tool> tools{};
   /*!
    * \brief Maps the names of all manual tags to the number of mods with that tag in the
    * \ref ModdedApplication "application".

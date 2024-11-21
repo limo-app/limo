@@ -203,7 +203,7 @@
            <enum>QTabWidget::Rounded</enum>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>0</number>
           </property>
           <property name="elideMode">
            <enum>Qt::ElideNone</enum>
@@ -405,13 +405,13 @@
                     <enum>Qt::ScrollBarAsNeeded</enum>
                    </property>
                    <property name="editTriggers">
-                    <set>QAbstractItemView::DoubleClicked</set>
+                    <set>QAbstractItemView::NoEditTriggers</set>
                    </property>
                    <property name="alternatingRowColors">
                     <bool>true</bool>
                    </property>
                    <property name="selectionMode">
-                    <enum>QAbstractItemView::SingleSelection</enum>
+                    <enum>QAbstractItemView::NoSelection</enum>
                    </property>
                    <property name="selectionBehavior">
                     <enum>QAbstractItemView::SelectRows</enum>
@@ -429,12 +429,12 @@
                    </column>
                    <column>
                     <property name="text">
-                     <string>Name</string>
+                     <string>Edit</string>
                     </property>
                    </column>
                    <column>
                     <property name="text">
-                     <string>Command</string>
+                     <string>Launch</string>
                     </property>
                    </column>
                   </widget>

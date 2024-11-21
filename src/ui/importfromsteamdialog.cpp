@@ -12,8 +12,8 @@
 namespace sfs = std::filesystem;
 
 
-ImportFromSteamDialog::ImportFromSteamDialog(bool is_flatpak, QWidget* parent) :
-  is_flatpak_(is_flatpak), QDialog(parent), ui(new Ui::ImportFromSteamDialog)
+ImportFromSteamDialog::ImportFromSteamDialog(QWidget* parent) :
+  QDialog(parent), ui(new Ui::ImportFromSteamDialog)
 {
   ui->setupUi(this);
   setWindowTitle("Import App");

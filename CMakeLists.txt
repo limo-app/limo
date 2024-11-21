@@ -209,6 +209,8 @@ set(PROJECT_SOURCES
         src/ui/editmodsourcesdialog.cpp
         src/ui/editmodsourcesdialog.h
         src/ui/editmodsourcesdialog.ui
+        src/ui/edittoolwidget.cpp
+        src/ui/edittoolwidget.h
         src/ui/enterapipwdialog.cpp
         src/ui/enterapipwdialog.h
         src/ui/enterapipwdialog.ui

@@ -5,6 +5,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
 #include <iostream>
+#include <ranges>
 
 
 const int INSTALLER_FLAGS = Installer::preserve_case | Installer::preserve_directories;
@@ -72,8 +73,8 @@ TEST_CASE("State is saved", "[.app]")
   app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "app", Deployer::hard_link });
   app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl1", DATA_DIR / "app_2", Deployer::hard_link });
   app.addProfile(EditProfileInfo{ "test profile", "", -1 });
-  app.addTool("a tool", "a command");
-  app.addTool("another tool", "another command");
+  app.addTool({"t1", "", "command string"});
+  app.addTool({"t4", "", "/bin/prog.exe", true, 220, "/tmp", {{"VAR_1", "VAL_1"}}, "-arg", "-parg"});
   AddModInfo info{ "mod 0",
                    "1.0",
                    Installer::SIMPLEINSTALLER,
@@ -98,12 +99,10 @@ TEST_CASE("State is saved", "[.app]")
   auto app_tools = app.getAppInfo().tools;
   auto app2_tools = app2.getAppInfo().tools;
   REQUIRE(app_tools.size() == app2_tools.size());
-  for(int i = 0; i < app_tools.size(); i++)
+  for(const auto& [tool_1, tool_2] : std::views::zip(app_tools, app2_tools))
   {
-    const auto& [name, command] = app_tools[i];
-    const auto& [name2, command2] = app2_tools[i];
-    REQUIRE(name == name2);
-    REQUIRE(command == command2);
+    REQUIRE(tool_1.getName() == tool_2.getName());
+    REQUIRE(tool_1.getCommand(false) == tool_2.getCommand(false));
   }
   sfs::create_directories(DATA_DIR / "app_2");
   app2.deployMods();

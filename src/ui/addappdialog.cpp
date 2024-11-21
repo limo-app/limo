@@ -27,7 +27,7 @@ AddAppDialog::AddAppDialog(bool is_flatpak, QWidget* parent) :
   enableOkButton(false);
   ui->path_field->setValidationMode(ValidatingLineEdit::VALID_PATH_EXISTS);
   dialog_completed_ = false;
-  import_from_steam_dialog_ = std::make_unique<ImportFromSteamDialog>(is_flatpak);
+  import_from_steam_dialog_ = std::make_unique<ImportFromSteamDialog>();
   connect(import_from_steam_dialog_.get(),
           &ImportFromSteamDialog::applicationImported,
           this,

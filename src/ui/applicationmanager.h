@@ -605,10 +605,9 @@ public slots:
   /*!
    * \brief Adds a new tool to given \ref ModdedApplication "application".
    * \param app_id The target \ref ModdedApplication "application".
-   * \param name The tool's name.
-   * \param command The tool's command.
+   * \param tool The new Tool.
    */
-  void addTool(int app_id, QString name, QString command);
+  void addTool(int app_id, Tool tool);
   /*!
    * \brief Removes a tool from given \ref ModdedApplication "application".
    * \param app_id The target \ref ModdedApplication "application".
@@ -672,14 +671,13 @@ public slots:
    */
   void editProfile(int app_id, int profile, EditProfileInfo info);
   /*!
-   * \brief Used to set name and command for one tool of an \ref ModdedApplication
+   * \brief Used to replace an existing to with a now one for a \ref ModdedApplication
    * "application".
    * \param app_id The target \ref ModdedApplication "application".
-   * \param tool Target tool.
-   * \param name the new name.
-   * \param command The new command.
+   * \param tool_id Target tool.
+   * \param new_tool The new tool.
    */
-  void editTool(int app_id, int tool, QString name, QString command);
+  void editTool(int app_id, int tool_id, Tool new_tool);
   /*!
    * \brief Adds a mod to an existing group of an \ref ModdedApplication "application".
    * \param app_id The target \ref ModdedApplication "application".

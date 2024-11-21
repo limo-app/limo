@@ -493,9 +493,9 @@ AppInfo ModdedApplication::getAppInfo() const
   return info;
 }
 
-void ModdedApplication::addTool(std::string name, std::string command)
+void ModdedApplication::addTool(const Tool& tool)
 {
-  tools_.emplace_back(name, command);
+  tools_.push_back(tool);
   updateSettings(true);
 }
 
@@ -508,7 +508,7 @@ void ModdedApplication::removeTool(int tool_id)
   }
 }
 
-const std::vector<std::tuple<std::string, std::string>>& ModdedApplication::getTools() const
+std::vector<Tool> ModdedApplication::getTools() const
 {
   return tools_;
 }
@@ -621,13 +621,10 @@ void ModdedApplication::editProfile(int profile, const EditProfileInfo& info)
   updateSettings(true);
 }
 
-void ModdedApplication::editTool(int tool, std::string name, std::string command)
+void ModdedApplication::editTool(int tool_id, const Tool& new_tool)
 {
-  if(tool >= 0 && tool < tools_.size())
-  {
-    std::get<0>(tools_[tool]) = name;
-    std::get<1>(tools_[tool]) = command;
-  }
+  if(tool_id >= 0 && tool_id < tools_.size())
+    tools_[tool_id] = new_tool;
   updateSettings(true);
 }
 
@@ -1717,10 +1714,7 @@ void ModdedApplication::updateSettings(bool write)
   }
 
   for(int tool = 0; tool < tools_.size(); tool++)
-  {
-    json_settings_["tools"][tool]["name"] = std::get<0>(tools_[tool]);
-    json_settings_["tools"][tool]["command"] = std::get<1>(tools_[tool]);
-  }
+    json_settings_["tools"][tool] = tools_[tool].toJson();
 
   const auto targets = bak_man_.getTargets();
   for(int i = 0; i < targets.size(); i++)
@@ -1932,7 +1926,7 @@ void ModdedApplication::updateState(bool read)
   }
   Json::Value tools = json_settings_["tools"];
   for(int tool = 0; tool < tools.size(); tool++)
-    tools_.emplace_back(tools[tool]["name"].asString(), tools[tool]["command"].asString());
+    tools_.emplace_back(tools[tool]);
 
   for(int prof = 0; prof < profile_names_.size(); prof++)
     bak_man_.addProfile();
