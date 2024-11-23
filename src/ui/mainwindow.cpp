@@ -117,6 +117,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
   settings.setValue("ask_remove_profile", ask_remove_profile_);
   settings.setValue("ask_remove_backup_target", ask_remove_backup_target_);
   settings.setValue("ask_remove_tool", ask_remove_tool_);
+  settings.setValue("mod_list_sort_column",
+                    ui->mod_list->horizontalHeader()->sortIndicatorSection());
+  settings.setValue("mod_list_sort_order", ui->mod_list->horizontalHeader()->sortIndicatorOrder());
   ipc_server_->shutdown();
   event->accept();
 }
@@ -1070,6 +1073,17 @@ void MainWindow::loadSettings()
   settings.beginGroup("nexus");
   const bool has_nexus_account = settings.value("info_is_valid", false).toBool();
   ui->check_mod_updates_button->setVisible(has_nexus_account);
+  settings.endGroup();
+  const int mod_list_sort_column =
+    settings.value("mod_list_sort_column", ModListModel::time_col).toInt();
+  const int mod_list_sort_order =
+    settings.value("mod_list_sort_order", Qt::SortOrder::DescendingOrder).toInt();
+  if(mod_list_sort_column >= 0 && mod_list_sort_column < mod_list_model_->columnCount() &&
+     (mod_list_sort_order == Qt::SortOrder::DescendingOrder ||
+      mod_list_sort_order == Qt::SortOrder::AscendingOrder))
+  {
+    ui->mod_list->sortByColumn(mod_list_sort_column, static_cast<Qt::SortOrder>(mod_list_sort_order));
+  }
 }
 
 void MainWindow::setTabWidgetStyleSheet()
@@ -2624,9 +2638,9 @@ void MainWindow::onBackupTargetRemoveClicked(int target, QString name)
 {
   if(ask_remove_backup_target_)
   {
-    message_box_->setText("Are you sure you want to remove \"" + name +
-                          "\"? This will delete all backups except "
-                          "for the currently active one.");
+    message_box_->setText(
+      "Are you sure you want to remove \"" + name +
+      "\"? This will delete all backups except for the currently active one.");
     auto* check_box = message_box_->checkBox();
     check_box->setHidden(false);
     check_box->setCheckState(Qt::Unchecked);
@@ -2760,7 +2774,7 @@ void MainWindow::updateProgress(float progress)
       std::chrono::duration_cast<std::chrono::milliseconds>(now - last_progress_update_time_)
         .count();
     const int remaining_sec =
-      (static_cast<double>(msecs_elapsed) * static_cast<double>(((1.0 - progress) / progress))) /
+      (static_cast<double>(msecs_elapsed) * static_cast<double>((1.0 - progress) / progress)) /
       1000.0;
     const int hours = remaining_sec / 3600;
     const int minutes = (remaining_sec / 60) % 60;
