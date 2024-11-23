@@ -428,7 +428,7 @@ void MainWindow::setupLists()
   mod_list_proxy_->setFilterRole(Qt::DisplayRole);
   mod_list_proxy_->setSortRole(ModListModel::sort_role);
   mod_list_proxy_->setSortCaseSensitivity(Qt::CaseInsensitive);
-  ui->mod_list->sortByColumn(ModListModel::time_col, Qt::SortOrder::DescendingOrder);
+  ui->mod_list->sortByColumn(ModListModel::id_col, Qt::SortOrder::AscendingOrder);
 
   // deployer list
   deployer_model_ = new DeployerListModel(this);
