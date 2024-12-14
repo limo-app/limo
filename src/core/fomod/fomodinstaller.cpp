@@ -149,7 +149,12 @@ std::vector<std::pair<sfs::path, sfs::path>> FomodInstaller::getInstallationFile
   parseInstallList();
   std::vector<std::pair<sfs::path, sfs::path>> files;
   for(const auto& file : files_)
-    files.emplace_back(file.source, file.destination);
+  {
+    std::string destination = file.destination.string();
+    while(destination.starts_with("/") || destination.starts_with("\\"))
+      destination.erase(0, 1);
+    files.emplace_back(file.source, destination);
+  }
   return files;
 }
 
