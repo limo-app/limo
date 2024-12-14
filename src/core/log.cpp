@@ -39,7 +39,7 @@ void writeLog(const std::string& message, Log::LogLevel log_level)
   }
   catch(...)
   {
-    Log::debug("Failed to write to log file!");
+    Log::log_printer("Failed to write to log file!", Log::LOG_DEBUG);
   }
 }
 
