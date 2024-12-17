@@ -317,7 +317,7 @@ if(IS_FLATPAK)
     install(FILES flatpak/io.github.limo_app.limo.desktop
             DESTINATION /app/share/applications)
     install(DIRECTORY steam_app_configs
-            DESTINATION /app/share)
+            DESTINATION /app/share/limo)
 else()
     install(DIRECTORY steam_app_configs
             DESTINATION ${LIMO_INSTALL_PREFIX}/share/limo)

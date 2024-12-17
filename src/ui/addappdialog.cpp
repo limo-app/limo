@@ -93,7 +93,7 @@ void AddAppDialog::initConfigForApp()
   deployers_.clear();
   auto_tags_.clear();
   sfs::path config_path =
-    sfs::path(is_flatpak_ ? "/app/share" : APP_INSTALL_PREFIX) / "share/limo/steam_app_configs";
+    sfs::path(is_flatpak_ ? "/app" : APP_INSTALL_PREFIX) / "share/limo/steam_app_configs";
   // Overwrite for local build
   if(!is_flatpak_ && sfs::exists("steam_app_configs"))
     config_path = "steam_app_configs";
