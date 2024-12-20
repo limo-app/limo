@@ -1958,7 +1958,7 @@ void MainWindow::onExtractionComplete(int app_id,
   for(int i = 0; i < mods.size(); i++)
   {
     Mod mod = mods[i].mod;
-    std::string prefix = " ";
+    std::string prefix = "";
     if(mods[i].group != -1 && !mods[i].is_active_group_member)
       prefix = "[INACTIVE] ";
     group_names << (prefix + mod.name + " [" + std::to_string(mod.id) + "]").c_str();

@@ -24,7 +24,8 @@ AddModDialog::AddModDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AddMod
   fomod_dialog_ = std::make_unique<FomodDialog>();
   connect(
     fomod_dialog_.get(), &FomodDialog::addModAccepted, this, &AddModDialog::onFomodDialogComplete);
-  connect(fomod_dialog_.get(), &FomodDialog::addModAborted, this, &AddModDialog::onFomodDialogAborted);
+  connect(
+    fomod_dialog_.get(), &FomodDialog::addModAborted, this, &AddModDialog::onFomodDialogAborted);
   auto options_frame = new QFrame();
   auto grid = new QGridLayout();
   options_frame->setLayout(grid);
@@ -158,6 +159,13 @@ bool AddModDialog::setupDialog(const QString& name,
   }
   if(!version_overwrite.isEmpty())
     ui->version_text->setText(version_overwrite);
+
+  QRegularExpression regex(QString("^") + QRegularExpression::escape(ui->name_text->text()) +
+                           R"( \[\d+\]$)");
+  const int group_index = groups.indexOf(regex);
+  if(group_index != -1)
+    ui->group_field->setText(groups[group_index]);
+
   ui->installer_box->clear();
   int root_level = 0;
   std::string prefix;
