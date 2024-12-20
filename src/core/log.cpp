@@ -21,10 +21,10 @@ std::string getTimestamp(Log::LogLevel log_level)
   return ss.str();
 }
 
-void writeLog(const std::string& message, Log::LogLevel log_level)
+void writeLog(const std::string& message, Log::LogLevel log_level, int target_printer = 0)
 {
-  if(Log::log_level >= log_level)
-    Log::log_printer(message, log_level);
+  if(Log::log_level >= log_level && Log::log_printers.size() > target_printer)
+    Log::log_printers[target_printer](message, log_level);
 
   if(Log::log_file_path.empty())
     return;
@@ -39,7 +39,8 @@ void writeLog(const std::string& message, Log::LogLevel log_level)
   }
   catch(...)
   {
-    Log::log_printer("Failed to write to log file!", Log::LOG_DEBUG);
+    if(Log::log_printers.size() > target_printer)
+      Log::log_printers[target_printer]("Failed to write to log file!", Log::LOG_DEBUG);
   }
 }
 
@@ -55,41 +56,41 @@ std::string getLogFileName(int log_num)
 
 namespace Log
 {
-void error(const std::string& message)
+void error(const std::string& message, int target_printer)
 {
-  writeLog(getTimestamp(Log::LOG_ERROR) + " [Error]: " + message, LOG_ERROR);
+  writeLog(getTimestamp(Log::LOG_ERROR) + " [Error]: " + message, LOG_ERROR, target_printer);
 }
 
-void warning(const std::string& message)
+void warning(const std::string& message, int target_printer)
 {
-  writeLog(getTimestamp(Log::LOG_WARNING) + " [Warning]: " + message, LOG_WARNING);
+  writeLog(getTimestamp(Log::LOG_WARNING) + " [Warning]: " + message, LOG_WARNING, target_printer);
 }
 
-void info(const std::string& message)
+void info(const std::string& message, int target_printer)
 {
-  writeLog(getTimestamp(Log::LOG_INFO) + " [Info]: " + message, LOG_INFO);
+  writeLog(getTimestamp(Log::LOG_INFO) + " [Info]: " + message, LOG_INFO, target_printer);
 }
 
-void debug(const std::string& message)
+void debug(const std::string& message, int target_printer)
 {
-  writeLog(getTimestamp(Log::LOG_DEBUG) + " [Debug]: " + message, LOG_DEBUG);
+  writeLog(getTimestamp(Log::LOG_DEBUG) + " [Debug]: " + message, LOG_DEBUG, target_printer);
 }
 
-void log(LogLevel level, const std::string& message)
+void log(LogLevel level, const std::string& message, int target_printer)
 {
   switch(level)
   {
     case LOG_DEBUG:
-      debug(message);
+      debug(message, target_printer);
       break;
     case LOG_INFO:
-      info(message);
+      info(message, target_printer);
       break;
     case LOG_WARNING:
-      warning(message);
+      warning(message, target_printer);
       break;
     case LOG_ERROR:
-      error(message);
+      error(message, target_printer);
       break;
     default:
       break;

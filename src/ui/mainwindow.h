@@ -66,6 +66,15 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
+  /*! \brief Describes target widgets for logging. */
+  enum LogFrame
+  {
+    /*! \brief Main logging widget. */
+    LOG_MAIN = 0,
+    /*! \brief Logging widget for tools. */
+    LOG_TOOLS = 1
+  };
+
   /*!
    * \brief Constructor. Initializes the UI elements and restores their state from a file.
    * Creates an ApplicationManager object and moves it to a worker thread.

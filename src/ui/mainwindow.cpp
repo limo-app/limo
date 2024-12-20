@@ -924,7 +924,8 @@ void MainWindow::setStatusMessage(QString message, int timeout_ms)
 
 void MainWindow::setupLog()
 {
-  Log::log_printer =
+  // main log
+  Log::log_printers.push_back(
     [show_error = &show_log_on_error_,
      show_warning = &show_log_on_warning_,
      log = ui->log_frame,
@@ -933,20 +934,45 @@ void MainWindow::setupLog()
      red = colors::RED,
      blue = colors::LIGHT_BLUE,
      text_color = palette().color(QPalette::Text)](std::string message, Log::LogLevel level)
-  {
-    QColor color = text_color;
-    if(level == Log::LOG_WARNING)
-      color = orange;
-    else if(level == Log::LOG_ERROR)
-      color = red;
-    else if(level == Log::LOG_DEBUG)
-      color = blue;
-    log->moveCursor(QTextCursor::End);
-    log->appendHtml(QString("<p style='color: " + color.name(QColor::HexRgb) + "'>") +
-                    QString(message.c_str()).toHtmlEscaped() + "</p>");
-    if(*show_error && level <= Log::LOG_ERROR || *show_warning && level <= Log::LOG_WARNING)
-      log_container->setVisible(true);
-  };
+    {
+      QColor color = text_color;
+      if(level == Log::LOG_WARNING)
+        color = orange;
+      else if(level == Log::LOG_ERROR)
+        color = red;
+      else if(level == Log::LOG_DEBUG)
+        color = blue;
+      log->moveCursor(QTextCursor::End);
+      log->appendHtml(QString("<p style='color: " + color.name(QColor::HexRgb) + "'>") +
+                      QString(message.c_str()).toHtmlEscaped() + "</p>");
+      if(*show_error && level <= Log::LOG_ERROR || *show_warning && level <= Log::LOG_WARNING)
+        log_container->setVisible(true);
+    });
+  // tool log
+  Log::log_printers.push_back(
+    [show_error = &show_log_on_error_,
+     show_warning = &show_log_on_warning_,
+     log = ui->tool_log_frame,
+     log_container = ui->log_container,
+     orange = colors::ORANGE,
+     red = colors::RED,
+     blue = colors::LIGHT_BLUE,
+     text_color = palette().color(QPalette::Text)](std::string message, Log::LogLevel level)
+    {
+      QColor color = text_color;
+      if(level == Log::LOG_WARNING)
+        color = orange;
+      else if(level == Log::LOG_ERROR)
+        color = red;
+      else if(level == Log::LOG_DEBUG)
+        color = blue;
+      log->moveCursor(QTextCursor::End);
+      log->appendHtml(QString("<p style='color: " + color.name(QColor::HexRgb) + "'>") +
+                      QString(message.c_str()).toHtmlEscaped() + "</p>");
+      if(*show_error && level <= Log::LOG_ERROR || *show_warning && level <= Log::LOG_WARNING)
+        log_container->setVisible(true);
+    });
+
   QStringList config_paths = QStandardPaths::standardLocations(QStandardPaths::AppConfigLocation);
   if(!config_paths.empty())
     Log::init(std::filesystem::path(config_paths[0].toStdString()) / "logs");
@@ -987,18 +1013,18 @@ void MainWindow::runConcurrent(QString command, QString name, QString type, bool
   Log::info(
     ("Running " + type.toLower() + " '" + name + "' with command '" + command + "'").toStdString());
   auto watcher = new QFutureWatcher<QPair<QString, int>>;
-  connect(watcher,
-          &QFutureWatcher<QPair<QString, int>>::finished,
-          [watcher, name, type]()
-          {
-            auto result = watcher->result();
-            if(!result.first.isEmpty())
-              Log::info((type + " '" + name + "' output: \n" + result.first).toStdString());
-            Log::info(
-              (type + " '" + name + "' exited with return code " + QString::number(result.second))
-                .toStdString());
-            delete watcher;
-          });
+  connect(
+    watcher,
+    &QFutureWatcher<QPair<QString, int>>::finished,
+    [watcher, name, type]()
+    {
+      auto result = watcher->result();
+      if(!result.first.isEmpty())
+        Log::info((type + " '" + name + "' output: \n" + result.first).toStdString(), LOG_TOOLS);
+      Log::info((type + " '" + name + "' exited with return code " + QString::number(result.second))
+                  .toStdString());
+      delete watcher;
+    });
   auto future = QtConcurrent::run(this, &MainWindow::runCommand, command, ignore_flatpak);
   watcher->setFuture(future);
 }
