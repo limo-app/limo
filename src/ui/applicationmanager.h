@@ -385,13 +385,15 @@ signals:
    * \param extracted_path Path to which the mod was extracted.
    * \param local_source Source archive for the mod.
    * \param remote_source URL from where the mod was downloaded.
+   * \param If not empty: Use this to overwrite the default version.
    */
   void extractionComplete(int app_id,
                           int mod_id,
                           bool success,
                           QString extracted_path,
                           QString local_source,
-                          QString remote_source);
+                          QString remote_source,
+                          QString version);
   /*!
    * \brief Sends a log message to the logging window.
    * \param log_level Type of message.
@@ -729,12 +731,14 @@ public slots:
    * \param source Source path.
    * \param target Extraction target path.
    * \param remote_source URL from where the mod was downloaded.
+   * \param If not empty: Use this to overwrite the default version.
    */
   void extractArchive(int app_id,
                       int mod_id,
                       QString source,
                       QString target,
-                      QString remote_source);
+                      QString remote_source,
+                      QString version);
   /*!
    * \brief Adds a new target file or directory to be managed by the BackupManager of given
    * ModdedApplication.

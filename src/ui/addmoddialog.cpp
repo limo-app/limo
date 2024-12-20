@@ -99,7 +99,8 @@ bool AddModDialog::setupDialog(const QString& name,
                                const QString& remote_source,
                                int mod_id,
                                const QStringList& mod_names,
-                               const QStringList& mod_versions)
+                               const QStringList& mod_versions,
+                               const QString& version_overwrite)
 {
   ui->name_text->setFocus();
   app_id_ = app_id;
@@ -155,6 +156,8 @@ bool AddModDialog::setupDialog(const QString& name,
     ui->version_text->setText("1.0");
     ui->name_text->setText(name);
   }
+  if(!version_overwrite.isEmpty())
+    ui->version_text->setText(version_overwrite);
   ui->installer_box->clear();
   int root_level = 0;
   std::string prefix;

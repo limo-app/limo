@@ -881,7 +881,8 @@ void MainWindow::importMod()
                       info.mod_id,
                       info.local_source.c_str(),
                       info.target_path.c_str(),
-                      info.remote_source.c_str());
+                      info.remote_source.c_str(),
+                      info.version_overwrite.c_str());
 }
 
 void MainWindow::setBusyStatus(bool busy, bool show_progress_bar, bool disable_app_launch)
@@ -1082,7 +1083,8 @@ void MainWindow::loadSettings()
      (mod_list_sort_order == Qt::SortOrder::DescendingOrder ||
       mod_list_sort_order == Qt::SortOrder::AscendingOrder))
   {
-    ui->mod_list->sortByColumn(mod_list_sort_column, static_cast<Qt::SortOrder>(mod_list_sort_order));
+    ui->mod_list->sortByColumn(mod_list_sort_column,
+                               static_cast<Qt::SortOrder>(mod_list_sort_order));
   }
 }
 
@@ -1903,7 +1905,8 @@ void MainWindow::onExtractionComplete(int app_id,
                                       bool success,
                                       QString extracted_path,
                                       QString local_source,
-                                      QString remote_source)
+                                      QString remote_source,
+                                      QString version)
 {
   setBusyStatus(false);
   if(!success)
@@ -1962,7 +1965,8 @@ void MainWindow::onExtractionComplete(int app_id,
                                                      remote_source,
                                                      mod_id,
                                                      mod_names,
-                                                     mod_versions);
+                                                     mod_versions,
+                                                     version);
   if(was_successful)
   {
     setBusyStatus(true, false);
@@ -2638,9 +2642,8 @@ void MainWindow::onBackupTargetRemoveClicked(int target, QString name)
 {
   if(ask_remove_backup_target_)
   {
-    message_box_->setText(
-      "Are you sure you want to remove \"" + name +
-      "\"? This will delete all backups except for the currently active one.");
+    message_box_->setText("Are you sure you want to remove \"" + name +
+                          "\"? This will delete all backups except for the currently active one.");
     auto* check_box = message_box_->checkBox();
     check_box->setHidden(false);
     check_box->setCheckState(Qt::Unchecked);
@@ -3119,7 +3122,11 @@ void MainWindow::onDownloadComplete(int app_id, int mod_id, QString file_path, Q
   importMod();
 }
 
-void MainWindow::onModDownloadRequested(int app_id, int mod_id, int file_id, QString mod_url)
+void MainWindow::onModDownloadRequested(int app_id,
+                                        int mod_id,
+                                        int file_id,
+                                        QString mod_url,
+                                        QString version)
 {
   ImportModInfo info;
   info.app_id = app_id;
@@ -3127,6 +3134,7 @@ void MainWindow::onModDownloadRequested(int app_id, int mod_id, int file_id, QSt
   info.nexus_file_id = file_id;
   info.remote_source = mod_url.toStdString();
   info.mod_id = mod_id;
+  info.version_overwrite = version.toStdString();
   mod_import_queue_.push(info);
   if(mod_import_queue_.size() == 1)
     importMod();

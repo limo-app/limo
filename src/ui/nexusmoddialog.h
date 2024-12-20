@@ -75,6 +75,7 @@ signals:
    * \param mod_id Limo mod id for the mod to which the page belongs.
    * \param file_id NexusMods file id used for the download.
    * \param mod_url URL of the mod page on NexusMods.
+   * \param version If not empty: Use this to overwrite the default version.
    */
-  void modDownloadRequested(int app_id, int mod_id, int file_id, QString mod_url);
+  void modDownloadRequested(int app_id, int mod_id, int file_id, QString mod_url, QString version);
 };

@@ -610,13 +610,15 @@ public slots:
    * \param extracted_path Path to which the mod was extracted.
    * \param local_source Source archive for the mod.
    * \param remote_source URL from where the mod was downloaded.
+   * \param version If not empty: Use this to overwrite the default version.
    */
   void onExtractionComplete(int app_id,
                             int mod_id,
                             bool success,
                             QString extracted_path,
                             QString local_source,
-                            QString remote_source);
+                            QString remote_source,
+                            QString version);
   /*! \brief Called when the settings dialog has completed. Updates state with new settings. */
   void onSettingsDialogComplete();
   /*!
@@ -965,8 +967,9 @@ private slots:
    * mod id, NOT the NexusMods id.
    * \param file_id NexusMods file id of the target file.
    * \param mod_url Url to the NexusMods page of the mod.
+   * \param version If not empty: Use this to overwrite the default version.
    */
-  void onModDownloadRequested(int app_id, int mod_id, int file_id, QString mod_url);
+  void onModDownloadRequested(int app_id, int mod_id, int file_id, QString mod_url, QString version);
   /*! \brief Cancels installation of the pending mod. */
   void onDownloadFailed();
   /*! \brief Reinstalls the currently selected mod from the local source. */
@@ -1352,13 +1355,15 @@ signals:
    * \param mod_id Id of the mod for which the file is to be extracted or -1 if this is a new mod.
    * \param source Source path.
    * \param target Target path
-   * \param remote_source URL from where the mod was downloaded..
+   * \param remote_source URL from where the mod was downloaded.
+   * \param version If not empty: Use this to overwrite the default version.
    */
   void extractArchive(int app_id,
                       int mod_id,
                       QString source,
                       QString target,
-                      QString remote_source);
+                      QString remote_source,
+                      QString version);
   /*!
    * \brief Requests info about backups for one ModdedApplication.
    * \param app_id Target app.

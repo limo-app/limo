@@ -629,13 +629,14 @@ void ApplicationManager::extractArchive(int app_id,
                                         int mod_id,
                                         QString source,
                                         QString target,
-                                        QString remote_source)
+                                        QString remote_source,
+                                        QString version)
 {
   bool has_thrown = true;
   if(appIndexIsValid(0))
     has_thrown = handleExceptions<&ModdedApplication::extractArchive>(
       0, source.toStdString(), target.toStdString());
-  emit extractionComplete(app_id, mod_id, !has_thrown, target, source, remote_source);
+  emit extractionComplete(app_id, mod_id, !has_thrown, target, source, remote_source, version);
 }
 
 void ApplicationManager::addBackupTarget(int app_id,

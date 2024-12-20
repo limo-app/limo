@@ -42,6 +42,8 @@ struct ImportModInfo
   /*! \brief Time at which this object was added to the queue. Used for sorting. */
   std::chrono::time_point<std::chrono::high_resolution_clock> queue_time =
     std::chrono::high_resolution_clock::now();
+  /*! \brief If this is not empty: Use this as mod version. */
+  std::string version_overwrite = "";
 
   /*!
    * \brief Compares with another ImportModInfo object by their type.

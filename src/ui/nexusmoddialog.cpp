@@ -1,4 +1,5 @@
 #include "nexusmoddialog.h"
+#include "core/log.h"
 #include "tablepushbutton.h"
 #include "ui_nexusmoddialog.h"
 #include <QDebug>
@@ -6,7 +7,11 @@
 #include <QRegularExpression>
 #include <QSettings>
 #include <QSpacerItem>
+#include <algorithm>
+#include <ranges>
 #include <sstream>
+
+namespace str = std::ranges;
 
 
 NexusModDialog::NexusModDialog(QWidget* parent) : QDialog(parent), ui(new Ui::NexusModDialog)
@@ -52,19 +57,21 @@ void NexusModDialog::setupDialog(int app_id, int mod_id, const nexus::Page& page
 
   const QString mod_link =
     std::format(
-      "<span style=\"font-size:17px\"><b>"
-      "<a href=\"https://nexusmods.com/{}/mods/{}\">Link To NexusMods Page</a></b></span>",
+      "<span style=\"font-size:17px\"><b>" "<a href=\"https://nexusmods.com/{}/mods/{}\">Link To "
+                                           "NexusMods Page</a></b></span>",
       page.mod.domain_name,
       page.mod.mod_id)
       .c_str();
   ui->link_label_desc->setText(mod_link);
   ui->link_label_changelog->setText(mod_link);
   ui->link_label_files->setText(
-    std::format("<span style=\"font-size:17px\"><b>"
-                "<a href=\"https://nexusmods.com/{}/mods/{}?tab=files\">Link To NexusMods "
-                "Page</a></b></span>",
-                page.mod.domain_name,
-                page.mod.mod_id)
+    std::format(
+      "<span style=\"font-size:17px\"><b>" "<a "
+                                           "href=\"https://nexusmods.com/{}/mods/"
+                                           "{}?tab=files\">Link To NexusMods " "Page</a></b></"
+                                                                               "span>",
+      page.mod.domain_name,
+      page.mod.mod_id)
       .c_str());
 
   std::vector<nexus::File> files = page.files;
@@ -152,24 +159,27 @@ void NexusModDialog::setupDialog(int app_id, int mod_id, const nexus::Page& page
     auto manual_link_label = new QLabel();
     manual_link_label->setTextFormat(Qt::RichText);
     manual_link_label->setText(
-      std::format("<b><a href=\"https://nexusmods.com/{}/mods/{}?tab=files&file_id={}\">"
-                  "Manual Download Link</a></b>",
-                  page.mod.domain_name,
-                  page.mod.mod_id,
-                  file.file_id)
+      std::format(
+        "<b><a href=\"https://nexusmods.com/{}/mods/{}?tab=files&file_id={}\">" "Manual Download "
+                                                                                "Link</a></b>",
+        page.mod.domain_name,
+        page.mod.mod_id,
+        file.file_id)
         .c_str());
     manual_link_label->setOpenExternalLinks(true);
     frame_layout->addWidget(manual_link_label);
 
     auto manager_link_label = new QLabel();
     manager_link_label->setTextFormat(Qt::RichText);
-    manager_link_label->setText(
-      std::format("<b><a href=\"https://nexusmods.com/{}/mods/{}?tab=files&file_id={}&nmm=1\">"
-                  "Mod Manager Download Link</a></b>",
-                  page.mod.domain_name,
-                  page.mod.mod_id,
-                  file.file_id)
-        .c_str());
+    manager_link_label->setText(std::format(
+                                  "<b><a "
+                                  "href=\"https://nexusmods.com/{}/mods/"
+                                  "{}?tab=files&file_id={}&nmm=1\">" "Mod Manager Download "
+                                                                     "Link</a></b>",
+                                  page.mod.domain_name,
+                                  page.mod.mod_id,
+                                  file.file_id)
+                                  .c_str());
     manager_link_label->setOpenExternalLinks(true);
     frame_layout->addWidget(manager_link_label);
     QSettings settings(QCoreApplication::applicationName());
@@ -235,5 +245,9 @@ QString NexusModDialog::bbcodeToHtml(const QString& bbcode)
 
 void NexusModDialog::onDownloadClicked(int file_id, int file_id_copy)
 {
-  emit modDownloadRequested(app_id_, mod_id_, file_id, page_.url.c_str());
+  auto iter = str::find_if(page_.files, [file_id](auto f){return f.file_id == file_id;});
+  if(iter == page_.files.end())
+    Log::error(std::format("Failed to parse Nexus response for file: {}", file_id));
+  else
+    emit modDownloadRequested(app_id_, mod_id_, file_id, page_.url.c_str(), iter->version.c_str());
 }
