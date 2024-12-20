@@ -40,6 +40,18 @@
   
   
   <releases>
+    <release version="1.0.10" date="2024-12-20">
+      <description>
+        <p>QoL improvements</p>
+        <ul>
+          <li>Added a separate tab for tool logs</li>
+          <li>Added auto-fill for "Replace Mod" option</li>
+          <li>Added version auto-fill when downloading through Nexus dialog</li>
+          <li>Fixed issue with absolute paths in FOMOD files</li>
+          <li>Fixed potential issue with external tools issue caused by ".lmm_managed_dir" files</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.9" date="2024-11-21">
       <description>
         <p>Reworked tools section</p>
