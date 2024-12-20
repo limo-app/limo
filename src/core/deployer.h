@@ -446,9 +446,8 @@ protected:
    */
   bool checkModPathExistsAndMaybeLogError(int mod_id) const;
   /*!
-   * \brief Writes a file to the given directory that contains this deployer's target directory.
-   * \param directory Directory to which to write the file.
-   * \param overwrite If true: Overwrite an existing file.
+   * \brief Removes a legacy file that is no longer needed and may cause issues.
+   * \param directory Directory from which to remove the file.
    */
-  void writeManagedDirFile(const std::filesystem::path& directory, bool overwrite = false) const;
+  void removeManagedDirFile(const std::filesystem::path& directory) const;
 };

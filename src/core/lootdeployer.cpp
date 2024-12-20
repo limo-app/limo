@@ -746,31 +746,19 @@ void LootDeployer::updateSourceMods()
 {
   log_(Log::LOG_INFO, std::format("Deployer '{}': Finding source mods...", name_));
   source_mods_.clear();
-  const sfs::path managed_file_path = source_path_ / managed_dir_file_name_;
-  if(!sfs::exists(managed_file_path))
-    return;
 
-  std::ifstream file(managed_file_path, std::ios::binary);
-  if(!file.is_open())
-  {
-    log_(Log::LOG_ERROR,
-         std::format("Deployer '{}': Could not read from '{}'", name_, managed_file_path.string()));
-    return;
-  }
-  Json::Value json_object;
-  file >> json_object;
-  file.close();
-  sfs::path deployed_source_path(json_object["target_path"].asString());
-  if(!sfs::exists(deployed_source_path / deployed_files_name_))
+  auto deployed_source_path = getRootOfTargetDirectory(source_path_);
+  if(deployed_source_path)
+    log_(Log::LOG_DEBUG, std::format("Source path: '{}'", deployed_source_path->string()));
+  else
   {
     log_(Log::LOG_ERROR,
          std::format("Deployer '{}': Could not find deployed files at '{}'",
                      name_,
-                     deployed_source_path.string()));
-    return;
+                     deployed_source_path->string()));
   }
-  auto deployed_files = loadDeployedFiles({}, deployed_source_path);
-  const sfs::path relative_path(pu::getRelativePath(source_path_, deployed_source_path));
+  auto deployed_files = loadDeployedFiles({}, *deployed_source_path);
+  const sfs::path relative_path(pu::getRelativePath(source_path_, *deployed_source_path));
   for(const auto& [name, _] : plugins_)
   {
     auto iter = deployed_files.find((relative_path / name).string());
@@ -822,4 +810,23 @@ void LootDeployer::readSourceMods()
   for(int i = 0; i < json_object["source_mods"].size(); i++)
     source_mods_[json_object["source_mods"][i]["plugin"].asString()] =
       json_object["source_mods"][(int)i]["source"].asInt();
+}
+
+std::optional<sfs::path> LootDeployer::getRootOfTargetDirectory(sfs::path target)
+{
+  while(target.string() != "/" && !target.empty())
+  {
+    if(sfs::exists(target / deployed_files_name_))
+      return {target};
+    sfs::path new_target;
+    const int length = pu::getPathLength(target);
+    for(const auto& [i, part]: str::enumerate_view(target))
+    {
+      if(i == length - 1)
+        break;
+      new_target /= part;
+    }
+    target = new_target;
+  }
+  return {};
 }

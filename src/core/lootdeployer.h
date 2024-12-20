@@ -355,4 +355,11 @@ private:
   void writeSourceMods() const;
   /*! \brief Reads the source mods from disk. */
   void readSourceMods();
+  /*!
+   * \brief Finds the directory serving as a target directory for the deployer which manages the
+   * given target path.
+   * \param target Target path to check.
+   * \return The deployers target directory or an empty optional if no directory was found.
+   */
+  std::optional<std::filesystem::path> getRootOfTargetDirectory(std::filesystem::path target);
 };
