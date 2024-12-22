@@ -44,6 +44,8 @@ struct ImportModInfo
     std::chrono::high_resolution_clock::now();
   /*! \brief If this is not empty: Use this as mod version. */
   std::string version_overwrite = "";
+  /*! \brief If this is not empty: Use this as mod name. */
+  std::string name_overwrite = "";
 
   /*!
    * \brief Compares with another ImportModInfo object by their type.

@@ -882,7 +882,8 @@ void MainWindow::importMod()
                       info.local_source.c_str(),
                       info.target_path.c_str(),
                       info.remote_source.c_str(),
-                      info.version_overwrite.c_str());
+                      info.version_overwrite.c_str(),
+                      info.name_overwrite.c_str());
 }
 
 void MainWindow::setBusyStatus(bool busy, bool show_progress_bar, bool disable_app_launch)
@@ -1932,7 +1933,8 @@ void MainWindow::onExtractionComplete(int app_id,
                                       QString extracted_path,
                                       QString local_source,
                                       QString remote_source,
-                                      QString version)
+                                      QString version,
+                                      QString name)
 {
   setBusyStatus(false);
   if(!success)
@@ -1976,30 +1978,32 @@ void MainWindow::onExtractionComplete(int app_id,
       deployer_paths.append(
         ui->info_deployer_list->item(i, getColumnIndex(ui->info_deployer_list, "Target"))->text());
   }
-  std::filesystem::path name = local_source.toStdString();
-  bool was_successful = add_mod_dialog_->setupDialog(name.filename().c_str(),
-                                                     deployers,
-                                                     deployer,
-                                                     group_names,
-                                                     mod_ids,
-                                                     extracted_path,
-                                                     deployer_paths,
-                                                     app_id,
-                                                     auto_deployers,
-                                                     ui->info_version_label->text(),
-                                                     local_source,
-                                                     remote_source,
-                                                     mod_id,
-                                                     mod_names,
-                                                     mod_versions,
-                                                     version);
+  std::filesystem::path mod_path = local_source.toStdString();
+  bool was_successful =
+    add_mod_dialog_->setupDialog(mod_path.filename().c_str(),
+                                 deployers,
+                                 deployer,
+                                 group_names,
+                                 mod_ids,
+                                 extracted_path,
+                                 deployer_paths,
+                                 app_id,
+                                 auto_deployers,
+                                 ui->info_version_label->text(),
+                                 local_source,
+                                 remote_source,
+                                 mod_id,
+                                 mod_names,
+                                 mod_versions,
+                                 version,
+                                 name);
   if(was_successful)
   {
     setBusyStatus(true, false);
     add_mod_dialog_->show();
   }
   else
-    onReceiveError("Error", ("Failed to import mod from \"" + name.string() + "\"").c_str());
+    onReceiveError("Error", ("Failed to import mod from \"" + mod_path.string() + "\"").c_str());
 }
 
 void MainWindow::onSettingsDialogComplete()
@@ -3188,6 +3192,10 @@ void MainWindow::on_actionReinstall_From_Local_triggered()
   }
   const std::string remote_source =
     mod_list_model_->data(index, ModListModel::remote_source_role).toString().toStdString();
+  const std::string name =
+    mod_list_model_->data(index, ModListModel::mod_name_role).toString().toStdString();
+  const std::string version =
+    mod_list_model_->data(index, ModListModel::mod_version_role).toString().toStdString();
 
   ImportModInfo info;
   info.app_id = currentApp();
@@ -3197,6 +3205,8 @@ void MainWindow::on_actionReinstall_From_Local_triggered()
   info.mod_id = mod_id;
   info.target_path = ui->info_sdir_label->text().toStdString();
   info.target_path /= temp_dir_.toStdString();
+  info.name_overwrite = name;
+  info.version_overwrite = version;
   mod_import_queue_.push(info);
   if(mod_import_queue_.size() == 1)
     importMod();

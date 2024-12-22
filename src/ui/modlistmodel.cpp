@@ -166,6 +166,8 @@ QVariant ModListModel::data(const QModelIndex& index, int role) const
     var.setValue<unsigned long>(active_mods_.at(row).mod.size_on_disk);
     return var;
   }
+  if(role == mod_version_role)
+    return active_mods_[row].mod.version.c_str();
   return QVariant();
 }
 

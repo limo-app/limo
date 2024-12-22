@@ -620,6 +620,7 @@ public slots:
    * \param local_source Source archive for the mod.
    * \param remote_source URL from where the mod was downloaded.
    * \param version If not empty: Use this to overwrite the default version.
+   * \param name If not empty: Use this to overwrite the default name.
    */
   void onExtractionComplete(int app_id,
                             int mod_id,
@@ -627,7 +628,8 @@ public slots:
                             QString extracted_path,
                             QString local_source,
                             QString remote_source,
-                            QString version);
+                            QString version,
+                            QString name);
   /*! \brief Called when the settings dialog has completed. Updates state with new settings. */
   void onSettingsDialogComplete();
   /*!
@@ -1366,13 +1368,15 @@ signals:
    * \param target Target path
    * \param remote_source URL from where the mod was downloaded.
    * \param version If not empty: Use this to overwrite the default version.
+   * \param name If not empty: Use this to overwrite the default name.
    */
   void extractArchive(int app_id,
                       int mod_id,
                       QString source,
                       QString target,
                       QString remote_source,
-                      QString version);
+                      QString version,
+                      QString name);
   /*!
    * \brief Requests info about backups for one ModdedApplication.
    * \param app_id Target app.

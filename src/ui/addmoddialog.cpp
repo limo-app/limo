@@ -101,7 +101,8 @@ bool AddModDialog::setupDialog(const QString& name,
                                int mod_id,
                                const QStringList& mod_names,
                                const QStringList& mod_versions,
-                               const QString& version_overwrite)
+                               const QString& version_overwrite,
+                               const QString& name_overwrite)
 {
   ui->name_text->setFocus();
   app_id_ = app_id;
@@ -135,10 +136,13 @@ bool AddModDialog::setupDialog(const QString& name,
       ui->group_combo_box->setCurrentIndex(REPLACE_MOD_INDEX);
     }
   }
+
   std::regex name_regex(R"(-\d+((?:-[\dA-Za-z]+)+)-\d+\.(?:zip|7z|rar)$)");
   std::smatch match;
   std::string name_str = name.toStdString();
-  if(mod_index >= 0 && mod_index < mod_names.size())
+  if(!name_overwrite.isEmpty())
+    ui->name_text->setText(name_overwrite);
+  else if(mod_index >= 0 && mod_index < mod_names.size())
   {
     ui->name_text->setText(mod_names[mod_index]);
     ui->version_text->setText(mod_versions[mod_index]);
@@ -157,6 +161,7 @@ bool AddModDialog::setupDialog(const QString& name,
     ui->version_text->setText("1.0");
     ui->name_text->setText(name);
   }
+
   if(!version_overwrite.isEmpty())
     ui->version_text->setText(version_overwrite);
 
@@ -185,9 +190,9 @@ bool AddModDialog::setupDialog(const QString& name,
   {
     auto [name, version] =
       fomod::FomodInstaller::getMetaData(sfs::path(mod_path_.toStdString()) / prefix);
-    if(!name.empty())
+    if(!name.empty() && name_overwrite.isEmpty())
       ui->name_text->setText(name.c_str());
-    if(!version.empty())
+    if(!version.empty() && version_overwrite.isEmpty())
       ui->version_text->setText(version.c_str());
   }
   path_prefix_ = prefix.c_str();

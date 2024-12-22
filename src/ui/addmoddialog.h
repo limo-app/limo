@@ -54,6 +54,7 @@ public:
    * \param mod_names Contains the name of all currently installed mods.
    * \param mod_versions Contains the versions of all currently installed mods.
    * \param version_overwrite If not empty: Use this to overwrite the default version.
+   * \param name_overwrite If not empty: Use this to overwrite the default name.
    * \return True if dialog creation was successful.
    */
   bool setupDialog(const QString& name,
@@ -71,7 +72,8 @@ public:
                    int mod_id,
                    const QStringList& mod_names,
                    const QStringList& mod_versions,
-                   const QString& version_overwrite);
+                   const QString& version_overwrite,
+                   const QString& name_overwrite);
   /*!
    * \brief Closes the dialog and emits a signal indicating installation has been canceled.
    * \param event The close even sent upon closing the dialog.
