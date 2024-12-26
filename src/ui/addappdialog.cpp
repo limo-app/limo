@@ -215,6 +215,10 @@ void AddAppDialog::initConfigForApp()
         }
         info.source_dir = source_dir;
       }
+      if(!deployer[JSON_DEPLOYERS_SEPARATE_DIRS].isNull())
+        info.separate_profile_dirs = deployer[JSON_DEPLOYERS_SEPARATE_DIRS].asBool();
+      if(!deployer[JSON_DEPLOYERS_UPDATE_IGNORE_LIST].isNull())
+        info.separate_profile_dirs = deployer[JSON_DEPLOYERS_UPDATE_IGNORE_LIST].asBool();
       deployers_.push_back(info);
     }
     Log::debug(std::format("Found {} deployers", deployers_.size()));

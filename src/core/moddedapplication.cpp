@@ -1603,6 +1603,12 @@ void ModdedApplication::exportConfiguration(const std::vector<int>& deployers,
     // use hard link by default; import will auto change this to sym link when needed
     json["deployers"][i]["deploy_mode"] =
       deployer->getDeployMode() == Deployer::copy ? "copy" : "hard_link";
+    if(deployer->getType() == DeployerFactory::REVERSEDEPLOYER)
+    {
+      auto rev_depl = static_cast<ReverseDeployer*>(deployer.get());
+      json["deployers"][i]["uses_separate_dirs"] = rev_depl->usesSeparateDirs();
+      json["deployers"][i]["update_ignore_list"] = true;
+    }
     i++;
   }
 

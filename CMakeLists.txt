@@ -132,9 +132,15 @@ set(PROJECT_SOURCES
         src/core/nexus/file.h
         src/core/nexus/mod.cpp
         src/core/nexus/mod.h
+        src/core/openmwarchivedeployer.cpp
+        src/core/openmwarchivedeployer.h
+        src/core/openmwplugindeployer.cpp
+        src/core/openmwplugindeployer.h
         src/core/parseerror.h
         src/core/pathutils.cpp
         src/core/pathutils.h
+        src/core/plugindeployer.cpp
+        src/core/plugindeployer.h
         src/core/progressnode.cpp
         src/core/progressnode.h
         src/core/reversedeployer.cpp

@@ -17,43 +17,30 @@ namespace pu = path_utils;
 LootDeployer::LootDeployer(const sfs::path& source_path,
                            const sfs::path& dest_path,
                            const std::string& name,
-                           bool init_tags) : Deployer(source_path, dest_path, name)
+                           bool init_tags,
+                           bool perform_init) : PluginDeployer(source_path, dest_path, name)
 {
   LIST_URLS = DEFAULT_LIST_URLS;
+  // make sure no hard link related checks are performed
+  deploy_mode_ = copy;
+  if(!perform_init)
+    return;
   type_ = "Loot Deployer";
   is_autonomous_ = true;
+  plugin_regex_ = R"(.*\.[eE][sS][pPlLmM]$)";
+  plugin_file_line_regex = R"(^\s*(\*?)([^#]*\.[eE][sS][pPlLmM])(\r?))";
+  config_file_name_ = ".lmmconfig";
+  tags_file_name_ = ".loot_tags";
+  source_mods_file_name_ = ".lmm_mod_sources";
   updateAppType();
   setupPluginFiles();
   loadPlugins();
   updatePlugins();
-  if(sfs::exists(dest_path_ / CONFIG_FILE_NAME))
+  if(sfs::exists(dest_path_ / config_file_name_))
     loadSettings();
   if(init_tags)
     readPluginTags();
   readSourceMods();
-  // make sure no hard link related checks are performed
-  deploy_mode_ = copy;
-}
-
-std::map<int, unsigned long> LootDeployer::deploy(std::optional<ProgressNode*> progress_node)
-{
-  log_(Log::LOG_INFO, std::format("Deployer '{}': Updating plugins...", name_));
-  restoreUndeployBackupIfExists();
-  updatePlugins();
-  updatePluginTags();
-  updateSourceMods();
-  return {};
-}
-
-std::map<int, unsigned long> LootDeployer::deploy(const std::vector<int>& loadorder,
-                                                  std::optional<ProgressNode*> progress_node)
-{
-  log_(Log::LOG_INFO, std::format("Deployer '{}': Updating plugins...", name_));
-  restoreUndeployBackupIfExists();
-  updatePlugins();
-  updatePluginTags();
-  updateSourceMods();
-  return {};
 }
 
 void LootDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
@@ -75,47 +62,6 @@ void LootDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
   log_(Log::LOG_INFO, std::format("Deployer '{}': Updating plugins...", name_));
   updatePlugins();
   updatePluginTags();
-}
-
-void LootDeployer::changeLoadorder(int from_index, int to_index)
-{
-  if(to_index == from_index)
-    return;
-  if(to_index < 0 || to_index >= plugins_.size())
-    return;
-  if(to_index < from_index)
-    std::rotate(plugins_.begin() + to_index,
-                plugins_.begin() + from_index,
-                plugins_.begin() + from_index + 1);
-  else
-    std::rotate(plugins_.begin() + from_index,
-                plugins_.begin() + from_index + 1,
-                plugins_.begin() + to_index + 1);
-  writePlugins();
-}
-
-void LootDeployer::setModStatus(int mod_id, bool status)
-{
-  if(mod_id >= plugins_.size() || mod_id < 0)
-    return;
-  plugins_[mod_id].second = status;
-  writePlugins();
-}
-
-std::vector<std::vector<int>> LootDeployer::getConflictGroups() const
-{
-  std::vector<int> group(plugins_.size());
-  std::iota(group.begin(), group.end(), 0);
-  return { group };
-}
-
-std::vector<std::string> LootDeployer::getModNames() const
-{
-  std::vector<std::string> names{};
-  names.reserve(plugins_.size());
-  for(int i = 0; i < plugins_.size(); i++)
-    names.push_back(plugins_[i].first);
-  return names;
 }
 
 void LootDeployer::addProfile(int source)
@@ -190,77 +136,6 @@ void LootDeployer::setProfile(int profile)
   updatePlugins();
 }
 
-void LootDeployer::setConflictGroups(const std::vector<std::vector<int>>& newConflict_groups)
-{
-  log_(
-    Log::LOG_DEBUG,
-    "WARNING: You are trying to set a load order for an autonomous" " deployer. This will have " "n" "o" " " "e" "f" "f" "e" "c" "t");
-}
-
-int LootDeployer::getNumMods() const
-{
-  return plugins_.size();
-}
-
-std::vector<std::tuple<int, bool>> LootDeployer::getLoadorder() const
-{
-  std::vector<std::tuple<int, bool>> loadorder;
-  loadorder.reserve(plugins_.size());
-  // for(int i = 0; i < plugins_.size(); i++)
-  //   loadorder.emplace_back(i, plugins_[i].second);
-  for(const auto& [plugin, enabled] : plugins_)
-  {
-    auto iter = source_mods_.find(plugin);
-    int id = -1;
-    if(iter != source_mods_.end())
-      id = iter->second;
-    loadorder.emplace_back(id, enabled);
-  }
-  return loadorder;
-}
-
-bool LootDeployer::addMod(int mod_id, bool enabled, bool update_conflicts)
-{
-  log_(
-    Log::LOG_DEBUG,
-    "WARNING: You are trying to add a mod to an autonomous" " deployer. This will have no effect");
-  return false;
-}
-
-bool LootDeployer::removeMod(int mod_id)
-{
-  log_(
-    Log::LOG_DEBUG,
-    "WARNING: You are trying to remove a mod from an autonomous" " deployer. This will have no " "e" "f" "f" "e" "c" "t");
-  return false;
-}
-
-bool LootDeployer::hasMod(int mod_id) const
-{
-  return false;
-}
-
-bool LootDeployer::swapMod(int old_id, int new_id)
-{
-  log_(
-    Log::LOG_DEBUG,
-    "WARNING: You are trying to swap a mod in an autonomous" " deployer. This will have no effect");
-  return false;
-}
-
-std::vector<ConflictInfo> LootDeployer::getFileConflicts(
-  int mod_id,
-  bool show_disabled,
-  std::optional<ProgressNode*> progress_node) const
-{
-  if(progress_node)
-  {
-    (*progress_node)->setTotalSteps(1);
-    (*progress_node)->advance();
-  }
-  return {};
-}
-
 std::unordered_set<int> LootDeployer::getModConflicts(int mod_id,
                                                       std::optional<ProgressNode*> progress_node)
 {
@@ -302,7 +177,7 @@ void LootDeployer::sortModsByConflicts(std::optional<ProgressNode*> progress_nod
                              "settings. Alternatively, you can manually download the " +
                              "file and place it in '" + dest_path_.string() + "'.\nYou can " +
                              "disable auto updates in '" +
-                             (dest_path_ / CONFIG_FILE_NAME).string() + "'.");
+                             (dest_path_ / config_file_name_).string() + "'.");
   auto loot_handle = loot::CreateGameHandle(app_type_, source_path_, dest_path_);
   sfs::path user_list_path(dest_path_ / "userlist.yaml");
   if(!sfs::exists(user_list_path))
@@ -383,13 +258,8 @@ void LootDeployer::cleanup()
   }
   current_profile_ = 0;
   num_profiles_ = 1;
-  if(sfs::exists(dest_path_ / CONFIG_FILE_NAME))
-    sfs::remove(dest_path_ / CONFIG_FILE_NAME);
-}
-
-std::vector<std::vector<std::string>> LootDeployer::getAutoTags()
-{
-  return tags_;
+  if(sfs::exists(dest_path_ / config_file_name_))
+    sfs::remove(dest_path_ / config_file_name_);
 }
 
 std::map<std::string, int> LootDeployer::getAutoTagMap()
@@ -399,105 +269,10 @@ std::map<std::string, int> LootDeployer::getAutoTagMap()
            { STANDARD_PLUGIN, num_standard_plugins_ } };
 }
 
-std::vector<std::pair<sfs::path, int>> LootDeployer::getExternallyModifiedFiles(
-  std::optional<ProgressNode*> progress_node) const
-{
-  return {};
-}
-
-void LootDeployer::keepOrRevertFileModifications(const FileChangeChoices& changes_to_keep) {}
-
-void LootDeployer::updateDeployedFilesForMod(int mod_id,
-                                             std::optional<ProgressNode*> progress_node) const
-{}
-
-void LootDeployer::fixInvalidLinkDeployMode() {}
-
-void LootDeployer::setDeployMode(DeployMode deploy_mode)
-{
-  deploy_mode_ = copy;
-}
-
-int LootDeployer::getDeployPriority() const
-{
-  return 1;
-}
-
-bool LootDeployer::supportsFileConflicts() const
-{
-  return false;
-}
-
-bool LootDeployer::supportsFileBrowsing() const
-{
-  return false;
-}
-
-bool LootDeployer::idsAreSourceReferences() const
-{
-  return true;
-}
-
-void LootDeployer::updatePlugins()
-{
-  std::vector<std::string> plugin_files;
-  std::vector<std::pair<std::string, bool>> new_plugins;
-  for(const auto& dir_entry : sfs::directory_iterator(source_path_))
-  {
-    if(dir_entry.is_directory())
-      continue;
-    const std::string file_name = dir_entry.path().filename().string();
-    if(std::regex_match(file_name, std::regex(R"(.*\.[eE][sS][pPlLmM]$)")))
-      plugin_files.push_back(file_name);
-  }
-  for(auto it = plugins_.begin(); it != plugins_.end(); it++)
-  {
-    if(str::find_if(plugin_files, [&it](const auto& s) { return it->first == s; }) !=
-       plugin_files.end())
-      new_plugins.emplace_back(*it);
-  }
-  for(auto it = plugin_files.begin(); it != plugin_files.end(); it++)
-  {
-    if(str::find_if(new_plugins, [&it](auto& p) { return p.first == *it; }) == new_plugins.end())
-      new_plugins.emplace_back(*it, true);
-  }
-  plugins_ = new_plugins;
-  writePlugins();
-}
-
-void LootDeployer::loadPlugins()
-{
-  plugins_.clear();
-  std::string line;
-  std::ifstream plugin_file;
-  plugin_file.open(dest_path_ / plugin_file_name_);
-  if(!plugin_file.is_open())
-    throw std::runtime_error("Could not open " + plugin_file_name_ +
-                             "!\nMake sure you have launched the game at least once.");
-  while(getline(plugin_file, line))
-  {
-    std::smatch match;
-    if(std::regex_match(line, match, std::regex(R"(^\s*(\*?)([^#]*\.es[plm])(\r?))")))
-      plugins_.emplace_back(match[2], match[1] == "*");
-  }
-  plugin_file.close();
-  std::ifstream loadorder_file;
-  loadorder_file.open(dest_path_ / LOADORDER_FILE_NAME);
-  if(!loadorder_file.is_open())
-    throw std::runtime_error("Could not open " + LOADORDER_FILE_NAME +
-                             "!\nMake sure you have launched the game at least once.");
-  loadorder_file.close();
-}
-
 void LootDeployer::writePlugins() const
 {
-  std::ofstream plugin_file;
-  plugin_file.open(dest_path_ / plugin_file_name_);
-  if(!plugin_file.is_open())
-    throw std::runtime_error("Could not open " + plugin_file_name_ + "!");
-  for(const auto& [name, status] : plugins_)
-    plugin_file << (status ? "*" : "") << name << "\n";
-  plugin_file.close();
+  PluginDeployer::writePlugins();
+
   std::ofstream loadorder_file;
   loadorder_file.open(dest_path_ / LOADORDER_FILE_NAME);
   if(!loadorder_file.is_open())
@@ -514,7 +289,7 @@ void LootDeployer::saveSettings() const
   settings["current_profile"] = current_profile_;
   settings["list_download_time"] = list_download_time_;
   settings["auto_update_master_list"] = auto_update_lists_;
-  sfs::path settings_file_path = dest_path_ / CONFIG_FILE_NAME;
+  sfs::path settings_file_path = dest_path_ / config_file_name_;
   std::ofstream file(settings_file_path, std::fstream::binary);
   if(!file.is_open())
     throw std::runtime_error("Error: Could not write to \"" + settings_file_path.string() + "\".");
@@ -525,7 +300,7 @@ void LootDeployer::saveSettings() const
 void LootDeployer::loadSettings()
 {
   Json::Value settings;
-  sfs::path settings_file_path = dest_path_ / CONFIG_FILE_NAME;
+  sfs::path settings_file_path = dest_path_ / config_file_name_;
   if(!sfs::exists(settings_file_path))
   {
     resetSettings();
@@ -636,26 +411,9 @@ void LootDeployer::updatePluginTags()
   writePluginTags();
 }
 
-void LootDeployer::writePluginTags() const
-{
-  Json::Value json;
-  for(int i = 0; i < tags_.size(); i++)
-  {
-    for(int j = 0; j < tags_[i].size(); j++)
-      json[i][j] = tags_.at(i).at(j);
-  }
-
-  const sfs::path tag_file_path = dest_path_ / TAGS_FILE_NAME;
-  std::ofstream file(tag_file_path, std::fstream::binary);
-  if(!file.is_open())
-    throw std::runtime_error("Error: Could not write to \"" + tag_file_path.string() + "\".");
-  file << json;
-  file.close();
-}
-
 void LootDeployer::readPluginTags()
 {
-  const sfs::path tag_file_path = dest_path_ / TAGS_FILE_NAME;
+  const sfs::path tag_file_path = dest_path_ / tags_file_name_;
   if(!sfs::exists(tag_file_path))
   {
     updatePluginTags();
@@ -714,7 +472,7 @@ void LootDeployer::downloadList(std::string url, const std::string& file_name)
                              "settings. Alternatively, you can manually download the " +
                              "file and place it in '" + dest_path_.string() +
                              "'. You can disable auto updates in '" +
-                             (dest_path_ / CONFIG_FILE_NAME).string() + "'.");
+                             (dest_path_ / config_file_name_).string() + "'.");
   }
   if(sfs::exists(dest_path_ / file_name))
     sfs::remove(dest_path_ / file_name);
@@ -740,93 +498,4 @@ void LootDeployer::restoreUndeployBackupIfExists()
     sfs::rename(plugin_backup_path, dest_path_ / plugin_file_name_);
     loadPlugins();
   }
-}
-
-void LootDeployer::updateSourceMods()
-{
-  log_(Log::LOG_INFO, std::format("Deployer '{}': Finding source mods...", name_));
-  source_mods_.clear();
-
-  auto deployed_source_path = getRootOfTargetDirectory(source_path_);
-  if(deployed_source_path)
-    log_(Log::LOG_DEBUG, std::format("Source path: '{}'", deployed_source_path->string()));
-  else
-  {
-    log_(Log::LOG_ERROR,
-         std::format("Deployer '{}': Could not find deployed files at '{}'",
-                     name_,
-                     deployed_source_path->string()));
-  }
-  auto deployed_files = loadDeployedFiles({}, *deployed_source_path);
-  const sfs::path relative_path(pu::getRelativePath(source_path_, *deployed_source_path));
-  for(const auto& [name, _] : plugins_)
-  {
-    auto iter = deployed_files.find((relative_path / name).string());
-    if(iter != deployed_files.end())
-      source_mods_[name] = iter->second;
-  }
-  writeSourceMods();
-}
-
-void LootDeployer::writeSourceMods() const
-{
-  Json::Value json_object;
-  for(const auto& [i, pair] : str::enumerate_view(source_mods_))
-  {
-    const auto& [plugin, source] = pair;
-    json_object["source_mods"][(int)i]["plugin"] = plugin;
-    json_object["source_mods"][(int)i]["source"] = source;
-  }
-
-  std::ofstream file(dest_path_ / SOURCE_MODS_FILE_NAME, std::ios::binary);
-  if(!file.is_open())
-  {
-    log_(Log::LOG_ERROR,
-         std::format(
-           "Deployed '{}': Failed to write mod sources to '{}'", name_, dest_path_.string()));
-    return;
-  }
-  file << json_object;
-}
-
-void LootDeployer::readSourceMods()
-{
-  const sfs::path dest_path = dest_path_ / SOURCE_MODS_FILE_NAME;
-  if(!sfs::exists(dest_path))
-    return;
-
-  std::ifstream file(dest_path, std::ios::binary);
-  if(!file.is_open())
-  {
-    log_(Log::LOG_ERROR,
-         std::format(
-           "Deployed '{}': Failed to read mod sources from '{}'", name_, dest_path_.string()));
-    return;
-  }
-  Json::Value json_object;
-  file >> json_object;
-  file.close();
-  source_mods_.clear();
-  for(int i = 0; i < json_object["source_mods"].size(); i++)
-    source_mods_[json_object["source_mods"][i]["plugin"].asString()] =
-      json_object["source_mods"][(int)i]["source"].asInt();
-}
-
-std::optional<sfs::path> LootDeployer::getRootOfTargetDirectory(sfs::path target)
-{
-  while(target.string() != "/" && !target.empty())
-  {
-    if(sfs::exists(target / deployed_files_name_))
-      return {target};
-    sfs::path new_target;
-    const int length = pu::getPathLength(target);
-    for(const auto& [i, part]: str::enumerate_view(target))
-    {
-      if(i == length - 1)
-        break;
-      new_target /= part;
-    }
-    target = new_target;
-  }
-  return {};
 }

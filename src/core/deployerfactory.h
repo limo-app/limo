@@ -19,6 +19,10 @@ public:
   inline static const std::string LOOTDEPLOYER{ "Loot Deployer" };
   /*! \brief Moves all files not from a mod out of the target directory and links them back in. */
   inline static const std::string REVERSEDEPLOYER{ "Reverse Deployer" };
+  /*! \brief Manages archive files for OpenMW. */
+  inline static const std::string OPENMWPLUGINDEPLOYER{ "OpenMW Plugin Deployer" };
+  /*! \brief Manages plugin files for OpenMW. */
+  inline static const std::string OPENMWARCHIVEDEPLOYER{ "OpenMW Archive Deployer" };
   /*!
    * \brief Returns a vector of available deployer types.
    * \return The vector of deployer types.
@@ -27,7 +31,9 @@ public:
   inline static const std::vector<std::string> DEPLOYER_TYPES{ CASEMATCHINGDEPLOYER,
                                                                SIMPLEDEPLOYER,
                                                                LOOTDEPLOYER,
-                                                               REVERSEDEPLOYER };
+                                                               REVERSEDEPLOYER,
+                                                               OPENMWPLUGINDEPLOYER,
+                                                               OPENMWARCHIVEDEPLOYER };
   /*! \brief Maps deployer types to a description of what they do. */
   inline static const std::map<std::string, std::string> DEPLOYER_DESCRIPTIONS{
     { SIMPLEDEPLOYER,
@@ -45,7 +51,14 @@ public:
     { REVERSEDEPLOYER,
       "Moves all files not managed by another deployer out of the target directory and "
       "links them back in on deployment. Can be used to either track files created by"
-      "other mods or to manage save files for different profiles." }
+      "other mods or to manage save files for different profiles." },
+    { OPENMWPLUGINDEPLOYER,
+      "Uses LOOT to manage plugins for OpenMW. Source path "
+      "should point to the directory which plugins are installed into."
+      "Target path should point to the directory containing openmw.cfg" },
+    { OPENMWARCHIVEDEPLOYER,
+      "Manages archive (i.e. .bsa) files for OpenMW. Source path should point to the "
+      "Data Files directory. Target path should point to the directory containing openmw.cfg." }
   };
   /*! \brief Maps deployer types to a bool indicating
    *  if the type refers to an autonomous deployer. */
@@ -53,7 +66,9 @@ public:
                                                                         { CASEMATCHINGDEPLOYER,
                                                                           false },
                                                                         { LOOTDEPLOYER, true },
-                                                                        { REVERSEDEPLOYER, true } };
+                                                                        { REVERSEDEPLOYER, true },
+                                                                        { OPENMWPLUGINDEPLOYER, true },
+                                                                        { OPENMWARCHIVEDEPLOYER, true } };
   /*!
    * \brief Constructs a unique pointer to a new deployer of given type.
    * \param type Deployer type to be constructed.

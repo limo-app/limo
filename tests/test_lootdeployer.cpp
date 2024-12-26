@@ -6,10 +6,10 @@
 
 void resetFiles()
 {
-  sfs::path plugin_target = DATA_DIR / "target" / "loot" / "target" / "plugins.txt";
-  sfs::path plugin_source = DATA_DIR / "source" / "loot" / "plugins.txt";
-  sfs::path load_order_target = DATA_DIR / "target" / "loot" / "target" / "loadorder.txt";
-  sfs::path load_order_source = DATA_DIR / "source" / "loot" / "loadorder.txt";
+  const sfs::path plugin_target = DATA_DIR / "target" / "loot" / "target" / "plugins.txt";
+  const sfs::path plugin_source = DATA_DIR / "source" / "loot" / "plugins.txt";
+  const sfs::path load_order_target = DATA_DIR / "target" / "loot" / "target" / "loadorder.txt";
+  const sfs::path load_order_source = DATA_DIR / "source" / "loot" / "loadorder.txt";
   for(const auto& dir_entry : sfs::directory_iterator(DATA_DIR / "target" / "loot" / "target"))
     sfs::remove(dir_entry.path());
   sfs::copy(plugin_source, plugin_target);

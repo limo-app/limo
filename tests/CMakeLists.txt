@@ -69,7 +69,8 @@ set(TEST_SOURCES
         ../src/core/lootdeployer.h
         ../src/core/manualtag.cpp
         ../src/core/manualtag.h
-        ../src/core/mod.h ../src/core/mod.cpp
+        ../src/core/mod.cpp
+        ../src/core/mod.h
         ../src/core/moddedapplication.cpp
         ../src/core/moddedapplication.h
         ../src/core/modinfo.h
@@ -79,9 +80,15 @@ set(TEST_SOURCES
         ../src/core/nexus/file.h
         ../src/core/nexus/mod.cpp
         ../src/core/nexus/mod.h
+        ../src/core/openmwarchivedeployer.cpp
+        ../src/core/openmwarchivedeployer.h
+        ../src/core/openmwplugindeployer.cpp
+        ../src/core/openmwplugindeployer.h
         ../src/core/parseerror.h
         ../src/core/pathutils.cpp
         ../src/core/pathutils.h
+        ../src/core/plugindeployer.cpp
+        ../src/core/plugindeployer.h
         ../src/core/progressnode.cpp
         ../src/core/progressnode.h
         ../src/core/reversedeployer.cpp
@@ -100,6 +107,7 @@ set(TEST_SOURCES
         test_installer.cpp
         test_lootdeployer.cpp
         test_moddedapplication.cpp
+        test_openmwdeployer.cpp
         test_reversedeployer.cpp
         test_tagconditionnode.cpp
         test_tool.cpp

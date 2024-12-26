@@ -49,6 +49,16 @@ private:
   constexpr static inline std::string JSON_DEPLOYERS_MODE = "deploy_mode";
   /*! \brief Name of the key used to identify deployer source dir in the apps config file. */
   constexpr static inline std::string JSON_DEPLOYERS_SOURCE = "source_dir";
+  /*! \brief
+   *  Name of the key used to determine whether a reverse deployer
+   *  uses separate dirctories for profiles.
+   */
+  constexpr static inline char JSON_DEPLOYERS_SEPARATE_DIRS[] = "uses_separate_dirs";
+  /*! \brief
+   *  Name of the key used to determine whether a reverse deployer
+   *  should update the ignore list upon creation.
+   */
+  constexpr static inline char JSON_DEPLOYERS_UPDATE_IGNORE_LIST[] = "update_ignore_list";
   /*! \brief Contains all mandatory valid keys used in a deployer group in the apps config file. */
   constexpr static std::array<std::string, 4> JSON_DEPLOYER_MANDATORY_KEYS{ JSON_DEPLOYERS_TYPE,
                                                                             JSON_DEPLOYERS_NAME,
