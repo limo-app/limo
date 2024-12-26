@@ -1,4 +1,5 @@
 #include "openmwplugindeployer.h"
+#include <format>
 #include <fstream>
 #include <ranges>
 
