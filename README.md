@@ -23,6 +23,9 @@ General purpose mod manager primarily developed for Linux with support for the [
     - Check for mod updates
     - View description, changelogs and available files
     - Download mods through Limo
+- OpenMW support:
+    - Manages plugin and archive (.bsa) files
+    - Supports LOOT
     
 ## How Limo works
 

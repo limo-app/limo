@@ -40,6 +40,15 @@
   
   
   <releases>
+    <release version="1.0.11" date="2024-12-26">
+      <description>
+        <p>OpenMW support</p>
+        <ul>
+          <li>Added two new deployer types for OpenMW</li>
+          <li>Fixed export/ import for reverse deployers</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.10" date="2024-12-20">
       <description>
         <p>QoL improvements</p>
