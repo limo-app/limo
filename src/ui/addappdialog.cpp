@@ -380,7 +380,7 @@ void AddAppDialog::onApplicationImported(QString name,
                                          QString icon_path)
 {
   ui->name_field->setText(name);
-  ui->command_field->setText("steam -applaunch " + app_id);
+  ui->command_field->setText("xdg-open steam://rungameid/" + app_id);
   app_id_ = app_id.toInt();
   steam_install_path_ = install_dir;
   steam_prefix_path_ = prefix_path;
