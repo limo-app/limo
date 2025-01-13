@@ -3,6 +3,7 @@
 #include "core/consts.h"
 #include "core/deployerfactory.h"
 #include "core/parseerror.h"
+#include "core/moddedapplication.h"
 #include "importfromsteamdialog.h"
 #include "ui_addappdialog.h"
 #include <QDebug>
@@ -65,8 +66,21 @@ void AddAppDialog::on_path_field_textChanged(const QString& text)
 {
   if(!pathIsValid())
     enableOkButton(false);
-  else if(!ui->name_field->text().isEmpty())
+  else if(!ui->name_field->text().isEmpty()) {
     enableOkButton(true);
+    auto src = std::filesystem::path(ui->path_field->text().toStdString());
+    if(std::filesystem::exists(src / ModdedApplication::CONFIG_FILE_NAME)) {
+        ui->import_checkbox->setEnabled(false);
+        ui->import_checkbox->setChecked(false);
+        ui->import_tags_checkbox->setEnabled(false);
+        ui->import_tags_checkbox->setChecked(false);
+    } else {
+        ui->import_checkbox->setEnabled(true);
+        ui->import_checkbox->setChecked(true);
+        ui->import_tags_checkbox->setEnabled(true);
+        ui->import_tags_checkbox->setChecked(true);
+    }
+  }
 }
 
 void AddAppDialog::enableOkButton(bool state)
