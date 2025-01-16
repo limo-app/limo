@@ -56,6 +56,8 @@ public:
 protected:
   /*! \brief Name of the mod settings file. */
   static constexpr std::string BG3_PLUGINS_FILE_NAME = "modsettings.lsx";
+  /*! \brief Mod fixer is a popular mod which does not contain plugins. */
+  static inline const std::set<std::string> NON_PLUGIN_ARCHIVES = { "ModFixer.pak" };
   /*! \brief Maps plugin UUIDs to the pak file containing them. */
   std::map<std::string, std::filesystem::path> uuid_map_;
   /*! \brief Maps pak file paths to the object containing that files plugin data. */

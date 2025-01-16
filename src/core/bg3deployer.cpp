@@ -206,7 +206,7 @@ void Bg3Deployer::updatePluginsPrivate()
     if(dir_entry.is_directory())
       continue;
     const std::string file_name = dir_entry.path().filename().string();
-    if(std::regex_match(file_name, plugin_regex_))
+    if(std::regex_match(file_name, plugin_regex_) && !NON_PLUGIN_ARCHIVES.contains(file_name))
       pak_file_paths.push_back(pu::getRelativePath(dir_entry.path(), source_path_));
   }
   // remove missing files
