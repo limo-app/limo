@@ -186,10 +186,10 @@ void Bg3Deployer::updateSourceMods()
     return;
   }
   auto deployed_files = loadDeployedFiles({}, *deployed_source_path);
+  const sfs::path relative_path(pu::getRelativePath(source_path_, *deployed_source_path));
   for(const auto& [uuid, _] : plugins_)
   {
-    const sfs::path relative_path(pu::getRelativePath(uuid_map_[uuid], *deployed_source_path));
-    auto iter = deployed_files.find(relative_path.string());
+    auto iter = deployed_files.find(relative_path / uuid_map_[uuid]);
     if(iter != deployed_files.end())
       source_mods_[uuid] = iter->second;
   }
