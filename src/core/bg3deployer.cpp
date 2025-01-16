@@ -75,7 +75,7 @@ std::unordered_set<int> Bg3Deployer::getModConflicts(int mod_id,
   {
     if(i == mod_id)
       continue;
-    const auto & [uuid, enabled] = pair;
+    const auto& [uuid, enabled] = pair;
     if(file.conflictsWith(pak_files_[uuid_map_[uuid]]))
       conflicts.insert(i);
     if(progress_node)
@@ -239,7 +239,23 @@ void Bg3Deployer::updatePluginsPrivate()
       if(pak_files_[path].timestampsMatch())
         continue;
 
-      Bg3PakFile new_file(path, source_path_);
+      Bg3PakFile new_file;
+      try
+      {
+        new_file = Bg3PakFile(path, source_path_);
+      }
+      catch(std::runtime_error& error)
+      {
+        log_(Log::LOG_WARNING,
+             std::format("Failed to parse '{}':\n{}", path.string(), error.what()));
+        continue;
+      }
+      catch(...)
+      {
+        log_(Log::LOG_WARNING, std::format("Failed to parse '{}'.", path.string()));
+        continue;
+      }
+
       std::vector<int> plugins_to_remove;
       for(const auto& old_plugin : pak_files_[path].getPlugins())
       {
@@ -273,7 +289,23 @@ void Bg3Deployer::updatePluginsPrivate()
     }
     else
     {
-      Bg3PakFile new_file(path, source_path_);
+      Bg3PakFile new_file;
+      try
+      {
+        new_file = Bg3PakFile(path, source_path_);
+      }
+      catch(std::runtime_error& error)
+      {
+        log_(Log::LOG_WARNING,
+             std::format("Failed to parse '{}':\n{}", path.string(), error.what()));
+        continue;
+      }
+      catch(...)
+      {
+        log_(Log::LOG_WARNING, std::format("Failed to parse '{}'.", path.string()));
+        continue;
+      }
+
       if(new_file.getPlugins().empty())
       {
         log_(Log::LOG_WARNING, std::format("Archive '{}' contains no plugins.", path.string()));
@@ -338,7 +370,23 @@ void Bg3Deployer::loadSettingsPrivate()
   uuid_map_.clear();
   for(int i = 0; i < settings["pak_files"].size(); i++)
   {
-    Bg3PakFile pak_file(settings["pak_files"][i], source_path_);
+    Bg3PakFile pak_file;
+    try
+    {
+      pak_file = Bg3PakFile(settings["pak_files"][i], source_path_);
+    }
+    catch(std::runtime_error& error)
+    {
+      log_(Log::LOG_WARNING,
+           std::format("Failed to parse '{}':\n{}", source_path_.string(), error.what()));
+      continue;
+    }
+    catch(...)
+    {
+      log_(Log::LOG_WARNING, std::format("Failed to parse '{}'.", source_path_.string()));
+      continue;
+    }
+
     for(const auto& plugin : pak_file.getPlugins())
       uuid_map_[plugin.getUuid()] = pak_file.getSourceFile();
     pak_files_[pak_file.getSourceFile()] = pak_file;
