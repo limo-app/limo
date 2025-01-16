@@ -4,7 +4,6 @@
 #include <cpr/cpr.h>
 #include <fstream>
 #include <iostream>
-#include <numeric>
 #include <ranges>
 #include <regex>
 #include <set>
@@ -46,7 +45,7 @@ LootDeployer::LootDeployer(const sfs::path& source_path,
 void LootDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
 {
   const std::string loadorder_backup_path =
-    dest_path_ / ("." + LOADORDER_FILE_NAME + UNDEPLOY_BACKUP_EXTENSION);
+    dest_path_ / ("." + app_plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
   const std::string plugin_backup_path =
     dest_path_ / ("." + plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
   if(sfs::exists(loadorder_backup_path) && !sfs::exists(plugin_backup_path))
@@ -55,7 +54,7 @@ void LootDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
     sfs::remove(plugin_backup_path);
   else if(!sfs::exists(loadorder_backup_path) && !sfs::exists(plugin_backup_path))
   {
-    sfs::copy(dest_path_ / LOADORDER_FILE_NAME, loadorder_backup_path);
+    sfs::copy(dest_path_ / app_plugin_file_name_, loadorder_backup_path);
     sfs::copy(dest_path_ / plugin_file_name_, plugin_backup_path);
   }
 
@@ -76,15 +75,17 @@ void LootDeployer::addProfile(int source)
   {
     sfs::copy(dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(source)),
               dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(num_profiles_)));
-    sfs::copy(dest_path_ / ("." + LOADORDER_FILE_NAME + EXTENSION + std::to_string(source)),
-              dest_path_ / ("." + LOADORDER_FILE_NAME + EXTENSION + std::to_string(num_profiles_)));
+    sfs::copy(dest_path_ / ("." + app_plugin_file_name_ + EXTENSION + std::to_string(source)),
+              dest_path_ /
+                ("." + app_plugin_file_name_ + EXTENSION + std::to_string(num_profiles_)));
   }
   else
   {
     sfs::copy(dest_path_ / plugin_file_name_,
               dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(num_profiles_)));
-    sfs::copy(dest_path_ / LOADORDER_FILE_NAME,
-              dest_path_ / ("." + LOADORDER_FILE_NAME + EXTENSION + std::to_string(num_profiles_)));
+    sfs::copy(dest_path_ / app_plugin_file_name_,
+              dest_path_ /
+                ("." + app_plugin_file_name_ + EXTENSION + std::to_string(num_profiles_)));
   }
   num_profiles_++;
   saveSettings();
@@ -95,7 +96,7 @@ void LootDeployer::removeProfile(int profile)
   if(profile >= num_profiles_ || profile < 0)
     return;
   std::string plugin_file = "." + plugin_file_name_ + EXTENSION + std::to_string(profile);
-  std::string loadorder_file = "." + LOADORDER_FILE_NAME + EXTENSION + std::to_string(profile);
+  std::string loadorder_file = "." + app_plugin_file_name_ + EXTENSION + std::to_string(profile);
   if(profile == current_profile_)
     setProfile(0);
   else if(profile < current_profile_)
@@ -113,9 +114,9 @@ void LootDeployer::setProfile(int profile)
   if(profile >= num_profiles_ || profile < 0 || profile == current_profile_)
     return;
   if(!sfs::exists(dest_path_ / plugin_file_name_) ||
-     !sfs::exists(dest_path_ / LOADORDER_FILE_NAME) ||
+     !sfs::exists(dest_path_ / app_plugin_file_name_) ||
      !sfs::exists(dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(profile))) ||
-     !sfs::exists(dest_path_ / ("." + LOADORDER_FILE_NAME + EXTENSION + std::to_string(profile))))
+     !sfs::exists(dest_path_ / ("." + app_plugin_file_name_ + EXTENSION + std::to_string(profile))))
   {
     resetSettings();
     return;
@@ -123,13 +124,13 @@ void LootDeployer::setProfile(int profile)
   sfs::rename(dest_path_ / plugin_file_name_,
               dest_path_ /
                 ("." + plugin_file_name_ + EXTENSION + std::to_string(current_profile_)));
-  sfs::rename(dest_path_ / LOADORDER_FILE_NAME,
+  sfs::rename(dest_path_ / app_plugin_file_name_,
               dest_path_ /
-                ("." + LOADORDER_FILE_NAME + EXTENSION + std::to_string(current_profile_)));
+                ("." + app_plugin_file_name_ + EXTENSION + std::to_string(current_profile_)));
   sfs::rename(dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(profile)),
               dest_path_ / plugin_file_name_);
-  sfs::rename(dest_path_ / ("." + LOADORDER_FILE_NAME + EXTENSION + std::to_string(profile)),
-              dest_path_ / LOADORDER_FILE_NAME);
+  sfs::rename(dest_path_ / ("." + app_plugin_file_name_ + EXTENSION + std::to_string(profile)),
+              dest_path_ / app_plugin_file_name_);
   current_profile_ = profile;
   saveSettings();
   loadPlugins();
@@ -250,7 +251,7 @@ void LootDeployer::cleanup()
   {
     sfs::path plugin_path = dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(i));
     sfs::path load_order_path =
-      dest_path_ / ("." + LOADORDER_FILE_NAME + EXTENSION + std::to_string(i));
+      dest_path_ / ("." + app_plugin_file_name_ + EXTENSION + std::to_string(i));
     if(sfs::exists(plugin_path))
       sfs::remove(plugin_path);
     if(sfs::exists(load_order_path))
@@ -273,13 +274,38 @@ void LootDeployer::writePlugins() const
 {
   PluginDeployer::writePlugins();
 
-  std::ofstream loadorder_file;
-  loadorder_file.open(dest_path_ / LOADORDER_FILE_NAME);
-  if(!loadorder_file.is_open())
-    throw std::runtime_error("Could not open " + LOADORDER_FILE_NAME + "!");
-  for(const auto& [name, status] : plugins_)
-    loadorder_file << name << "\n";
-  loadorder_file.close();
+  std::ofstream plugins_file;
+  plugins_file.open(dest_path_ / app_plugin_file_name_);
+  if(!plugins_file.is_open())
+    throw std::runtime_error("Could not open " + app_plugin_file_name_ + "!");
+  for(const auto& [name, enabled] : plugins_)
+  {
+    if(enabled)
+      plugins_file << name << "\n";
+  }
+  plugins_file.close();
+
+  if(APP_TYPE_WITH_FILE_MOD_ORDER.contains(app_type_))
+  {
+    for(const auto& [i, pair] : str::enumerate_view(plugins_))
+    {
+      const auto& [name, enabled] = pair;
+      std::tm tm = { 0, static_cast<int>(i), 0, 1, 0, 100 };
+      tm.tm_isdst = -1;
+      std::filesystem::file_time_type time_point =
+        std::chrono::file_clock::from_sys(std::chrono::system_clock::from_time_t(std::mktime(&tm)));
+      const sfs::path plugin_path = source_path_ / name;
+      if(sfs::exists(plugin_path))
+      {
+        sfs::last_write_time(plugin_path, time_point);
+        if(sfs::is_symlink(plugin_path))
+        {
+          const sfs::path actual_path = sfs::read_symlink(plugin_path);
+          sfs::last_write_time(actual_path, time_point);
+        }
+      }
+    }
+  }
 }
 
 void LootDeployer::saveSettings() const
@@ -333,7 +359,16 @@ void LootDeployer::updateAppType()
     if(pu::pathExists(file, source_path_))
     {
       app_type_ = type;
-      plugin_file_name_ = PLUGIN_FILE_NAMES.at(type);
+      if(APP_TYPE_WITH_FILE_MOD_ORDER.contains(type))
+      {
+        app_plugin_file_name_ = PLUGIN_FILE_NAMES.at(type);
+        plugin_file_name_ = LOADORDER_FILE_NAME;
+      }
+      else
+      {
+        plugin_file_name_ = PLUGIN_FILE_NAMES.at(type);
+        app_plugin_file_name_ = LOADORDER_FILE_NAME;
+      }
       auto file_name = pu::pathExists(plugin_file_name_, dest_path_);
       if(file_name)
         plugin_file_name_ = *file_name;
@@ -372,7 +407,7 @@ void LootDeployer::resetSettings()
 
 void LootDeployer::setupPluginFiles()
 {
-  if(sfs::exists(dest_path_ / plugin_file_name_) && sfs::exists(dest_path_ / LOADORDER_FILE_NAME))
+  if(sfs::exists(dest_path_ / plugin_file_name_) && sfs::exists(dest_path_ / app_plugin_file_name_))
     return;
   updatePlugins();
 }
@@ -482,7 +517,7 @@ void LootDeployer::downloadList(std::string url, const std::string& file_name)
 void LootDeployer::restoreUndeployBackupIfExists()
 {
   const std::string loadorder_backup_path =
-    dest_path_ / ("." + LOADORDER_FILE_NAME + UNDEPLOY_BACKUP_EXTENSION);
+    dest_path_ / ("." + app_plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
   const std::string plugin_backup_path =
     dest_path_ / ("." + plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
   if(sfs::exists(loadorder_backup_path) && !sfs::exists(plugin_backup_path))
@@ -492,8 +527,8 @@ void LootDeployer::restoreUndeployBackupIfExists()
   else if(sfs::exists(loadorder_backup_path) && sfs::exists(plugin_backup_path))
   {
     log_(Log::LOG_DEBUG, std::format("Deployer '{}': Restoring undeploy backup.", name_));
-    sfs::remove(dest_path_ / LOADORDER_FILE_NAME);
-    sfs::rename(loadorder_backup_path, dest_path_ / LOADORDER_FILE_NAME);
+    sfs::remove(dest_path_ / app_plugin_file_name_);
+    sfs::rename(loadorder_backup_path, dest_path_ / app_plugin_file_name_);
     sfs::remove(dest_path_ / plugin_file_name_);
     sfs::rename(plugin_backup_path, dest_path_ / plugin_file_name_);
     loadPlugins();

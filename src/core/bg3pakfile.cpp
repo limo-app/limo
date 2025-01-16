@@ -94,15 +94,15 @@ bool Bg3PakFile::pluginConflictsWith(const std::string& plugin_uuid,
   std::string prefix = "Mods/" + dir;
   for(const auto& file : file_list_)
   {
-      if(file.string().starts_with(prefix))
-        plugin_files.push_back(pu::getRelativePath(file, prefix));
+    if(file.string().starts_with(prefix))
+      plugin_files.push_back(pu::getRelativePath(file, prefix));
   }
   std::vector<std::string> other_plugin_files;
   prefix = "Mods/" + other_dir;
   for(const auto& file : other_file.file_list_)
   {
-      if(file.string().starts_with(prefix))
-        other_plugin_files.push_back(pu::getRelativePath(file, prefix));
+    if(file.string().starts_with(prefix))
+      other_plugin_files.push_back(pu::getRelativePath(file, prefix));
   }
 
   for(const auto& file : plugin_files)

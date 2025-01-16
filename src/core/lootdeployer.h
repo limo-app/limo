@@ -92,8 +92,9 @@ public:
    * \param progress_node Used to inform about the current progress.
    * \return A set of mod ids which conflict with the given mod.
    */
-  virtual std::unordered_set<int> getModConflicts(int mod_id,
-                                          std::optional<ProgressNode*> progress_node = {}) override;
+  virtual std::unordered_set<int> getModConflicts(
+    int mod_id,
+    std::optional<ProgressNode*> progress_node = {}) override;
   /*!
    * \brief Sorts the current load order using LOOT. Uses a masterlist.yaml appropriate
    * for the game managed by this deployer and optionally a userlist.yaml in the target
@@ -139,7 +140,15 @@ protected:
     { loot::GameType::tes4, "Plugins.txt" },      { loot::GameType::tes5, "plugins.txt" },
     { loot::GameType::tes5se, "plugins.txt" },    { loot::GameType::tes5vr, "plugins.txt" }
   };
+  /*! \brief All app types which use file modification times as plugin load order. */
+  static inline const std::set<loot::GameType> APP_TYPE_WITH_FILE_MOD_ORDER = {
+    loot::GameType::fo3,
+    loot::GameType::fonv,
+    loot::GameType::tes4
+  };
 
+  /*! \brief Name of the file containing plugin load order, as read by the target app. */
+  std::string app_plugin_file_name_;
   /*! \brief Type of game to be managed. */
   loot::GameType app_type_;
   /*! \brief Timestamp representing the last time the masterlist.yaml was updated. */
