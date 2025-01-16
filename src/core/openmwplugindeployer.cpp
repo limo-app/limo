@@ -16,7 +16,7 @@ OpenMwPluginDeployer::OpenMwPluginDeployer(const sfs::path& source_path,
   type_ = "OpenMW Plugin Deployer";
   is_autonomous_ = true;
   plugin_regex_ = R"(.*\.[eE][sS][pPlLmM]$)";
-  plugin_file_line_regex = R"(^\s*(\*?)([^#]*\.[eE][sS][pPlLmM])(\r?))";
+  plugin_file_line_regex_ = R"(^\s*(\*?)([^#]*\.[eE][sS][pPlLmM])(\r?))";
   config_file_name_ = ".plugin_config";
   tags_file_name_ = ".plugin_tags";
   source_mods_file_name_ = ".plugin_mod_sources";
@@ -35,7 +35,7 @@ OpenMwPluginDeployer::OpenMwPluginDeployer(const sfs::path& source_path,
 void OpenMwPluginDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
 {
   const std::string plugin_backup_path =
-    dest_path_ / (plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
+    dest_path_ / ("." + plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
   if(!sfs::exists(plugin_backup_path))
     sfs::copy(dest_path_ / plugin_file_name_, plugin_backup_path);
 

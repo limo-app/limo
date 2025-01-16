@@ -72,6 +72,28 @@ if(NOT DEFINED LIBLOOT_PATH)
     find_library(LIBLOOT_PATH libloot.so REQUIRED)
 endif()
 
+# lz4
+if(NOT DEFINED LZ4_INCLUDE_DIR)
+    find_file(LZ4_HEADER_PATH "lz4.h" REQUIRED)
+    cmake_path(GET LZ4_HEADER_PATH PARENT_PATH LZ4_INCLUDE_DIR)
+endif()
+if(NOT DEFINED LZ4_PATH)
+    find_library(LZ4_PATH liblz4.so REQUIRED)
+endif()
+
+# zstd
+if(NOT DEFINED ZSTD_INCLUDE_DIR)
+    find_file(ZSTD_HEADER_PATH "zstd.h" REQUIRED)
+    cmake_path(GET ZSTD_HEADER_PATH PARENT_PATH ZSTD_INCLUDE_DIR)
+endif()
+if(NOT DEFINED ZSTD_PATH)
+    find_library(ZSTD_PATH libzstd.a REQUIRED)
+endif()
+
+# zlib
+find_package(ZLIB REQUIRED)
+
+
 set(PROJECT_SOURCES
         resources/icons.qrc
         src/core/addmodinfo.h
@@ -291,26 +313,37 @@ configure_file(src/core/consts.h.in
                ${PROJECT_SOURCE_DIR}/src/core/consts.h)
 
 add_executable(Limo
-    ${PROJECT_SOURCES})
+    ${PROJECT_SOURCES}
+    src/core/lspakextractor.h src/core/lspakextractor.cpp
+    src/core/bg3deployer.h src/core/bg3deployer.cpp
+    src/core/bg3plugin.h src/core/bg3plugin.cpp
+    src/core/bg3pakfile.h src/core/bg3pakfile.cpp
+    src/core/lspakheader.h
+    src/core/lspakfilelistentry.h)
 
 target_include_directories(Limo
     PRIVATE ${PROJECT_SOURCE_DIR}/src
     PRIVATE ${LibArchive_INCLUDE_DIRS}
     PRIVATE ${LIBLOOT_INCLUDE_DIR}
     PRIVATE ${JSONCPP_INCLUDE_DIRS}
-    PRIVATE ${LIBUNRAR_INCLUDE_DIR})
+    PRIVATE ${LIBUNRAR_INCLUDE_DIR}
+    PRIVATE ${LZ4_INCLUDE_DIR}
+    PRIVATE ${ZSTD_INCLUDE_DIR})
 
 target_link_libraries(Limo
     PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
     PRIVATE ${JSONCPP_LIBRARIES}
     PRIVATE ${LibArchive_LIBRARIES}
-    PRIVATE ${PUGIXML_LIBRARIES}
     PRIVATE ${LIBLOOT_PATH}
     PRIVATE Qt${QT_VERSION_MAJOR}::Svg
     PRIVATE cpr::cpr
     PRIVATE OpenSSL::SSL
     PRIVATE Qt${QT_VERSION_MAJOR}::Network
-    PRIVATE ${LIBUNRAR_PATH})
+    PRIVATE ${LIBUNRAR_PATH}
+    PRIVATE ${LZ4_PATH}
+    PRIVATE ${ZSTD_PATH}
+    PRIVATE pugixml::pugixml
+    PRIVATE ZLIB::ZLIB)
 
 install(PROGRAMS ${CMAKE_BINARY_DIR}/Limo
     DESTINATION bin RENAME limo)

@@ -15,7 +15,7 @@ OpenMwArchiveDeployer::OpenMwArchiveDeployer(const std::filesystem::path& source
   type_ = "OpenMW Archive Deployer";
   is_autonomous_ = true;
   plugin_regex_ = R"(.*\.[bB][sS][aA]$)";
-  plugin_file_line_regex = R"(^\s*(\*?)([^#]*\.[bB][sS][aA])(\r?))";
+  plugin_file_line_regex_ = R"(^\s*(\*?)([^#]*\.[bB][sS][aA])(\r?))";
   plugin_file_name_ = ".archives.txt";
   config_file_name_ = ".archives_config";
   tags_file_name_ = ".archives_tags";
@@ -30,7 +30,7 @@ OpenMwArchiveDeployer::OpenMwArchiveDeployer(const std::filesystem::path& source
 void OpenMwArchiveDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
 {
   const std::string plugin_backup_path =
-    dest_path_ / (plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
+    dest_path_ / ("." + plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
   if(!sfs::exists(plugin_backup_path))
     sfs::copy(dest_path_ / plugin_file_name_, plugin_backup_path);
 

@@ -23,6 +23,8 @@ public:
   inline static const std::string OPENMWPLUGINDEPLOYER{ "OpenMW Plugin Deployer" };
   /*! \brief Manages plugin files for OpenMW. */
   inline static const std::string OPENMWARCHIVEDEPLOYER{ "OpenMW Archive Deployer" };
+  /*! \brief Manages plugin files for Baldurs Gate 3. */
+  inline static const std::string BG3DEPLOYER{ "Baldurs Gate 3 Deployer" };
   /*!
    * \brief Returns a vector of available deployer types.
    * \return The vector of deployer types.
@@ -33,7 +35,8 @@ public:
                                                                LOOTDEPLOYER,
                                                                REVERSEDEPLOYER,
                                                                OPENMWPLUGINDEPLOYER,
-                                                               OPENMWARCHIVEDEPLOYER };
+                                                               OPENMWARCHIVEDEPLOYER,
+                                                               BG3DEPLOYER };
   /*! \brief Maps deployer types to a description of what they do. */
   inline static const std::map<std::string, std::string> DEPLOYER_DESCRIPTIONS{
     { SIMPLEDEPLOYER,
@@ -58,7 +61,11 @@ public:
       "Target path should point to the directory containing openmw.cfg" },
     { OPENMWARCHIVEDEPLOYER,
       "Manages archive (i.e. .bsa) files for OpenMW. Source path should point to the "
-      "Data Files directory. Target path should point to the directory containing openmw.cfg." }
+      "Data Files directory. Target path should point to the directory containing openmw.cfg." },
+    { BG3DEPLOYER,
+      "Manages plugins contained in .pak files for Baldurs Gate 3. "
+      "Source path should point to the Mods directory. "
+      "Target path should point to the directory containing modsettings.lsx." }
   };
   /*! \brief Maps deployer types to a bool indicating
    *  if the type refers to an autonomous deployer. */
@@ -68,7 +75,8 @@ public:
                                                                         { LOOTDEPLOYER, true },
                                                                         { REVERSEDEPLOYER, true },
                                                                         { OPENMWPLUGINDEPLOYER, true },
-                                                                        { OPENMWARCHIVEDEPLOYER, true } };
+                                                                        { OPENMWARCHIVEDEPLOYER, true },
+                                                                        { BG3DEPLOYER, true } };
   /*!
    * \brief Constructs a unique pointer to a new deployer of given type.
    * \param type Deployer type to be constructed.

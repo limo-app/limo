@@ -236,7 +236,7 @@ protected:
   /*! \brief Regex used to match against files in the source directory. */
   std::regex plugin_regex_;
   /*! \brief Regex used to match against lines in the plugin file. */
-  std::regex plugin_file_line_regex;
+  std::regex plugin_file_line_regex_;
 
   /*! \brief Updates current plugins to reflect plugins actually in the source directory. */
   virtual void updatePlugins();
@@ -276,4 +276,10 @@ protected:
    * \return The deployers target directory or an empty optional if no directory was found.
    */
   std::optional<std::filesystem::path> getRootOfTargetDirectory(std::filesystem::path target) const;
+  /*!
+   * \brief Converts the given file name to a hidden file by prepending a ".", if necessary.
+   * \param name File name to hide.
+   * \return The hidden file.
+   */
+  std::string hideFile(const std::string& name);
 };

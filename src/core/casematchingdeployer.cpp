@@ -48,8 +48,7 @@ void CaseMatchingDeployer::updateDeployedFilesForMod(
     if(sfs::exists(dest_path) && sfs::is_directory(dest_path) || sfs::is_directory(source_path))
       continue;
 
-    if(sfs::exists(dest_path))
-      sfs::remove(dest_path);
+    sfs::remove(dest_path);
 
     if(deploy_mode_ == sym_link)
       sfs::create_symlink(source_path, dest_path);
@@ -82,6 +81,7 @@ void CaseMatchingDeployer::adaptDirectoryFiles(const sfs::path& path,
       continue;
     for(const auto& dest_entry : sfs::directory_iterator(target_path / path))
     {
+      // This method of determining the file name also works for directory names
       std::string dest_file_name = std::prev(dest_entry.path().end())->string();
       if(!std::equal(file_name.begin(),
                      file_name.end(),
@@ -102,7 +102,7 @@ void CaseMatchingDeployer::adaptDirectoryFiles(const sfs::path& path,
         sfs::rename(source, target);
       else if(sfs::is_directory(target))
         pu::moveFilesToDirectory(source, target);
-      else
+      else if(match_file_name != file_name)
         throw std::runtime_error(std::format("Could not rename file '{}' to '{}' "
                                              "because the target already exists",
                                              source.string(),

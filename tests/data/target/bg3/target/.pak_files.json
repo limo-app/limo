@@ -1,0 +1,63 @@
+{
+	"current_profile" : 0,
+	"num_profiles" : 2,
+	"pak_files" : 
+	[
+		{
+			"files" : 
+			[
+				"meta.lsx"
+			],
+			"modified_time" : 1736981012,
+			"plugins" : 
+			[
+				{
+					"meta_data_xml" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<save>\n    <version major=\"1\" minor=\"1\" revision=\"1\" build=\"1\"/>\n    <region id=\"Config\">\n        <node id=\"root\">\n            <children>\n                <node id=\"ModuleInfo\">\n                    <attribute id=\"Description\" type=\"LSString\" value=\"Test Mod 1\"/>\n                    <attribute id=\"Folder\" type=\"LSString\" value=\"Mod\"/>\n                    <attribute id=\"MD5\" type=\"LSString\" value=\"\"/>\n                    <attribute id=\"Name\" type=\"LSString\" value=\"Mod 1\"/>\n                    <attribute id=\"UUID\" type=\"FixedString\" value=\"mod-1\"/>\n                    <attribute id=\"Version64\" type=\"int64\" value=\"1\"/>\n                </node>\n            </children>\n        </node>\n    </region>\n</save>\n"
+				}
+			],
+			"source_file" : "mod1.pak"
+		},
+		{
+			"files" : 
+			[
+				"meta.lsx"
+			],
+			"modified_time" : 1736981024,
+			"plugins" : 
+			[
+				{
+					"meta_data_xml" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<save>\n    <version major=\"1\" minor=\"1\" revision=\"1\" build=\"1\"/>\n    <region id=\"Config\">\n        <node id=\"root\">\n            <children>\n                <node id=\"ModuleInfo\">\n                    <attribute id=\"Description\" type=\"LSString\" value=\"Test Mod 2\"/>\n                    <attribute id=\"Folder\" type=\"LSString\" value=\"Mod\"/>\n                    <attribute id=\"MD5\" type=\"LSString\" value=\"\"/>\n                    <attribute id=\"Name\" type=\"LSString\" value=\"Mod 2\"/>\n                    <attribute id=\"UUID\" type=\"FixedString\" value=\"mod-2\"/>\n                    <attribute id=\"Version64\" type=\"int64\" value=\"1\"/>\n                </node>\n            </children>\n        </node>\n    </region>\n</save>\n"
+				}
+			],
+			"source_file" : "mod2.pak"
+		},
+		{
+			"files" : 
+			[
+				"meta.lsx"
+			],
+			"modified_time" : 1736981032,
+			"plugins" : 
+			[
+				{
+					"meta_data_xml" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<save>\n    <version major=\"1\" minor=\"1\" revision=\"1\" build=\"1\"/>\n    <region id=\"Config\">\n        <node id=\"root\">\n            <children>\n                <node id=\"ModuleInfo\">\n                    <attribute id=\"Description\" type=\"LSString\" value=\"Test Mod 3\"/>\n                    <attribute id=\"Folder\" type=\"LSString\" value=\"Mod\"/>\n                    <attribute id=\"MD5\" type=\"LSString\" value=\"\"/>\n                    <attribute id=\"Name\" type=\"LSString\" value=\"Mod 3\"/>\n                    <attribute id=\"UUID\" type=\"FixedString\" value=\"mod-3\"/>\n                    <attribute id=\"Version64\" type=\"int64\" value=\"1\"/>\n                </node>\n            </children>\n        </node>\n    </region>\n</save>\n"
+				}
+			],
+			"source_file" : "mod3.pak"
+		},
+		{
+			"files" : 
+			[
+				"meta.lsx"
+			],
+			"modified_time" : 1736981043,
+			"plugins" : 
+			[
+				{
+					"meta_data_xml" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<save>\n    <version major=\"1\" minor=\"1\" revision=\"1\" build=\"1\"/>\n    <region id=\"Config\">\n        <node id=\"root\">\n            <children>\n                <node id=\"ModuleInfo\">\n                    <attribute id=\"Description\" type=\"LSString\" value=\"Test Mod 4\"/>\n                    <attribute id=\"Folder\" type=\"LSString\" value=\"Mod\"/>\n                    <attribute id=\"MD5\" type=\"LSString\" value=\"\"/>\n                    <attribute id=\"Name\" type=\"LSString\" value=\"Mod 4\"/>\n                    <attribute id=\"UUID\" type=\"FixedString\" value=\"mod-4\"/>\n                    <attribute id=\"Version64\" type=\"int64\" value=\"1\"/>\n                </node>\n            </children>\n        </node>\n    </region>\n</save>\n"
+				}
+			],
+			"source_file" : "mod4.pak"
+		}
+	]
+}

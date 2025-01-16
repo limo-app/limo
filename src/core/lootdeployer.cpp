@@ -28,7 +28,7 @@ LootDeployer::LootDeployer(const sfs::path& source_path,
   type_ = "Loot Deployer";
   is_autonomous_ = true;
   plugin_regex_ = R"(.*\.[eE][sS][pPlLmM]$)";
-  plugin_file_line_regex = R"(^\s*(\*?)([^#]*\.[eE][sS][pPlLmM])(\r?))";
+  plugin_file_line_regex_ = R"(^\s*(\*?)([^#]*\.[eE][sS][pPlLmM])(\r?))";
   config_file_name_ = ".lmmconfig";
   tags_file_name_ = ".loot_tags";
   source_mods_file_name_ = ".lmm_mod_sources";

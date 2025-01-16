@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<save>
+	<version major="4" minor="7" revision="1" build="300" />
+	<region id="ModuleSettings">
+		<node id="root">
+			<children>
+				<node id="Mods">
+					<children>
+						<node id="ModuleShortDesc">
+							<attribute id="Folder" type="LSString" value="GustavDev" />
+							<attribute id="MD5" type="LSString" value="" />
+							<attribute id="Name" type="LSString" value="GustavDev" />
+							<attribute id="PublishHandle" type="uint64" value="0" />
+							<attribute id="UUID" type="guid" value="28ac9ce2-2aba-8cda-b3b5-6e922f71b6b8" />
+							<attribute id="Version64" type="int64" value="36028797018963968" />
+						</node>
+						<node id="ModuleShortDesc">
+							<attribute id="Folder" type="LSString" value="Mod" />
+							<attribute id="MD5" type="LSString" value="" />
+							<attribute id="Name" type="LSString" value="Mod 1" />
+							<attribute id="UUID" type="FixedString" value="mod-1" />
+							<attribute id="Version64" type="int64" value="1" />
+						</node>
+						<node id="ModuleShortDesc">
+							<attribute id="Folder" type="LSString" value="Mod" />
+							<attribute id="MD5" type="LSString" value="" />
+							<attribute id="Name" type="LSString" value="Mod 2" />
+							<attribute id="UUID" type="FixedString" value="mod-2" />
+							<attribute id="Version64" type="int64" value="1" />
+						</node>
+						<node id="ModuleShortDesc">
+							<attribute id="Folder" type="LSString" value="Mod" />
+							<attribute id="MD5" type="LSString" value="" />
+							<attribute id="Name" type="LSString" value="Mod 3" />
+							<attribute id="UUID" type="FixedString" value="mod-3" />
+							<attribute id="Version64" type="int64" value="1" />
+						</node>
+						<node id="ModuleShortDesc">
+							<attribute id="Folder" type="LSString" value="Mod" />
+							<attribute id="MD5" type="LSString" value="" />
+							<attribute id="Name" type="LSString" value="Mod 4" />
+							<attribute id="UUID" type="FixedString" value="mod-4" />
+							<attribute id="Version64" type="int64" value="1" />
+						</node>
+					</children>
+				</node>
+				<node id="ModOrder">
+					<children>
+						<node id="Module">
+							<attribute id="UUID" type="FixedString" value="mod-1" />
+						</node>
+						<node id="Module">
+							<attribute id="UUID" type="FixedString" value="mod-2" />
+						</node>
+						<node id="Module">
+							<attribute id="UUID" type="FixedString" value="mod-3" />
+						</node>
+						<node id="Module">
+							<attribute id="UUID" type="FixedString" value="mod-4" />
+						</node>
+					</children>
+				</node>
+			</children>
+		</node>
+	</region>
+</save>

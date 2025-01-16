@@ -1,9 +1,10 @@
 #include "deployerfactory.h"
+#include "bg3deployer.h"
 #include "casematchingdeployer.h"
 #include "lootdeployer.h"
-#include "reversedeployer.h"
-#include "openmwplugindeployer.h"
 #include "openmwarchivedeployer.h"
+#include "openmwplugindeployer.h"
+#include "reversedeployer.h"
 
 
 std::unique_ptr<Deployer> DeployerFactory::makeDeployer(const std::string& type,
@@ -27,6 +28,8 @@ std::unique_ptr<Deployer> DeployerFactory::makeDeployer(const std::string& type,
     return std::make_unique<OpenMwArchiveDeployer>(source_path, dest_path, name);
   else if(type == OPENMWPLUGINDEPLOYER)
     return std::make_unique<OpenMwPluginDeployer>(source_path, dest_path, name);
+  else if(type == BG3DEPLOYER)
+    return std::make_unique<Bg3Deployer>(source_path, dest_path, name);
   else
     throw std::runtime_error("Unknown deployer type \"" + type + "\"!");
 }

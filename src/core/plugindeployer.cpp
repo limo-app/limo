@@ -94,13 +94,15 @@ void PluginDeployer::addProfile(int source)
   }
   if(source >= 0 && source <= num_profiles_ && num_profiles_ > 1 && source != current_profile_)
   {
-    sfs::copy(dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(source)),
-              dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(num_profiles_)));
+    sfs::copy(dest_path_ / (hideFile(plugin_file_name_) + EXTENSION + std::to_string(source)),
+              dest_path_ /
+                (hideFile(plugin_file_name_) + EXTENSION + std::to_string(num_profiles_)));
   }
   else
   {
     sfs::copy(dest_path_ / plugin_file_name_,
-              dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(num_profiles_)));
+              dest_path_ /
+                (hideFile(plugin_file_name_) + EXTENSION + std::to_string(num_profiles_)));
   }
   num_profiles_++;
   saveSettings();
@@ -110,7 +112,7 @@ void PluginDeployer::removeProfile(int profile)
 {
   if(profile >= num_profiles_ || profile < 0)
     return;
-  std::string plugin_file = "." + plugin_file_name_ + EXTENSION + std::to_string(profile);
+  std::string plugin_file = hideFile(plugin_file_name_) + EXTENSION + std::to_string(profile);
   if(profile == current_profile_)
     setProfile(0);
   else if(profile < current_profile_)
@@ -126,15 +128,15 @@ void PluginDeployer::setProfile(int profile)
   if(profile >= num_profiles_ || profile < 0 || profile == current_profile_)
     return;
   if(!sfs::exists(dest_path_ / plugin_file_name_) ||
-     !sfs::exists(dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(profile))))
+     !sfs::exists(dest_path_ / (hideFile(plugin_file_name_) + EXTENSION + std::to_string(profile))))
   {
     resetSettings();
     return;
   }
   sfs::rename(dest_path_ / plugin_file_name_,
               dest_path_ /
-                ("." + plugin_file_name_ + EXTENSION + std::to_string(current_profile_)));
-  sfs::rename(dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(profile)),
+                (hideFile(plugin_file_name_) + EXTENSION + std::to_string(current_profile_)));
+  sfs::rename(dest_path_ / (hideFile(plugin_file_name_) + EXTENSION + std::to_string(profile)),
               dest_path_ / plugin_file_name_);
   current_profile_ = profile;
   saveSettings();
@@ -145,8 +147,8 @@ void PluginDeployer::setProfile(int profile)
 void PluginDeployer::setConflictGroups(const std::vector<std::vector<int>>& newConflict_groups)
 {
   log_(Log::LOG_DEBUG,
-       "WARNING: You are trying to set a load order for an autonomous deployer. " "This will have "
-                                                                                  "no effect");
+       std::string("WARNING: You are trying to set a load order for an autonomous deployer. ") +
+         "This will have no effect.");
 }
 
 int PluginDeployer::getNumMods() const
@@ -158,8 +160,6 @@ std::vector<std::tuple<int, bool>> PluginDeployer::getLoadorder() const
 {
   std::vector<std::tuple<int, bool>> loadorder;
   loadorder.reserve(plugins_.size());
-  // for(int i = 0; i < plugins_.size(); i++)
-  //   loadorder.emplace_back(i, plugins_[i].second);
   for(const auto& [plugin, enabled] : plugins_)
   {
     auto iter = source_mods_.find(plugin);
@@ -174,15 +174,16 @@ std::vector<std::tuple<int, bool>> PluginDeployer::getLoadorder() const
 bool PluginDeployer::addMod(int mod_id, bool enabled, bool update_conflicts)
 {
   log_(Log::LOG_DEBUG,
-       "WARNING: You are trying to add a mod to an autonomous deployer. This will have no effect");
+       std::string("WARNING: You are trying to add a mod to an autonomous deployer. ") +
+         "This will have no effect.");
   return false;
 }
 
 bool PluginDeployer::removeMod(int mod_id)
 {
   log_(Log::LOG_DEBUG,
-       "WARNING: You are trying to remove a mod from an autonomous deployer. This will have no "
-       "effect");
+       std::string("WARNING: You are trying to remove a mod from an autonomous deployer. ") +
+         "This will have no effect.");
   return false;
 }
 
@@ -194,7 +195,8 @@ bool PluginDeployer::hasMod(int mod_id) const
 bool PluginDeployer::swapMod(int old_id, int new_id)
 {
   log_(Log::LOG_DEBUG,
-       "WARNING: You are trying to swap a mod in an autonomous deployer. This will have no effect");
+       std::string("WARNING: You are trying to swap a mod in an autonomous deployer. ") +
+         "This will have no effect");
   return false;
 }
 
@@ -235,7 +237,8 @@ void PluginDeployer::cleanup()
 {
   for(int i = 0; i < num_profiles_; i++)
   {
-    sfs::path plugin_path = dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(i));
+    sfs::path plugin_path =
+      dest_path_ / (hideFile(plugin_file_name_) + EXTENSION + std::to_string(i));
     if(sfs::exists(plugin_path))
       sfs::remove(plugin_path);
   }
@@ -345,7 +348,7 @@ void PluginDeployer::loadPlugins()
   while(getline(plugin_file, line))
   {
     std::smatch match;
-    if(std::regex_match(line, match, plugin_file_line_regex))
+    if(std::regex_match(line, match, plugin_file_line_regex_))
       plugins_.emplace_back(match[2], match[1] == "*");
   }
   plugin_file.close();
@@ -353,8 +356,7 @@ void PluginDeployer::loadPlugins()
 
 void PluginDeployer::writePlugins() const
 {
-  std::ofstream plugin_file;
-  plugin_file.open(dest_path_ / plugin_file_name_);
+  std::ofstream plugin_file(dest_path_ / plugin_file_name_);
   if(!plugin_file.is_open())
     throw std::runtime_error("Could not open " + plugin_file_name_ + "!");
   for(const auto& [name, status] : plugins_)
@@ -427,7 +429,7 @@ void PluginDeployer::writePluginTags() const
 void PluginDeployer::restoreUndeployBackupIfExists()
 {
   const std::string plugin_backup_path =
-    dest_path_ / ("." + plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
+    dest_path_ / (hideFile(plugin_file_name_) + UNDEPLOY_BACKUP_EXTENSION);
   if(sfs::exists(plugin_backup_path))
   {
     log_(Log::LOG_DEBUG, std::format("Deployer '{}': Restoring undeploy backup.", name_));
@@ -525,4 +527,9 @@ std::optional<sfs::path> PluginDeployer::getRootOfTargetDirectory(sfs::path targ
     target = new_target;
   }
   return {};
+}
+
+std::string PluginDeployer::hideFile(const std::string& name)
+{
+  return name.starts_with('.') ? name : "." + name;
 }
