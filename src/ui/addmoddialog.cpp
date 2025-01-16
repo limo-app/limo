@@ -165,12 +165,6 @@ bool AddModDialog::setupDialog(const QString& name,
   if(!version_overwrite.isEmpty())
     ui->version_text->setText(version_overwrite);
 
-  QRegularExpression regex(QString("^") + QRegularExpression::escape(ui->name_text->text()) +
-                           R"( \[\d+\]$)");
-  const int group_index = groups.indexOf(regex);
-  if(group_index != -1)
-    ui->group_field->setText(groups[group_index]);
-
   ui->installer_box->clear();
   int root_level = 0;
   std::string prefix;
@@ -195,6 +189,13 @@ bool AddModDialog::setupDialog(const QString& name,
     if(!version.empty() && version_overwrite.isEmpty())
       ui->version_text->setText(version.c_str());
   }
+
+  QRegularExpression regex(QString("^") + QRegularExpression::escape(ui->name_text->text()) +
+                           R"(( \[\d+\]$)?)");
+  const int group_index = groups.indexOf(regex);
+  if(group_index != -1)
+    ui->group_field->setText(groups[group_index]);
+
   path_prefix_ = prefix.c_str();
   int target_idx = 0;
   for(int i = 0; const auto& installer : Installer::INSTALLER_TYPES)
