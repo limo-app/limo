@@ -1,0 +1,12 @@
+{
+	"deployers" : 
+	[
+		{
+			"deploy_mode" : "hard_link",
+			"name" : "Install",
+			"target_dir" : "$STEAM_INSTALL_PATH$/Mods/",
+			"type" : "Case Matching Deployer"
+		}
+	],
+	"name" : "Stardew Valley"
+}
