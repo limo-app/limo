@@ -52,4 +52,8 @@ struct DeployerInfo
   bool ids_are_source_references = false;
   /*! \brief If ids_are_source_references: For every mod: The source mod's name. Else: Empty */
   std::vector<std::string> source_mod_names_ = {};
+  /*! \brief Contains names and icon names for additional actions which can be applied to a mod. */
+  std::vector<std::pair<std::string, std::string>> mod_actions = {};
+  /*! \brief For every mod: IDs of every valid mod_action which is valid for that mod. */
+  std::vector<std::vector<int>> valid_mod_actions = {};
 };

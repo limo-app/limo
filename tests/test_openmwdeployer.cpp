@@ -3,6 +3,10 @@
 #include "test_utils.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
+#include <ranges>
+#include <algorithm>
+
+namespace str = std::ranges;
 
 
 void resetOpenMwFiles()
@@ -34,12 +38,21 @@ TEST_CASE("State is read", "[.openmw]")
   
   OpenMwPluginDeployer p_depl(
     DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "", false);
-  REQUIRE(p_depl.getNumMods() == 4);
+  const std::vector<std::string> mod_names{"Morrowind.esm", "f.omwgame", "c.esp", "d.EsP", "a.esp", "e.omwaddon",
+                                           "g.omwscript", "h.omwscript"};
+  REQUIRE(p_depl.getNumMods() == mod_names.size());
+  for(const auto& [i, name] : str::enumerate_view(mod_names))
+  {
+    auto loadorder = p_depl.getModNames();
+    auto iter = str::find(loadorder, name);
+    p_depl.changeLoadorder(iter - loadorder.begin(), i);
+  }
   REQUIRE_THAT(p_depl.getModNames(),
-               Catch::Matchers::Equals(std::vector<std::string>{ "Morrowind.esm", "c.esl", "d.EsP", "a.esp" }));
+               Catch::Matchers::Equals(mod_names));
   REQUIRE_THAT(p_depl.getLoadorder(),
                Catch::Matchers::Equals(
-                 std::vector<std::tuple<int, bool>>{ { -1, true }, { -1, true }, { -1, true }, { -1, true } }));
+                 std::vector<std::tuple<int, bool>>{ { -1, true }, { -1, true }, { -1, true }, { -1, true },
+                                                     { -1, true }, { -1, true }, { -1, true }, { -1, true } }));
   
   verifyFilesAreEqual(DATA_DIR / "target" / "openmw" / "target" / "openmw.cfg", DATA_DIR / "target" / "openmw" / "0" / "openmw.cfg");
 }
@@ -53,6 +66,15 @@ TEST_CASE("Load order can be edited", "[.openmw]")
   OpenMwPluginDeployer p_depl(
     DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "", false);
   
+  const std::vector<std::string> mod_names{"Morrowind.esm", "f.omwgame", "c.esp", "d.EsP", "a.esp", "e.omwaddon",
+                                           "g.omwscript", "h.omwscript"};
+  for(const auto& [i, name] : str::enumerate_view(mod_names))
+  {
+    auto loadorder = p_depl.getModNames();
+    auto iter = str::find(loadorder, name);
+    p_depl.changeLoadorder(iter - loadorder.begin(), i);
+  }
+  
   a_depl.changeLoadorder(1, 2);
   p_depl.changeLoadorder(1, 3);
   p_depl.changeLoadorder(2, 1);
@@ -60,6 +82,8 @@ TEST_CASE("Load order can be edited", "[.openmw]")
   
   a_depl.setModStatus(1, false);
   p_depl.setModStatus(3, false);
+  p_depl.applyModAction(0, 2);
+  p_depl.applyModAction(0, 4);
   verifyFilesAreEqual(DATA_DIR / "target" / "openmw" / "target" / "openmw.cfg", DATA_DIR / "target" / "openmw" / "2" / "openmw.cfg");
   
   OpenMwArchiveDeployer a_depl_2(
@@ -82,6 +106,15 @@ TEST_CASE("Profiles are managed", "[.openmw]")
   OpenMwPluginDeployer p_depl(
     DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "", false);
   
+  const std::vector<std::string> mod_names{"Morrowind.esm", "f.omwgame", "c.esp", "d.EsP", "a.esp", "e.omwaddon",
+                                           "g.omwscript", "h.omwscript"};
+  for(const auto& [i, name] : str::enumerate_view(mod_names))
+  {
+    auto loadorder = p_depl.getModNames();
+    auto iter = str::find(loadorder, name);
+    p_depl.changeLoadorder(iter - loadorder.begin(), i);
+  }
+  
   a_depl.addProfile(-1);
   p_depl.addProfile(-1);
   a_depl.addProfile(0);
@@ -99,10 +132,14 @@ TEST_CASE("Profiles are managed", "[.openmw]")
   p_depl.setProfile(2);
   a_depl.setModStatus(1, false);
   p_depl.setModStatus(3, false);
+  p_depl.applyModAction(0, 2);
+  p_depl.applyModAction(0, 4);
   verifyFilesAreEqual(DATA_DIR / "target" / "openmw" / "target" / "openmw.cfg", DATA_DIR / "target" / "openmw" / "2" / "openmw.cfg");
   
   a_depl.setProfile(0);
   p_depl.setProfile(0);
+  p_depl.applyModAction(1, 2);
+  p_depl.applyModAction(1, 4);
   verifyFilesAreEqual(DATA_DIR / "target" / "openmw" / "target" / "openmw.cfg", DATA_DIR / "target" / "openmw" / "0" / "openmw.cfg");
   
   a_depl.setProfile(1);

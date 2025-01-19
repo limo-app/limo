@@ -979,3 +979,9 @@ void ApplicationManager::addModToIgnoreList(int app_id, int deployer, int mod_id
   if(appIndexIsValid(app_id) && deployerIndexIsValid(app_id, deployer))
     handleExceptions<&ModdedApplication::addModToIgnoreList>(app_id, deployer, mod_id);
 }
+
+void ApplicationManager::applyModAction(int app_id, int deployer, int action, int mod_id)
+{
+  if(appIndexIsValid(app_id) && deployerIndexIsValid(app_id, deployer))
+    handleExceptions<&ModdedApplication::applyModAction>(app_id, deployer, action, mod_id);
+}

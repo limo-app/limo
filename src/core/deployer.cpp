@@ -923,6 +923,21 @@ bool Deployer::idsAreSourceReferences() const
   return false;
 }
 
+std::vector<std::pair<std::string, std::string>> Deployer::getModActions() const
+{
+  return {};
+}
+
+std::vector<std::vector<int>> Deployer::getValidModActions() const
+{
+  std::vector<std::vector<int>> valid_actions;
+  for(int _ = 0; _ < loadorders_[current_profile_].size(); _++)
+    valid_actions.push_back({});
+  return valid_actions;
+}
+
+void Deployer::applyModAction(int action, int mod_id) {}
+
 void Deployer::removeManagedDirFile(const sfs::path& directory) const
 {
   const sfs::path file_path = directory / managed_dir_file_name_;

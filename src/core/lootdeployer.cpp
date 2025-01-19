@@ -36,7 +36,7 @@ LootDeployer::LootDeployer(const sfs::path& source_path,
   loadPlugins();
   updatePlugins();
   if(sfs::exists(dest_path_ / config_file_name_))
-    loadSettings();
+    loadSettingsPrivate();
   if(init_tags)
     readPluginTags();
   readSourceMods();
@@ -201,6 +201,7 @@ void LootDeployer::sortModsByConflicts(std::optional<ProgressNode*> progress_nod
   int num_light_plugins = 0;
   int num_master_plugins = 0;
   int num_standard_plugins = 0;
+  tags_.clear();
   for(const auto& plugin : sorted_plugins)
   {
     auto iter = str::find_if(plugins_, [plugin](const auto& p) { return p.first == plugin; });
@@ -209,11 +210,20 @@ void LootDeployer::sortModsByConflicts(std::optional<ProgressNode*> progress_nod
       enabled = iter->second;
     const auto cur_plugin = loot_handle->GetPlugin(plugin);
     if(cur_plugin->IsLightPlugin())
+    {
       num_light_plugins++;
+      tags_.push_back({ LIGHT_PLUGIN });
+    }
     else if(cur_plugin->IsMaster())
+    {
       num_master_plugins++;
+      tags_.push_back({ MASTER_PLUGIN });
+    }
     else
+    {
       num_standard_plugins++;
+      tags_.push_back({ STANDARD_PLUGIN });
+    }
     new_plugins.emplace_back(plugin, enabled);
     auto masters = cur_plugin->GetMasters();
     for(const auto& master : masters)
@@ -240,6 +250,7 @@ void LootDeployer::sortModsByConflicts(std::optional<ProgressNode*> progress_nod
                    num_standard_plugins,
                    num_light_plugins));
   plugins_ = new_plugins;
+  writePluginTags();
   writePlugins();
   if(progress_node)
     (*progress_node)->child(3).advance();
@@ -325,31 +336,7 @@ void LootDeployer::saveSettings() const
 
 void LootDeployer::loadSettings()
 {
-  Json::Value settings;
-  sfs::path settings_file_path = dest_path_ / config_file_name_;
-  if(!sfs::exists(settings_file_path))
-  {
-    resetSettings();
-    return;
-  }
-  std::ifstream file(settings_file_path, std::fstream::binary);
-  if(!file.is_open())
-  {
-    resetSettings();
-    return;
-  }
-  file >> settings;
-  file.close();
-  if(!settings.isMember("num_profiles") || !settings.isMember("current_profile") ||
-     !settings.isMember("list_download_time") || !settings.isMember("auto_update_master_list"))
-  {
-    resetSettings();
-    return;
-  }
-  num_profiles_ = settings["num_profiles"].asInt();
-  current_profile_ = settings["current_profile"].asInt();
-  list_download_time_ = settings["list_download_time"].asInt64();
-  auto_update_lists_ = settings["auto_update_master_list"].asBool();
+  loadSettingsPrivate();
 }
 
 void LootDeployer::updateAppType()
@@ -399,10 +386,7 @@ void LootDeployer::updateMasterList()
 
 void LootDeployer::resetSettings()
 {
-  num_profiles_ = 1;
-  current_profile_ = 0;
-  auto_update_lists_ = true;
-  list_download_time_ = 0;
+  resetSettingsPrivate();
 }
 
 void LootDeployer::setupPluginFiles()
@@ -414,36 +398,7 @@ void LootDeployer::setupPluginFiles()
 
 void LootDeployer::updatePluginTags()
 {
-  tags_.clear();
-  auto loot_handle = loot::CreateGameHandle(app_type_, source_path_, dest_path_);
-  std::vector<sfs::path> plugin_paths;
-  plugin_paths.reserve(plugins_.size());
-  for(const auto& [path, s] : plugins_)
-    plugin_paths.emplace_back(source_path_ / path);
-  loot_handle->LoadPlugins(plugin_paths, false);
-  num_light_plugins_ = 0;
-  num_master_plugins_ = 0;
-  num_standard_plugins_ = 0;
-  for(int i = 0; i < plugins_.size(); i++)
-  {
-    auto plugin = loot_handle->GetPlugin(plugins_[i].first);
-    if(plugin->IsLightPlugin())
-    {
-      num_light_plugins_++;
-      tags_.push_back({ LIGHT_PLUGIN });
-    }
-    else if(plugin->IsMaster())
-    {
-      num_master_plugins_++;
-      tags_.push_back({ MASTER_PLUGIN });
-    }
-    else
-    {
-      num_standard_plugins_++;
-      tags_.push_back({ STANDARD_PLUGIN });
-    }
-  }
-  writePluginTags();
+  updatePluginTagsPrivate();
 }
 
 void LootDeployer::readPluginTags()
@@ -451,7 +406,7 @@ void LootDeployer::readPluginTags()
   const sfs::path tag_file_path = dest_path_ / tags_file_name_;
   if(!sfs::exists(tag_file_path))
   {
-    updatePluginTags();
+    updatePluginTagsPrivate();
     return;
   }
   tags_.clear();
@@ -480,7 +435,7 @@ void LootDeployer::readPluginTags()
     }
   }
   if(tags_.size() != plugins_.size())
-    updatePluginTags();
+    updatePluginTagsPrivate();
 }
 
 void LootDeployer::downloadList(std::string url, const std::string& file_name)
@@ -533,4 +488,75 @@ void LootDeployer::restoreUndeployBackupIfExists()
     sfs::rename(plugin_backup_path, dest_path_ / plugin_file_name_);
     loadPlugins();
   }
+}
+
+void LootDeployer::loadSettingsPrivate()
+{
+  Json::Value settings;
+  sfs::path settings_file_path = dest_path_ / config_file_name_;
+  if(!sfs::exists(settings_file_path))
+  {
+    resetSettingsPrivate();
+    return;
+  }
+  std::ifstream file(settings_file_path, std::fstream::binary);
+  if(!file.is_open())
+  {
+    resetSettingsPrivate();
+    return;
+  }
+  file >> settings;
+  file.close();
+  if(!settings.isMember("num_profiles") || !settings.isMember("current_profile") ||
+     !settings.isMember("list_download_time") || !settings.isMember("auto_update_master_list"))
+  {
+    resetSettingsPrivate();
+    return;
+  }
+  num_profiles_ = settings["num_profiles"].asInt();
+  current_profile_ = settings["current_profile"].asInt();
+  list_download_time_ = settings["list_download_time"].asInt64();
+  auto_update_lists_ = settings["auto_update_master_list"].asBool();
+}
+
+void LootDeployer::resetSettingsPrivate()
+{
+  num_profiles_ = 1;
+  current_profile_ = 0;
+  auto_update_lists_ = true;
+  list_download_time_ = 0;
+}
+
+void LootDeployer::updatePluginTagsPrivate()
+{
+  tags_.clear();
+  auto loot_handle = loot::CreateGameHandle(app_type_, source_path_, dest_path_);
+  std::vector<sfs::path> plugin_paths;
+  plugin_paths.reserve(plugins_.size());
+  for(const auto& [path, s] : plugins_)
+    plugin_paths.emplace_back(source_path_ / path);
+  loot_handle->LoadPlugins(plugin_paths, false);
+  num_light_plugins_ = 0;
+  num_master_plugins_ = 0;
+  num_standard_plugins_ = 0;
+  for(int i = 0; i < plugins_.size(); i++)
+  {
+    auto plugin = loot_handle->GetPlugin(plugins_[i].first);
+    if(plugin->IsLightPlugin())
+    {
+      num_light_plugins_++;
+      tags_.push_back({ LIGHT_PLUGIN });
+    }
+    else if(plugin->IsMaster())
+    {
+      num_master_plugins_++;
+      tags_.push_back({ MASTER_PLUGIN });
+    }
+    else
+    {
+      num_standard_plugins_++;
+      tags_.push_back({ STANDARD_PLUGIN });
+    }
+  }
+  writePluginTags();
 }

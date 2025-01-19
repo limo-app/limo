@@ -910,7 +910,10 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->supportsFileConflicts(),
              deployers_[deployer]->supportsFileBrowsing(),
              deployers_[deployer]->getType(),
-             deployers_[deployer]->idsAreSourceReferences() };
+             deployers_[deployer]->idsAreSourceReferences(),
+             {},
+             deployers_[deployer]->getModActions(),
+             deployers_[deployer]->getValidModActions() };
   }
   else
   {
@@ -958,7 +961,9 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->supportsFileBrowsing(),
              deployers_[deployer]->getType(),
              deployers_[deployer]->idsAreSourceReferences(),
-             mod_names };
+             mod_names,
+             deployers_[deployer]->getModActions(),
+             deployers_[deployer]->getValidModActions() };
   }
 }
 
@@ -1658,6 +1663,12 @@ void ModdedApplication::addModToIgnoreList(int deployer, int mod_id)
   }
   auto depl = static_cast<ReverseDeployer*>(deployers_[deployer].get());
   depl->addModToIgnoreList(mod_id);
+}
+
+void ModdedApplication::applyModAction(int deployer, int action, int mod_id)
+{
+  deployers_[deployer]->applyModAction(action, mod_id);
+  updateSettings(true);
 }
 
 sfs::path ModdedApplication::iconPath() const

@@ -210,6 +210,11 @@ public:
    * \return True
    */
   virtual bool idsAreSourceReferences() const override;
+  /*!
+   * \brief Returns a vector containing valid mod actions.
+   * \return For every mod: IDs of every valid mod_action which is valid for that mod.
+   */
+  virtual std::vector<std::vector<int>> getValidModActions() const override;
 
 protected:
   /*! \brief Appended to profile file names. */
@@ -218,8 +223,6 @@ protected:
   static constexpr std::string UNDEPLOY_BACKUP_EXTENSION = ".undeplbak";
   /*! \brief Name of the file containing settings. */
   std::string config_file_name_ = ".lmmconfig";
-  /*! \brief Name of the file containing loot tags. */
-  std::string tags_file_name_ = ".loot_tags";
   /*! \brief Name of the file containing source mod ids for plugins. */
   std::string source_mods_file_name_ = ".lmm_mod_sources";
 
@@ -237,6 +240,8 @@ protected:
   std::regex plugin_regex_;
   /*! \brief Regex used to match against lines in the plugin file. */
   std::regex plugin_file_line_regex_;
+  /*! \brief Name of the file containing loot tags. */
+  std::string tags_file_name_ = ".plugin_tags";
 
   /*! \brief Updates current plugins to reflect plugins actually in the source directory. */
   virtual void updatePlugins();

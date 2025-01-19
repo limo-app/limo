@@ -35,6 +35,7 @@
 #include "ui/exportappconfigdialog.h"
 #include "ui/externalchangesdialog.h"
 #include "ui/ipcserver.h"
+#include "ui/listaction.h"
 #include "ui/tagcheckbox.h"
 #include "versionboxdelegate.h"
 #include <QCloseEvent>
@@ -301,6 +302,11 @@ private:
   std::vector<QString> deployer_target_paths_;
   /*! \brief Contains all tools managed by the current app. */
   std::vector<Tool> tools_;
+  /*!
+   *  \brief Contains additional mod actions to be added to
+   *  the deployer list context menu for the current deployer.
+   */
+  std::vector<ListAction*> deployer_mod_actions_;
 
   /*! \brief Creates signal/ slot connections between this and the ApplicationManager. */
   void setupConnections();
@@ -980,7 +986,11 @@ private slots:
    * \param mod_url Url to the NexusMods page of the mod.
    * \param version If not empty: Use this to overwrite the default version.
    */
-  void onModDownloadRequested(int app_id, int mod_id, int file_id, QString mod_url, QString version);
+  void onModDownloadRequested(int app_id,
+                              int mod_id,
+                              int file_id,
+                              QString mod_url,
+                              QString version);
   /*! \brief Cancels installation of the pending mod. */
   void onDownloadFailed();
   /*! \brief Reinstalls the currently selected mod from the local source. */
@@ -1095,6 +1105,11 @@ private slots:
    * \param tool The new tool.
    */
   void onToolEdited(int app_id, int tool_id, Tool tool);
+  /*!
+   * \brief Emits \ref applyModAction for the given action.
+   * \param action Action to be applied to the current mod.
+   */
+  void onModActionTriggered(int action);
 
 signals:
   /*!
@@ -1603,4 +1618,12 @@ signals:
    * \param mod_id Mod to be ignored.
    */
   void addModToIgnoreList(int app_id, int deployer, int mod_id);
+  /*!
+   * \brief Applies the given mod action to the given mod.
+   * \param app_id Target app.
+   * \param deployer Target deployer.
+   * \param action Action to be applied.
+   * \param mod_id Target mod.
+   */
+  void applyModAction(int app_id, int deployer, int action, int mod_id);
 };
