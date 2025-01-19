@@ -2293,10 +2293,13 @@ std::string ModdedApplication::generalizeSteamPath(const std::string& path)
   std::regex install_regex(R"((\/.*\/steamapps\/common\/.*?)(?:\/.*)?)");
   std::regex prefix_regex(
     R"((\/.*\/steamapps\/compatdata\/\d+\/pfx\/(?:drive_c|dosdevices\/c:))(?:\/.*)?)");
+  std::regex home_regex(R"(((?:\/home\/.+?)|~)(?:\/.*)?)");
   std::smatch match;
   if(std::regex_match(path, match, install_regex))
     modified_path.replace(0, match[1].length(), "$STEAM_INSTALL_PATH$");
   else if(std::regex_match(path, match, prefix_regex))
     modified_path.replace(0, match[1].length(), "$STEAM_PREFIX_PATH$");
+  else if(std::regex_match(path, match, home_regex))
+    modified_path.replace(0, match[1].length(), "$HOME$");
   return modified_path;
 }
