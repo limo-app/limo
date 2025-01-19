@@ -158,7 +158,6 @@ bool OpenMwPluginDeployer::initPluginFile()
   const sfs::path plugin_file_path = dest_path_ / plugin_file_name_;
   if(sfs::exists(plugin_file_path))
     return false;
-  ;
 
   const sfs::path config_file_path = dest_path_ / OPEN_MW_CONFIG_FILE_NAME;
   std::ifstream in_file(config_file_path);
@@ -166,14 +165,23 @@ bool OpenMwPluginDeployer::initPluginFile()
     throw std::runtime_error(std::format("Error: Could not open '{}'.", config_file_path.string()));
 
   std::string line;
-  std::regex plugin_regex(R"(^content=(.*?\.[eE][sS][pPlLmM]))");
+  std::regex plugin_regex(R"(^content=(.*\.(?:es[pm]|omwscript|omwaddon|omwgame)))",
+                          std::regex_constants::icase);
+  std::regex groundcover_regex(R"(^groundcover=(.*\.(?:es[pm]|omwscript|omwaddon|omwgame)))",
+                          std::regex_constants::icase);
   while(getline(in_file, line))
   {
     std::smatch match;
     if(std::regex_match(line, match, plugin_regex))
       plugins_.emplace_back(match[1], true);
+    else if(std::regex_match(line, match, groundcover_regex))
+    {
+      plugins_.emplace_back(match[1], true);
+      groundcover_plugins_.insert(match[1]);
+    }
   }
 
+  updateTagVector();
   PluginDeployer::writePlugins();
   return true;
 }
