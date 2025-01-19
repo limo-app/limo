@@ -41,6 +41,8 @@ public:
   static constexpr int ids_are_source_references_role = 302;
   /*! \brief Role representing the name of the source mod. */
   static constexpr int source_mod_name_role = 303;
+  /*! \brief Role representing a list of valid mod actions. */
+  static constexpr int valid_mod_actions_role = 304;
 
   /*!
    * \brief Returns the horizontal header section names and vertical header section indices.

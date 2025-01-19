@@ -667,6 +667,13 @@ public:
    * \param mod_id Mod to be ignored.
    */
   void addModToIgnoreList(int deployer, int mod_id);
+  /*!
+   * \brief Applies the given mod action to the given mod.
+   * \param deployer Target deployer.
+   * \param action Action to be applied.
+   * \param mod_id Target mod.
+   */
+  void applyModAction(int deployer, int action, int mod_id);
 
 private:
   /*! \brief The name of this application. */

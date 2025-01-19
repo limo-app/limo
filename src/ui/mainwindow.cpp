@@ -399,6 +399,8 @@ void MainWindow::setupConnections()
           app_manager_, &ApplicationManager::updateIgnoredFiles);
   connect(this, &MainWindow::addModToIgnoreList,
           app_manager_, &ApplicationManager::addModToIgnoreList);
+  connect(this, &MainWindow::applyModAction,
+          app_manager_, &ApplicationManager::applyModAction);
 }
 // clang-format on
 
@@ -1411,6 +1413,46 @@ void MainWindow::onGetDeployerInfo(DeployerInfo depl_info)
   ui->actionAdd_to_Ignore_List->setVisible(depl_info.type == DeployerFactory::REVERSEDEPLOYER);
   ui->deployer_list->setEnableDragReorder(depl_info.supports_reordering);
 
+  for(QAction* action : deployer_mod_actions_)
+  {
+    deployer_list_menu_->removeAction(action);
+    delete action;
+  }
+  deployer_mod_actions_.clear();
+  for(const auto& [i, pair] : str::enumerate_view(depl_info.mod_actions))
+  {
+    const auto& [name, icon] = pair;
+    deployer_mod_actions_.push_back(new ListAction((int)i));
+    deployer_mod_actions_.back()->setText(name.c_str());
+    connect(deployer_mod_actions_.back(),
+            &ListAction::triggeredAt,
+            this,
+            &MainWindow::onModActionTriggered);
+    if(!icon.empty())
+      deployer_mod_actions_.back()->setIcon(QIcon::fromTheme(icon.c_str()));
+    bool action_inserted = false;
+    const auto actions = deployer_list_menu_->actions();
+    if(actions.empty())
+    {
+      deployer_list_menu_->addAction(deployer_mod_actions_.back());
+      action_inserted = true;
+    }
+    else
+    {
+      for(int i = 0; i < deployer_list_menu_->actions().size(); i++)
+      {
+        if(actions[i]->text().compare(name.c_str(), Qt::CaseInsensitive) > 0)
+        {
+          deployer_list_menu_->insertAction(actions[i], deployer_mod_actions_.back());
+          action_inserted = true;
+          break;
+        }
+      }
+    }
+    if(!action_inserted)
+      deployer_list_menu_->addAction(deployer_mod_actions_.back());
+  }
+
   for(auto cb : depl_tag_cbs_)
     delete cb;
   depl_tag_cbs_.clear();
@@ -1596,6 +1638,17 @@ void MainWindow::onModListContextMenu(QPoint pos)
 
 void MainWindow::onDeployerListContextMenu(QPoint pos)
 {
+  for(const auto& [i, action] : str::enumerate_view(deployer_mod_actions_))
+  {
+    auto valid_actions = ui->deployer_list->currentIndex()
+                           .data(DeployerListModel::valid_mod_actions_role)
+                           .value<std::vector<int>>();
+    if(str::find(valid_actions, (int)i) != valid_actions.end())
+      action->setVisible(true);
+    else
+      action->setVisible(false);
+  }
+
   bool has_visible_actions = false;
   for(auto&& action : deployer_list_menu_->actions())
   {
@@ -1979,24 +2032,23 @@ void MainWindow::onExtractionComplete(int app_id,
         ui->info_deployer_list->item(i, getColumnIndex(ui->info_deployer_list, "Target"))->text());
   }
   std::filesystem::path mod_path = local_source.toStdString();
-  bool was_successful =
-    add_mod_dialog_->setupDialog(mod_path.filename().c_str(),
-                                 deployers,
-                                 deployer,
-                                 group_names,
-                                 mod_ids,
-                                 extracted_path,
-                                 deployer_paths,
-                                 app_id,
-                                 auto_deployers,
-                                 ui->info_version_label->text(),
-                                 local_source,
-                                 remote_source,
-                                 mod_id,
-                                 mod_names,
-                                 mod_versions,
-                                 version,
-                                 name);
+  bool was_successful = add_mod_dialog_->setupDialog(mod_path.filename().c_str(),
+                                                     deployers,
+                                                     deployer,
+                                                     group_names,
+                                                     mod_ids,
+                                                     extracted_path,
+                                                     deployer_paths,
+                                                     app_id,
+                                                     auto_deployers,
+                                                     ui->info_version_label->text(),
+                                                     local_source,
+                                                     remote_source,
+                                                     mod_id,
+                                                     mod_names,
+                                                     mod_versions,
+                                                     version,
+                                                     name);
   if(was_successful)
   {
     setBusyStatus(true, false);
@@ -3439,4 +3491,13 @@ void MainWindow::onToolEdited(int app_id, int tool_id, Tool tool)
 {
   emit editTool(app_id, tool_id, tool);
   emit getAppInfo(currentApp());
+}
+
+void MainWindow::onModActionTriggered(int action)
+{
+  emit applyModAction(currentApp(),
+                      currentDeployer(),
+                      action,
+                      ui->deployer_list->currentIndex().data(ModListModel::mod_id_role).toInt());
+  emit getDeployerInfo(currentApp(), currentDeployer());
 }

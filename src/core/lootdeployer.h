@@ -106,7 +106,7 @@ public:
   virtual void cleanup() override;
   /*!
    * \brief Returns all available auto tag names.
-   * \return The tag names.
+   * \return The tag names mapped to how many plugins of that tag exist.
    */
   virtual std::map<std::string, int> getAutoTagMap() override;
 
@@ -169,20 +169,17 @@ protected:
    * auto_update_lists_ to the config file.
    */
   virtual void saveSettings() const override;
-  /*!
-   * \brief Loads number of profiles, active profile, list_download_time_ and
-   * auto_update_lists_ from the config file.
-   */
+  /*! \brief Wrapper for \ref loadSettingsPrivate. */
   void loadSettings() override;
   /*! \brief Identifies the type of game in the source directory using signature files. */
   void updateAppType();
   /*! \brief Downloads a new masterlist.yaml, if the current one is older than a day. */
   virtual void updateMasterList();
-  /*! \brief Resets all settings to default values. */
+  /*! \brief Wrapper for \ref resetSettingsPrivate. */
   virtual void resetSettings() override;
   /*! \brief Creates plugin.txt and loadorder.txt files if they do not exist. */
   void setupPluginFiles();
-  /*! \brief Updates the loot plugin tags for every currently loaded plugin. */
+  /*! \brief Wrapper for \ref updatePluginTagsPrivate. */
   virtual void updatePluginTags() override;
   /*! \brief Reads tags_ from disk. */
   void readPluginTags();
@@ -190,4 +187,13 @@ protected:
   virtual void downloadList(std::string url, const std::string& file_name);
   /*! \brief If loadorder and plugin file backups exist, restore them and override the current files. */
   virtual void restoreUndeployBackupIfExists() override;
+  /*!
+   * \brief Loads number of profiles, active profile, list_download_time_ and
+   * auto_update_lists_ from the config file.
+   */
+  void loadSettingsPrivate();
+  /*! \brief Resets all settings to default values. */
+  void resetSettingsPrivate();
+  /*! \brief Updates the loot plugin tags for every currently loaded plugin. */
+  void updatePluginTagsPrivate();
 };

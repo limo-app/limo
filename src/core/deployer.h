@@ -351,6 +351,22 @@ public:
    * \return False
    */
   virtual bool idsAreSourceReferences() const;
+  /*!
+   * \brief Returns names and icon names for additional actions which can be applied to a mod.
+   * \return The actions.
+   */
+  virtual std::vector<std::pair<std::string, std::string>> getModActions() const;
+  /*!
+   * \brief Returns a vector containing valid mod actions.
+   * \return For every mod: IDs of every valid mod_action which is valid for that mod.
+   */
+  virtual std::vector<std::vector<int>> getValidModActions() const;
+  /*!
+   * \brief Applies the given mod action to the given mod.
+   * \param action Action to be applied.
+   * \param mod_id Target mod.
+   */
+  virtual void applyModAction(int action, int mod_id);
 
 protected:
   /*! \brief Type of this deployer, e.g. Simple Deployer. */

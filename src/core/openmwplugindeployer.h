@@ -5,13 +5,14 @@
 
 #pragma once
 
-#include "lootdeployer.h"
+#include "plugindeployer.h"
+#include <set>
 
 
 /*!
  * \brief Autonomous deployer which handles plugin files for OpenMW using LOOT.
  */
-class OpenMwPluginDeployer : public LootDeployer
+class OpenMwPluginDeployer : public PluginDeployer
 {
 public:
   /*!
@@ -27,38 +28,104 @@ public:
                  const std::string& name,
                  bool init_tags = true);
 
+  /*! \brief Action id for adding a groundcover tag. */
+  static constexpr int ACTION_ADD_GROUNDCOVER_TAG = 0;
+  /*! \brief Action id for removing a groundcover tag. */
+  static constexpr int ACTION_REMOVE_GROUNDCOVER_TAG = 1;
+
   /*!
    * \brief If no backup exists: Backs up current plugin file, then reloads all plugins.
    * \param progress_node Used to inform about the current progress.
    */
   virtual void unDeploy(std::optional<ProgressNode*> progress_node = {}) override;
   /*!
-   * \brief Adds a new profile and optionally copies it's load order from an existing profile.
-   * Profiles are stored in the target directory.
-   * \param source The profile to be copied. A value of -1 indicates no copy.
+   * \brief Groups plugins by whether or not they are scrips, groundcover plugins or neither.
+   * \return For every group: The plugin IDs part of that group.
    */
-  virtual void addProfile(int source = -1) override;
+  virtual std::vector<std::vector<int>> getConflictGroups() const override;
   /*!
-   * \brief Removes a profile.
-   * \param profile The profile to be removed.
+   * \brief Returns all available auto tag names.
+   * \return The tag names mapped to how many plugins of that tag exist.
    */
-  virtual void removeProfile(int profile) override;
+  virtual std::map<std::string, int> getAutoTagMap() override;
   /*!
-   * \brief Setter for the active profile. Changes the currently active plugins file
-   * to the one saved in the new profile.
-   * \param profile The new profile.
+   * \brief Sort mods by into script, groundcover and normal groups.
+   * \param progress_node Used to inform about the current progress.
    */
-  virtual void setProfile(int profile) override;
+  virtual void sortModsByConflicts(std::optional<ProgressNode*> progress_node = {}) override;
+  /*!
+   * \brief Returns whether or not this deployer type supports showing mod conflicts.
+   * \return False.
+   */
+  virtual bool supportsModConflicts() const override;
+  /*!
+   * \brief Returns names and icon names for additional actions which can be applied to a mod.
+   * \return The actions.
+   */
+  virtual std::vector<std::pair<std::string, std::string>> getModActions() const override;
+  /*!
+   * \brief Returns a vector containing valid mod actions.
+   * \return For every mod: IDs of every valid mod_action which is valid for that mod.
+   */
+  virtual std::vector<std::vector<int>> getValidModActions() const override;
+  /*!
+   * \brief Applies the given mod action to the given mod.
+   * \param action Action to be applied.
+   * \param mod_id Target mod.
+   */
+  virtual void applyModAction(int action, int mod_id) override;
 
 private:
   /*! \brief Name of the OpenMW config file. */
   static constexpr std::string OPEN_MW_CONFIG_FILE_NAME = "openmw.cfg";
+  /*! \brief Name of the groundcover tag. */
+  static constexpr std::string GROUNDCOVER_TAG = "Groundcover";
+  /*! \brief Name of the open mw tag. */
+  static constexpr std::string OPENMW_TAG = "OpenMW";
+  /*! \brief Name of the es plugin tag. */
+  static constexpr std::string ES_PLUGIN_TAG = "ES-Plugin";
+  /*! \brief Name of the es plugin tag. */
+  static constexpr std::string SCRIPTS_PLUGIN_TAG = "Scripts";
 
-  /*! \brief Writes plugins to the OpenMW config file. */
+  /*! \brief Number of plugins with groundcover tag. */
+  int num_groundcover_plugins_ = 0;
+  /*! \brief Number of plugins with openmw tag. */
+  int num_openmw_plugins_ = 0;
+  /*! \brief Number of plugins with es plugin tag. */
+  int num_es_plugins_ = 0;
+  /*! \brief Number of script plugins. */
+  int num_scripts_plugins_ = 0;
+  /*! \brief Maps plugins to a set of tags. */
+  std::map<std::string, std::set<std::string>> tag_map_;
+  /*! \brief Names of groundcover plugins. */
+  std::set<std::string> groundcover_plugins_;
+
+  /*! \brief Wrapper for \ref writePluginTagsPrivate. */
   void writePlugins() const override;
   /*!
    *  \brief Initializes the plugin file, if it does not exist.
    *  \return A bool indicating if the plugin file was created.
    */
   bool initPluginFile();
+  /*! \brief Reads the plugin tags from disk. */
+  void readPluginTags();
+  /*! \brief Writes the current tags_ to disk. */
+  virtual void writePluginTags() const override;
+  /*! \brief Wrapper for \ref updatePluginTagsPrivate. */
+  virtual void updatePluginTags() override;
+  /*! \brief Adds all tags from the tag map to the tags_ vector. */
+  void updateTagVector();
+  /*! \brief Updates the tag_map_ for every plugin. */
+  void updatePluginTagsPrivate();
+  /*! \brief Writes plugins to the OpenMW config file. */
+  void writePluginTagsPrivate() const;
+  /*!
+   * \brief Writes a subset of plugins to the OpenMW config file.
+   * \param line_prefix Prefix for the line containing the written plugins.
+   * \param line_regex Regex matched against lines that should be excluded from existing files.
+   * \param plugin_filter Used to filter indices in plugins_.
+   * Plugins are written when this returns true.
+   */
+  void writePluginsToOpenMwConfig(const std::string& line_prefix, const std::regex& line_regex,
+                                  std::function<bool(int)> plugin_filter) const;
 };

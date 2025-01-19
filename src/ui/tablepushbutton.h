@@ -16,6 +16,11 @@ class TablePushButton : public QPushButton
 {
   Q_OBJECT
 public:
+  /*!
+   * \brief Constructs a new button for the given row and column.
+   * \param row Target row.
+   * \param col Target column.
+   */
   TablePushButton(int row, int col);
 
 private:

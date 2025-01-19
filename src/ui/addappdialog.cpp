@@ -215,9 +215,11 @@ void AddAppDialog::initConfigForApp()
 
       if(!deployer[JSON_DEPLOYERS_SOURCE].isNull())
       {
+        QString home_path = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
         QString source_string = deployer[JSON_DEPLOYERS_SOURCE].asString().c_str();
         source_string.replace("$STEAM_INSTALL_PATH$", steam_install_path_);
         source_string.replace("$STEAM_PREFIX_PATH$", steam_prefix_path_);
+        source_string.replace("$HOME$", home_path);
         const std::string source_dir = source_string.toStdString();
         if(!sfs::exists(source_dir))
         {

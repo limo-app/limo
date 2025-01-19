@@ -57,6 +57,18 @@ void PluginDeployer::changeLoadorder(int from_index, int to_index)
     std::rotate(plugins_.begin() + from_index,
                 plugins_.begin() + from_index + 1,
                 plugins_.begin() + to_index + 1);
+  if(tags_.size() == plugins_.size())
+  {
+    if(to_index < from_index)
+      std::rotate(tags_.begin() + to_index,
+                  tags_.begin() + from_index,
+                  tags_.begin() + from_index + 1);
+    else
+      std::rotate(tags_.begin() + from_index,
+                  tags_.begin() + from_index + 1,
+                  tags_.begin() + to_index + 1);
+  }
+  writePluginTags();
   writePlugins();
 }
 
@@ -306,6 +318,14 @@ bool PluginDeployer::supportsFileBrowsing() const
 bool PluginDeployer::idsAreSourceReferences() const
 {
   return true;
+}
+
+std::vector<std::vector<int>> PluginDeployer::getValidModActions() const
+{
+  std::vector<std::vector<int>> valid_actions;
+  for(int _ = 0; _ < plugins_.size(); _++)
+    valid_actions.push_back({});
+  return valid_actions;
 }
 
 void PluginDeployer::updatePlugins()

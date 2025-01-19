@@ -910,7 +910,10 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->supportsFileConflicts(),
              deployers_[deployer]->supportsFileBrowsing(),
              deployers_[deployer]->getType(),
-             deployers_[deployer]->idsAreSourceReferences() };
+             deployers_[deployer]->idsAreSourceReferences(),
+             {},
+             deployers_[deployer]->getModActions(),
+             deployers_[deployer]->getValidModActions() };
   }
   else
   {
@@ -958,7 +961,9 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->supportsFileBrowsing(),
              deployers_[deployer]->getType(),
              deployers_[deployer]->idsAreSourceReferences(),
-             mod_names };
+             mod_names,
+             deployers_[deployer]->getModActions(),
+             deployers_[deployer]->getValidModActions() };
   }
 }
 
@@ -1660,6 +1665,12 @@ void ModdedApplication::addModToIgnoreList(int deployer, int mod_id)
   depl->addModToIgnoreList(mod_id);
 }
 
+void ModdedApplication::applyModAction(int deployer, int action, int mod_id)
+{
+  deployers_[deployer]->applyModAction(action, mod_id);
+  updateSettings(true);
+}
+
 sfs::path ModdedApplication::iconPath() const
 {
   return icon_path_;
@@ -2282,10 +2293,13 @@ std::string ModdedApplication::generalizeSteamPath(const std::string& path)
   std::regex install_regex(R"((\/.*\/steamapps\/common\/.*?)(?:\/.*)?)");
   std::regex prefix_regex(
     R"((\/.*\/steamapps\/compatdata\/\d+\/pfx\/(?:drive_c|dosdevices\/c:))(?:\/.*)?)");
+  std::regex home_regex(R"(((?:\/home\/.+?)|~)(?:\/.*)?)");
   std::smatch match;
   if(std::regex_match(path, match, install_regex))
     modified_path.replace(0, match[1].length(), "$STEAM_INSTALL_PATH$");
   else if(std::regex_match(path, match, prefix_regex))
     modified_path.replace(0, match[1].length(), "$STEAM_PREFIX_PATH$");
+  else if(std::regex_match(path, match, home_regex))
+    modified_path.replace(0, match[1].length(), "$HOME$");
   return modified_path;
 }

@@ -319,7 +319,8 @@ add_executable(Limo
     src/core/bg3plugin.h src/core/bg3plugin.cpp
     src/core/bg3pakfile.h src/core/bg3pakfile.cpp
     src/core/lspakheader.h
-    src/core/lspakfilelistentry.h)
+    src/core/lspakfilelistentry.h
+    src/ui/listaction.h src/ui/listaction.cpp)
 
 target_include_directories(Limo
     PRIVATE ${PROJECT_SOURCE_DIR}/src

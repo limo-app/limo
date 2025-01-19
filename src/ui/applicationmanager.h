@@ -991,4 +991,12 @@ public slots:
    * \param mod_id Mod to be ignored.
    */
   void addModToIgnoreList(int app_id, int deployer, int mod_id);
+  /*!
+   * \brief Applies the given mod action to the given mod.
+   * \param app_id Target app.
+   * \param deployer Target deployer.
+   * \param action Action to be applied.
+   * \param mod_id Target mod.
+   */
+  void applyModAction(int app_id, int deployer, int action, int mod_id);
 };
