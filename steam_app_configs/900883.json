@@ -1,0 +1,54 @@
+{
+  "name": "The Elder Scrolls IV: Oblivion Game of the Year Edition Deluxe",
+  "deployers":
+  [
+    {
+      "type": "Case Matching Deployer",
+      "name": "Data",
+      "target_dir": "$STEAM_INSTALL_PATH$/Data",
+      "deploy_mode": "hard link"
+    },
+    {
+      "type": "Case Matching Deployer",
+      "name": "Bin",
+      "target_dir": "$STEAM_INSTALL_PATH$",
+      "deploy_mode": "hard link"
+    },
+    {
+      "type": "Loot Deployer",
+      "name": "Plugins",
+      "target_dir": "$STEAM_PREFIX_PATH$/users/steamuser/Local Settings/Application Data/Oblivion",
+      "deploy_mode": "hard link",
+      "source_dir": "$STEAM_INSTALL_PATH$/Data"
+    },
+  ],
+  "auto_tags":
+  [
+    {
+      "name": "Plugin",
+      "expression": "0",
+      "conditions":
+      [
+        {
+          "condition_type": "path",
+          "invert": false,
+          "search_string": "[^/]*\\.es[pml]",
+          "use_regex": true
+        }
+      ]
+    },
+    {
+      "name": "OBSE",
+      "expression": "0",
+      "conditions":
+      [
+        {
+          "condition_type": "path",
+          "invert": false,
+          "search_string": "obse/*",
+          "use_regex": false
+        }
+      ]
+    }
+  ]
+}
