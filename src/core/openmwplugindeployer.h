@@ -25,8 +25,7 @@ public:
    */
   OpenMwPluginDeployer(const std::filesystem::path& source_path,
                  const std::filesystem::path& dest_path,
-                 const std::string& name,
-                 bool init_tags = true);
+                 const std::string& name);
 
   /*! \brief Action id for adding a groundcover tag. */
   static constexpr int ACTION_ADD_GROUNDCOVER_TAG = 0;
@@ -100,7 +99,7 @@ private:
   /*! \brief Names of groundcover plugins. */
   std::set<std::string> groundcover_plugins_;
 
-  /*! \brief Wrapper for \ref writePluginTagsPrivate. */
+  /*! \brief Wrapper for \ref writePluginsPrivate. */
   void writePlugins() const override;
   /*!
    *  \brief Initializes the plugin file, if it does not exist.
@@ -109,7 +108,7 @@ private:
   bool initPluginFile();
   /*! \brief Reads the plugin tags from disk. */
   void readPluginTags();
-  /*! \brief Writes the current tags_ to disk. */
+  /*! \brief Wrapper for \ref writePluginTagsPrivate. */
   virtual void writePluginTags() const override;
   /*! \brief Wrapper for \ref updatePluginTagsPrivate. */
   virtual void updatePluginTags() override;
@@ -128,4 +127,6 @@ private:
    */
   void writePluginsToOpenMwConfig(const std::string& line_prefix, const std::regex& line_regex,
                                   std::function<bool(int)> plugin_filter) const;
+  /*! \brief Writes the plugins to disk. */
+  void writePluginsPrivate() const;
 };

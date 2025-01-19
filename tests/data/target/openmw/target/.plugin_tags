@@ -1,0 +1,60 @@
+[
+	{
+		"plugin" : "Morrowind.esm",
+		"tags" : 
+		[
+			"ES-Plugin"
+		]
+	},
+	{
+		"plugin" : "a.esp",
+		"tags" : 
+		[
+			"ES-Plugin"
+		]
+	},
+	{
+		"plugin" : "c.esp",
+		"tags" : 
+		[
+			"ES-Plugin"
+		]
+	},
+	{
+		"plugin" : "d.EsP",
+		"tags" : 
+		[
+			"ES-Plugin"
+		]
+	},
+	{
+		"plugin" : "e.omwaddon",
+		"tags" : 
+		[
+			"OpenMW"
+		]
+	},
+	{
+		"plugin" : "f.omwgame",
+		"tags" : 
+		[
+			"OpenMW"
+		]
+	},
+	{
+		"plugin" : "g.omwscript",
+		"tags" : 
+		[
+			"OpenMW",
+			"Scripts"
+		]
+	},
+	{
+		"plugin" : "h.omwscript",
+		"tags" : 
+		[
+			"OpenMW",
+			"Scripts"
+		]
+	}
+]

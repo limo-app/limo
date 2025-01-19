@@ -10,8 +10,7 @@ namespace str = std::ranges;
 
 OpenMwPluginDeployer::OpenMwPluginDeployer(const sfs::path& source_path,
                                            const sfs::path& dest_path,
-                                           const std::string& name,
-                                           bool init_tags) :
+                                           const std::string& name) :
   PluginDeployer(source_path, dest_path, name)
 {
   type_ = "OpenMW Plugin Deployer";
@@ -23,15 +22,20 @@ OpenMwPluginDeployer::OpenMwPluginDeployer(const sfs::path& source_path,
   config_file_name_ = ".plugin_config";
   source_mods_file_name_ = ".plugin_mod_sources";
   plugin_file_name_ = ".plugins.txt";
-  tags_file_name_ = ".tags";
-  if(!initPluginFile())
+  tags_file_name_ = ".plugin_tags";
+  bool initialized_plugins = initPluginFile();
+  if(!initialized_plugins)
     loadPlugins();
+  readPluginTags();
   updatePlugins();
+  if(initialized_plugins)
+    updatePluginTagsPrivate();
   if(sfs::exists(dest_path_ / config_file_name_))
     loadSettings();
-  if(init_tags)
-    readPluginTags();
   readSourceMods();
+  writePluginsPrivate();
+  writePluginTagsPrivate();
+  saveSettings();
 }
 
 void OpenMwPluginDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
@@ -137,20 +141,7 @@ void OpenMwPluginDeployer::applyModAction(int action, int mod_id)
 
 void OpenMwPluginDeployer::writePlugins() const
 {
-  PluginDeployer::writePlugins();
-
-  writePluginsToOpenMwConfig("content=",
-                             std::regex(R"(^content=.*)"),
-                             [this](int i) {
-                               return plugins_[i].second &&
-                                      !groundcover_plugins_.contains(plugins_[i].first);
-                             });
-  writePluginsToOpenMwConfig("groundcover=",
-                             std::regex(R"(^groundcover=.*)"),
-                             [this](int i) {
-                               return plugins_[i].second &&
-                                      groundcover_plugins_.contains(plugins_[i].first);
-                             });
+  writePluginsPrivate();
 }
 
 bool OpenMwPluginDeployer::initPluginFile()
@@ -169,6 +160,7 @@ bool OpenMwPluginDeployer::initPluginFile()
                           std::regex_constants::icase);
   std::regex groundcover_regex(R"(^groundcover=(.*\.(?:es[pm]|omwscript|omwaddon|omwgame)))",
                           std::regex_constants::icase);
+  num_groundcover_plugins_ = 0;
   while(getline(in_file, line))
   {
     std::smatch match;
@@ -178,6 +170,7 @@ bool OpenMwPluginDeployer::initPluginFile()
     {
       plugins_.emplace_back(match[1], true);
       groundcover_plugins_.insert(match[1]);
+      num_groundcover_plugins_++;
     }
   }
 
@@ -370,4 +363,22 @@ void OpenMwPluginDeployer::writePluginsToOpenMwConfig(const std::string& line_pr
         out_file << line_prefix + pair.first + "\n";
     }
   }
+}
+
+void OpenMwPluginDeployer::writePluginsPrivate() const
+{
+  PluginDeployer::writePlugins();
+
+  writePluginsToOpenMwConfig("content=",
+                             std::regex(R"(^content=.*)"),
+                             [this](int i) {
+                               return plugins_[i].second &&
+                                      !groundcover_plugins_.contains(plugins_[i].first);
+                             });
+  writePluginsToOpenMwConfig("groundcover=",
+                             std::regex(R"(^groundcover=.*)"),
+                             [this](int i) {
+                               return plugins_[i].second &&
+                                      groundcover_plugins_.contains(plugins_[i].first);
+                             });
 }

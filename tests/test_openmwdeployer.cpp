@@ -37,7 +37,7 @@ TEST_CASE("State is read", "[.openmw]")
                  std::vector<std::tuple<int, bool>>{ { -1, true }, { -1, true }, { -1, true } }));
   
   OpenMwPluginDeployer p_depl(
-    DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "", false);
+    DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "");
   const std::vector<std::string> mod_names{"Morrowind.esm", "f.omwgame", "c.esp", "d.EsP", "a.esp", "e.omwaddon",
                                            "g.omwscript", "h.omwscript"};
   REQUIRE(p_depl.getNumMods() == mod_names.size());
@@ -64,7 +64,7 @@ TEST_CASE("Load order can be edited", "[.openmw]")
   OpenMwArchiveDeployer a_depl(
     DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "");
   OpenMwPluginDeployer p_depl(
-    DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "", false);
+    DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "");
   
   const std::vector<std::string> mod_names{"Morrowind.esm", "f.omwgame", "c.esp", "d.EsP", "a.esp", "e.omwaddon",
                                            "g.omwscript", "h.omwscript"};
@@ -89,7 +89,7 @@ TEST_CASE("Load order can be edited", "[.openmw]")
   OpenMwArchiveDeployer a_depl_2(
     DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "");
   OpenMwPluginDeployer p_depl_2(
-    DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "", false);
+    DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "");
   
   REQUIRE_THAT(a_depl.getModNames(), Catch::Matchers::Equals(a_depl_2.getModNames()));
   REQUIRE_THAT(p_depl.getModNames(), Catch::Matchers::Equals(p_depl_2.getModNames()));
@@ -104,7 +104,7 @@ TEST_CASE("Profiles are managed", "[.openmw]")
   OpenMwArchiveDeployer a_depl(
     DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "");
   OpenMwPluginDeployer p_depl(
-    DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "", false);
+    DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "");
   
   const std::vector<std::string> mod_names{"Morrowind.esm", "f.omwgame", "c.esp", "d.EsP", "a.esp", "e.omwaddon",
                                            "g.omwscript", "h.omwscript"};
