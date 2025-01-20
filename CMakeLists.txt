@@ -104,6 +104,12 @@ set(PROJECT_SOURCES
         src/core/backupmanager.h
         src/core/backuptarget.cpp
         src/core/backuptarget.h
+        src/core/bg3deployer.cpp
+        src/core/bg3deployer.h
+        src/core/bg3pakfile.cpp
+        src/core/bg3pakfile.h
+        src/core/bg3plugin.cpp
+        src/core/bg3plugin.h
         src/core/casematchingdeployer.cpp
         src/core/casematchingdeployer.h
         src/core/compressionerror.h
@@ -141,6 +147,10 @@ set(PROJECT_SOURCES
         src/core/log.h
         src/core/lootdeployer.cpp
         src/core/lootdeployer.h
+        src/core/lspakextractor.cpp
+        src/core/lspakextractor.h
+        src/core/lspakfilelistentry.h
+        src/core/lspakheader.h
         src/core/manualtag.cpp
         src/core/manualtag.h
         src/core/mod.cpp
@@ -262,6 +272,8 @@ set(PROJECT_SOURCES
         src/ui/ipcclient.h
         src/ui/ipcserver.cpp
         src/ui/ipcserver.h
+        src/ui/listaction.cpp
+        src/ui/listaction.h
         src/ui/mainwindow.cpp
         src/ui/mainwindow.h
         src/ui/mainwindow.ui
@@ -313,14 +325,7 @@ configure_file(src/core/consts.h.in
                ${PROJECT_SOURCE_DIR}/src/core/consts.h)
 
 add_executable(Limo
-    ${PROJECT_SOURCES}
-    src/core/lspakextractor.h src/core/lspakextractor.cpp
-    src/core/bg3deployer.h src/core/bg3deployer.cpp
-    src/core/bg3plugin.h src/core/bg3plugin.cpp
-    src/core/bg3pakfile.h src/core/bg3pakfile.cpp
-    src/core/lspakheader.h
-    src/core/lspakfilelistentry.h
-    src/ui/listaction.h src/ui/listaction.cpp)
+    ${PROJECT_SOURCES})
 
 target_include_directories(Limo
     PRIVATE ${PROJECT_SOURCE_DIR}/src

@@ -22,7 +22,7 @@ OpenMwPluginDeployer::OpenMwPluginDeployer(const sfs::path& source_path,
   config_file_name_ = ".plugin_config";
   source_mods_file_name_ = ".plugin_mod_sources";
   plugin_file_name_ = ".plugins.txt";
-  tags_file_name_ = ".plugin_tags";
+  tags_file_name_ = ".omwplugin_tags";
   bool initialized_plugins = initPluginFile();
   if(!initialized_plugins)
     loadPlugins();
