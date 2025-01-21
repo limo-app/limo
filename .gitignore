@@ -90,3 +90,9 @@ fp-build
 
 # scripts used locally before pushing
 local_scripts
+
+# direnv
+.direnv
+
+# Nix
+result
