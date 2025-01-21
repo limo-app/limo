@@ -121,8 +121,7 @@ void init(sfs::path log_dir_path)
 
     // delete the oldest log, if file limit has been exceeded
     const sfs::path max_file = log_dir_path / getLogFileName(num_log_files - 1);
-    if(sfs::exists(max_file))
-      sfs::remove(max_file);
+    sfs::remove(max_file);
 
     // rename existing files to make room for a new log file
     for(int i = num_log_files - 2; i >= 0; i--)

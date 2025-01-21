@@ -48,11 +48,11 @@ void LootDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
     dest_path_ / ("." + app_plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
   const std::string plugin_backup_path =
     dest_path_ / ("." + plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
-  if(sfs::exists(loadorder_backup_path) && !sfs::exists(plugin_backup_path))
+  if(pu::exists(loadorder_backup_path) && !pu::exists(plugin_backup_path))
     sfs::remove(loadorder_backup_path);
-  else if(!sfs::exists(loadorder_backup_path) && sfs::exists(plugin_backup_path))
+  else if(!pu::exists(loadorder_backup_path) && pu::exists(plugin_backup_path))
     sfs::remove(plugin_backup_path);
-  else if(!sfs::exists(loadorder_backup_path) && !sfs::exists(plugin_backup_path))
+  else if(!pu::exists(loadorder_backup_path) && !pu::exists(plugin_backup_path))
   {
     sfs::copy(dest_path_ / app_plugin_file_name_, loadorder_backup_path);
     sfs::copy(dest_path_ / plugin_file_name_, plugin_backup_path);
@@ -101,10 +101,8 @@ void LootDeployer::removeProfile(int profile)
     setProfile(0);
   else if(profile < current_profile_)
     setProfile(current_profile_ - 1);
-  if(sfs::exists(dest_path_ / plugin_file))
-    sfs::remove(dest_path_ / plugin_file);
-  if(sfs::exists(dest_path_ / loadorder_file))
-    sfs::remove(dest_path_ / loadorder_file);
+  sfs::remove(dest_path_ / plugin_file);
+  sfs::remove(dest_path_ / loadorder_file);
   num_profiles_--;
   saveSettings();
 }
@@ -263,15 +261,12 @@ void LootDeployer::cleanup()
     sfs::path plugin_path = dest_path_ / ("." + plugin_file_name_ + EXTENSION + std::to_string(i));
     sfs::path load_order_path =
       dest_path_ / ("." + app_plugin_file_name_ + EXTENSION + std::to_string(i));
-    if(sfs::exists(plugin_path))
-      sfs::remove(plugin_path);
-    if(sfs::exists(load_order_path))
-      sfs::remove(load_order_path);
+    sfs::remove(plugin_path);
+    sfs::remove(load_order_path);
   }
   current_profile_ = 0;
   num_profiles_ = 1;
-  if(sfs::exists(dest_path_ / config_file_name_))
-    sfs::remove(dest_path_ / config_file_name_);
+  sfs::remove(dest_path_ / config_file_name_);
 }
 
 std::map<std::string, int> LootDeployer::getAutoTagMap()
@@ -370,8 +365,8 @@ void LootDeployer::updateMasterList()
   if(!auto_update_lists_)
     return;
   const auto cur_time = std::chrono::system_clock::now();
-  const std::chrono::time_point<std::chrono::system_clock> update_time(
-    (std::chrono::seconds(list_download_time_)));
+  const std::chrono::time_point<std::chrono::system_clock> update_time{
+    std::chrono::seconds(list_download_time_)};
   const auto one_hour_ago = cur_time - std::chrono::hours(1);
   if(update_time >= one_hour_ago && sfs::exists(dest_path_ / "masterlist.yaml"))
     return;
@@ -455,8 +450,7 @@ void LootDeployer::downloadList(std::string url, const std::string& file_name)
   cpr::Response response = cpr::Download(fstream, cpr::Url{ url });
   if(response.status_code != 200)
   {
-    if(sfs::exists(dest_path_ / tmp_file_name))
-      sfs::remove(dest_path_ / tmp_file_name);
+    sfs::remove(dest_path_ / tmp_file_name);
     throw std::runtime_error("Could not download " + file_name + " from '" +
                              LIST_URLS.at(app_type_) + "'.\nTry to update the URL in the " +
                              "settings. Alternatively, you can manually download the " +
@@ -464,8 +458,7 @@ void LootDeployer::downloadList(std::string url, const std::string& file_name)
                              "'. You can disable auto updates in '" +
                              (dest_path_ / config_file_name_).string() + "'.");
   }
-  if(sfs::exists(dest_path_ / file_name))
-    sfs::remove(dest_path_ / file_name);
+  sfs::remove(dest_path_ / file_name);
   sfs::rename(dest_path_ / tmp_file_name, dest_path_ / file_name);
 }
 
@@ -475,9 +468,9 @@ void LootDeployer::restoreUndeployBackupIfExists()
     dest_path_ / ("." + app_plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
   const std::string plugin_backup_path =
     dest_path_ / ("." + plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
-  if(sfs::exists(loadorder_backup_path) && !sfs::exists(plugin_backup_path))
+  if(pu::exists(loadorder_backup_path) && !pu::exists(plugin_backup_path))
     sfs::remove(loadorder_backup_path);
-  else if(!sfs::exists(loadorder_backup_path) && sfs::exists(plugin_backup_path))
+  else if(!pu::exists(loadorder_backup_path) && pu::exists(plugin_backup_path))
     sfs::remove(plugin_backup_path);
   else if(sfs::exists(loadorder_backup_path) && sfs::exists(plugin_backup_path))
   {

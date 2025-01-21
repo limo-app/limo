@@ -4,6 +4,7 @@
 #include <set>
 
 namespace sfs = std::filesystem;
+namespace pu = path_utils;
 
 
 namespace path_utils
@@ -12,9 +13,9 @@ std::optional<sfs::path> pathExists(const sfs::path& path_to_check,
                                     const sfs::path& base_path,
                                     bool case_insensitive)
 {
-  if(sfs::exists(base_path / path_to_check))
+  if(pu::exists(base_path / path_to_check))
     return path_to_check;
-  if(!case_insensitive || base_path != "" && !sfs::exists(base_path))
+  if(!case_insensitive || base_path != "" && !pu::exists(base_path))
     return {};
   const sfs::path target =
     path_to_check.string().ends_with("/") ? path_to_check.parent_path() : path_to_check;
@@ -22,7 +23,7 @@ std::optional<sfs::path> pathExists(const sfs::path& path_to_check,
   sfs::path actual_path;
   for(auto iter = target.begin(); iter != target.end(); iter++)
   {
-    if(sfs::exists(base_path / actual_path / *iter))
+    if(pu::exists(base_path / actual_path / *iter))
     {
       actual_path /= *iter;
       continue;
@@ -159,10 +160,7 @@ void renameFiles(const sfs::path& destination,
   if(source == destination)
   {
     for(const auto& dir : old_directories)
-    {
-      if(sfs::exists(dir))
-        sfs::remove_all(dir);
-    }
+      sfs::remove_all(dir);
   }
   else
     sfs::remove_all(source);
@@ -185,7 +183,7 @@ void moveFilesWithDepth(const sfs::path& source, const sfs::path& destination, i
       sfs::create_directories(cur_dest);
     else
     {
-      if(sfs::exists(cur_dest))
+      if(pu::exists(cur_dest))
         throw std::runtime_error("Error: Duplicate file detected: \"" +
                                  getRelativePath(cur_source, source) + "\"!");
       if(cur_dest.has_parent_path())
@@ -204,4 +202,8 @@ void copyOrMoveFiles(const sfs::path& source, const sfs::path& destination, bool
     sfs::copy(source, destination, sfs::copy_options(sfs::copy_options::recursive));
 }
 
+bool exists(const std::filesystem::path& path)
+{
+  return sfs::status(path).type() != sfs::file_type::not_found;
+}
 }

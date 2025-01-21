@@ -46,8 +46,8 @@ void BackupManager::addTarget(const sfs::path& path)
     throw std::runtime_error(
       std::format("Backup target path \"{}\" does not exist.", path.string()));
   if(!sfs::exists(getConfigPath(path)))
-    throw std::runtime_error(std::format(
-      "Could not find backup target settings file at \"{}\".", getConfigPath(path).string()));
+    throw std::runtime_error(std::format("Could not find backup target settings file at \"{}\".",
+                                         getConfigPath(path).string()));
   for(const auto& target : targets_)
   {
     if(target.path == path)
@@ -83,12 +83,10 @@ void BackupManager::removeTarget(int target_id)
     if(backup == targets_[target_id].active_members[cur_profile_])
       continue;
     const auto path = getBackupPath(target_id, backup);
-    if(sfs::exists(path))
-      sfs::remove_all(path);
+    sfs::remove_all(path);
   }
   const auto config_file = getConfigPath(targets_[target_id].path);
-  if(sfs::exists(config_file))
-    sfs::remove(config_file);
+  sfs::remove(config_file);
   targets_.erase(targets_.begin() + target_id);
 }
 
@@ -111,8 +109,7 @@ void BackupManager::removeBackup(int target_id, int backup_id, bool update_dirs)
   for(int prof = 0; prof < num_profiles_; prof++)
     target.active_members[prof] = 0;
   sfs::path backup_path = getBackupPath(target.path, backup_id);
-  if(sfs::exists(backup_path))
-    sfs::remove_all(backup_path);
+  sfs::remove_all(backup_path);
   for(int i = backup_id + 1; i < target.backup_names.size(); i++)
   {
     sfs::path cur_path = getBackupPath(target.path, i);

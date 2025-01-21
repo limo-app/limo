@@ -134,7 +134,7 @@ void ModdedApplication::installMod(const AddModInfo& info)
   int mod_id = 0;
   if(!installed_mods_.empty())
     mod_id = std::max_element(installed_mods_.begin(), installed_mods_.end())->id + 1;
-  while(sfs::exists(staging_dir_ / std::to_string(mod_id)) &&
+  while(pu::exists(staging_dir_ / std::to_string(mod_id)) &&
         mod_id < std::numeric_limits<int>().max())
     mod_id++;
   if(mod_id == std::numeric_limits<int>().max())
@@ -295,7 +295,7 @@ void ModdedApplication::addDeployer(const EditDeployerInfo& info)
   {
     long id = 0;
     source_dir = staging_dir_ / std::format("rev_depl_{}", id);
-    while(sfs::exists(source_dir))
+    while(pu::exists(source_dir))
       source_dir = staging_dir_ / std::format("rev_depl_{}", ++id);
   }
   else if(is_autonomous)
@@ -538,7 +538,7 @@ void ModdedApplication::editDeployer(int deployer, const EditDeployerInfo& info)
     {
       long id = 0;
       sfs::path source_dir = staging_dir_ / std::format("rev_depl_{}", id);
-      while(sfs::exists(source_dir))
+      while(pu::exists(source_dir))
         source_dir = staging_dir_ / std::format("rev_depl_{}", ++id);
       json_settings_["deployers"][deployer]["source_path"] = source_dir.string();
       json_settings_["deployers"][deployer]["update_profiles"] = true;
@@ -1384,18 +1384,10 @@ void ModdedApplication::deleteAllData()
 {
   for(int i = 0; i < deployers_.size(); i++)
     removeDeployer(i, true);
-  for(auto mod : installed_mods_)
-  {
-    const auto path = staging_dir_ / std::to_string(mod.id);
-    if(sfs::exists(path))
-      sfs::remove_all(path);
-  }
-  const auto path = staging_dir_ / CONFIG_FILE_NAME;
-  if(sfs::exists(path))
-    sfs::remove(path);
-
-  if(sfs::exists(staging_dir_ / download_dir_))
-    sfs::remove_all(staging_dir_ / download_dir_);
+  for(const auto& mod : installed_mods_)
+    sfs::remove_all(staging_dir_ / std::to_string(mod.id));
+  sfs::remove(staging_dir_ / CONFIG_FILE_NAME);
+  sfs::remove_all(staging_dir_ / download_dir_);
 }
 
 void ModdedApplication::setAppVersion(const std::string& app_version)
@@ -1493,7 +1485,7 @@ std::string ModdedApplication::downloadMod(const std::string& url,
   const std::string file_name_prefix = file_name.stem();
   const std::string extension = file_name.extension();
   int suffix = 1;
-  while(sfs::exists(download_path / file_name))
+  while(pu::exists(download_path / file_name))
   {
     file_name = file_name_prefix + "(" + std::to_string(suffix) + ")" + extension;
     suffix++;
@@ -1555,8 +1547,7 @@ std::string ModdedApplication::downloadMod(const std::string& url,
       }));
   if(response.status_code != 200)
   {
-    if(sfs::exists(download_path / file_name))
-      sfs::remove(download_path / file_name);
+    sfs::remove(download_path / file_name);
     throw std::runtime_error("Download failed with response: \"" + response.status_line +
                              "\" (code " + std::to_string(response.status_code) + ").");
   }
@@ -1630,12 +1621,12 @@ void ModdedApplication::exportConfiguration(const std::vector<int>& deployers,
   }
 
   sfs::path path = staging_dir_ / (export_file_name + ".json");
-  if(sfs::exists(path))
+  if(pu::exists(path))
   {
     i = 1;
     do
       path = staging_dir_ / (export_file_name + std::format("_{}.json", i++));
-    while(sfs::exists(path));
+    while(pu::exists(path));
   }
   log_(Log::LOG_INFO,
        std::format("Exporting configuration for '{}' to '{}'", name_, path.string()));
@@ -2131,8 +2122,7 @@ void ModdedApplication::splitMod(int mod_id, int deployer)
         iter->name,
         deployers_[depl]->getName()));
     installMod(info);
-    if(sfs::exists(mod_dir))
-      sfs::remove_all(mod_dir);
+    sfs::remove_all(mod_dir);
   }
 }
 
@@ -2151,7 +2141,7 @@ void ModdedApplication::replaceMod(const AddModInfo& info)
   int mod_id = 0;
   if(!installed_mods_.empty())
     mod_id = std::max_element(installed_mods_.begin(), installed_mods_.end())->id + 1;
-  while(sfs::exists(staging_dir_ / std::to_string(mod_id)) &&
+  while(pu::exists(staging_dir_ / std::to_string(mod_id)) &&
         mod_id < std::numeric_limits<int>().max())
     mod_id++;
   if(mod_id == std::numeric_limits<int>().max())
@@ -2166,8 +2156,7 @@ void ModdedApplication::replaceMod(const AddModInfo& info)
                                            info.root_level,
                                            info.files);
   const sfs::path old_mod_path = staging_dir_ / std::to_string(info.group);
-  if(sfs::exists(old_mod_path))
-    sfs::remove_all(old_mod_path);
+  sfs::remove_all(old_mod_path);
   sfs::rename(tmp_replace_dir, old_mod_path);
 
   index->name = info.name;

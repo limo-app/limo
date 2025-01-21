@@ -107,5 +107,11 @@ void moveFilesWithDepth(const std::filesystem::path& source,
 void copyOrMoveFiles(const std::filesystem::path& source,
                      const std::filesystem::path& destination,
                      bool move);
-
+/*!
+ * \brief Checks whether the given path exists. This differs from std::filesystem::exists
+ * in that true is returned even if path points to an invalid symlink.
+ * \param path Path to check.
+ * \return True if path exists.
+ */
+bool exists(const std::filesystem::path& path);
 }

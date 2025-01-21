@@ -68,7 +68,7 @@ void CaseMatchingDeployer::adaptDirectoryFiles(const sfs::path& path,
   {
     const std::string relative_path =
       pu::getRelativePath(dir_entry.path(), source_path_ / std::to_string(mod_id));
-    if(sfs::exists(target_path / relative_path))
+    if(pu::exists(target_path / relative_path))
     {
       if(sfs::is_directory(target_path / relative_path))
         directories.push_back(relative_path);
@@ -77,7 +77,7 @@ void CaseMatchingDeployer::adaptDirectoryFiles(const sfs::path& path,
     std::string file_name = std::prev(dir_entry.path().end())->string();
     int num_matches = 0;
     std::string match_file_name = file_name;
-    if(!sfs::exists(target_path / path))
+    if(!pu::exists(target_path / path))
       continue;
     for(const auto& dest_entry : sfs::directory_iterator(target_path / path))
     {
@@ -98,7 +98,7 @@ void CaseMatchingDeployer::adaptDirectoryFiles(const sfs::path& path,
     {
       const auto source = source_path_ / std::to_string(mod_id) / path / file_name;
       const auto target = source_path_ / std::to_string(mod_id) / path / match_file_name;
-      if(!sfs::exists(target))
+      if(!pu::exists(target))
         sfs::rename(source, target);
       else if(sfs::is_directory(target))
         pu::moveFilesToDirectory(source, target);
@@ -157,7 +157,7 @@ void CaseMatchingDeployer::adaptLoadorderFiles(const std::vector<int>& loadorder
         const sfs::path source = mod_path / relative_path;
         const sfs::path target =
           mod_path / sfs::path(relative_path).parent_path() / target_file_name;
-        if(!sfs::exists(target))
+        if(!pu::exists(target))
           sfs::rename(source, target);
         else if(sfs::is_directory(target))
           pu::moveFilesToDirectory(source, target);

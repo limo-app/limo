@@ -42,8 +42,7 @@ void Installer::extract(const sfs::path& source_path,
                    [](unsigned char c) { return std::tolower(c); });
     if(extension == ".rar")
     {
-      if(sfs::exists(dest_path))
-        sfs::remove_all(dest_path);
+      sfs::remove_all(dest_path);
       extractRarArchive(source_path, dest_path);
     }
     else
@@ -74,7 +73,7 @@ unsigned long Installer::install(const sfs::path& source,
   sfs::path tmp_dir;
   do
     tmp_dir = destination.parent_path() / (EXTRACT_TMP_DIR + std::to_string(tmp_id));
-  while(sfs::exists(tmp_dir) && tmp_id++ < std::numeric_limits<unsigned>::max());
+  while(pu::exists(tmp_dir) && tmp_id++ < std::numeric_limits<unsigned>::max());
   if(tmp_id == std::numeric_limits<unsigned>::max())
     throw std::runtime_error("Could not create directory!");
   try
@@ -145,7 +144,7 @@ unsigned long Installer::install(const sfs::path& source,
       }
       else
       {
-        if(sfs::exists(destination / dest_file) && !sfs::is_directory(destination / dest_file))
+        if(pu::exists(destination / dest_file) && !sfs::is_directory(destination / dest_file))
           sfs::remove(destination / dest_file);
         if(!dest_file.has_filename())
           pu::copyOrMoveFiles(
@@ -174,10 +173,7 @@ unsigned long Installer::install(const sfs::path& source,
           directories.push_back(dir_entry.path());
       }
       for(const auto& dir : directories)
-      {
-        if(sfs::exists(dir))
-          sfs::remove_all(dir);
-      }
+        sfs::remove_all(dir);
     }
 
     sfs::create_directories(destination);
@@ -267,10 +263,7 @@ std::tuple<int, std::string, std::string> Installer::detectInstallerSignature(
 void Installer::cleanupFailedInstallation(const sfs::path& staging_dir, int mod_id)
 {
   if(mod_id >= 0)
-  {
-    if(sfs::exists(staging_dir / std::to_string(mod_id)))
       sfs::remove_all(staging_dir / std::to_string(mod_id));
-  }
   for(const auto& dir_entry : sfs::directory_iterator(staging_dir))
   {
     if(!dir_entry.is_directory())

@@ -60,13 +60,11 @@ void PluginDeployer::changeLoadorder(int from_index, int to_index)
   if(tags_.size() == plugins_.size())
   {
     if(to_index < from_index)
-      std::rotate(tags_.begin() + to_index,
-                  tags_.begin() + from_index,
-                  tags_.begin() + from_index + 1);
+      std::rotate(
+        tags_.begin() + to_index, tags_.begin() + from_index, tags_.begin() + from_index + 1);
     else
-      std::rotate(tags_.begin() + from_index,
-                  tags_.begin() + from_index + 1,
-                  tags_.begin() + to_index + 1);
+      std::rotate(
+        tags_.begin() + from_index, tags_.begin() + from_index + 1, tags_.begin() + to_index + 1);
   }
   writePluginTags();
   writePlugins();
@@ -129,8 +127,7 @@ void PluginDeployer::removeProfile(int profile)
     setProfile(0);
   else if(profile < current_profile_)
     setProfile(current_profile_ - 1);
-  if(sfs::exists(dest_path_ / plugin_file))
-    sfs::remove(dest_path_ / plugin_file);
+  sfs::remove(dest_path_ / plugin_file);
   num_profiles_--;
   saveSettings();
 }
@@ -251,13 +248,11 @@ void PluginDeployer::cleanup()
   {
     sfs::path plugin_path =
       dest_path_ / (hideFile(plugin_file_name_) + EXTENSION + std::to_string(i));
-    if(sfs::exists(plugin_path))
-      sfs::remove(plugin_path);
+    sfs::remove(plugin_path);
   }
   current_profile_ = 0;
   num_profiles_ = 1;
-  if(sfs::exists(dest_path_ / config_file_name_))
-    sfs::remove(dest_path_ / config_file_name_);
+  sfs::remove(dest_path_ / config_file_name_);
 }
 
 std::vector<std::vector<std::string>> PluginDeployer::getAutoTags()

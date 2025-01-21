@@ -2,9 +2,11 @@
 #include <format>
 #include <fstream>
 #include <ranges>
+#include "pathutils.h"
 
 namespace sfs = std::filesystem;
 namespace str = std::ranges;
+namespace pu = path_utils;
 
 
 OpenMwArchiveDeployer::OpenMwArchiveDeployer(const std::filesystem::path& source_path,
@@ -31,8 +33,8 @@ void OpenMwArchiveDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
 {
   const std::string plugin_backup_path =
     dest_path_ / ("." + plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
-  if(!sfs::exists(plugin_backup_path))
-    sfs::copy(dest_path_ / plugin_file_name_, plugin_backup_path);
+  if(!pu::exists(plugin_backup_path))
+    sfs::copy(dest_path_ / plugin_file_name_, plugin_backup_path, sfs::copy_options::overwrite_existing);
 
   log_(Log::LOG_INFO, std::format("Deployer '{}': Updating plugins...", name_));
   updatePlugins();

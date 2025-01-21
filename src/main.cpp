@@ -9,7 +9,6 @@
 #include <filesystem>
 #include <iostream>
 
-// TODO: Check usage of sfs::exists
 
 /*!
  * \brief Main function of Limo.

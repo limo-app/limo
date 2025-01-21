@@ -1,4 +1,5 @@
 #include "openmwplugindeployer.h"
+#include "pathutils.h"
 #include <format>
 #include <fstream>
 #include <json/json.h>
@@ -6,6 +7,7 @@
 
 namespace sfs = std::filesystem;
 namespace str = std::ranges;
+namespace pu = path_utils;
 
 
 OpenMwPluginDeployer::OpenMwPluginDeployer(const sfs::path& source_path,
@@ -42,7 +44,7 @@ void OpenMwPluginDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
 {
   const std::string plugin_backup_path =
     dest_path_ / ("." + plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
-  if(!sfs::exists(plugin_backup_path))
+  if(!pu::exists(plugin_backup_path))
     sfs::copy(dest_path_ / plugin_file_name_, plugin_backup_path);
 
   log_(Log::LOG_INFO, std::format("Deployer '{}': Updating plugins...", name_));
@@ -159,7 +161,7 @@ bool OpenMwPluginDeployer::initPluginFile()
   std::regex plugin_regex(R"(^content=(.*\.(?:es[pm]|omwscript|omwaddon|omwgame)))",
                           std::regex_constants::icase);
   std::regex groundcover_regex(R"(^groundcover=(.*\.(?:es[pm]|omwscript|omwaddon|omwgame)))",
-                          std::regex_constants::icase);
+                               std::regex_constants::icase);
   num_groundcover_plugins_ = 0;
   while(getline(in_file, line))
   {

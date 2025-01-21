@@ -296,8 +296,7 @@ std::pair<int, std::string> Deployer::verifyDirectories()
   }
   try
   {
-    if(sfs::exists(dest_path_ / file_name))
-      sfs::remove(dest_path_ / file_name);
+    sfs::remove(dest_path_ / file_name);
     if(deploy_mode_ == copy)
       sfs::copy_file(source_path_ / file_name, dest_path_ / file_name);
     else if(deploy_mode_ == sym_link)
@@ -462,7 +461,7 @@ void Deployer::backupOrRestoreFiles(const std::map<sfs::path, int>& source_files
   for(const auto& [path, id] : restore_targets)
   {
     sfs::path absolute_path = dest_path_ / path;
-    if(!sfs::exists(absolute_path))
+    if(!pu::exists(absolute_path))
       continue;
     if(sfs::is_directory(absolute_path))
     {
@@ -471,7 +470,7 @@ void Deployer::backupOrRestoreFiles(const std::map<sfs::path, int>& source_files
     }
     sfs::path backup_name = absolute_path.string() + backup_extension_;
     sfs::remove(absolute_path);
-    if(sfs::exists(backup_name))
+    if(pu::exists(backup_name))
       sfs::rename(backup_name, absolute_path);
   }
   for(const auto& [path, id] : restore_directories)
@@ -485,7 +484,7 @@ void Deployer::backupOrRestoreFiles(const std::map<sfs::path, int>& source_files
   {
     sfs::path absolute_path = dest_path_ / path;
     sfs::path backup_name = absolute_path.string() + backup_extension_;
-    if(sfs::exists(absolute_path) && !sfs::is_directory(absolute_path))
+    if(pu::exists(absolute_path) && !sfs::is_directory(absolute_path))
       sfs::rename(absolute_path, backup_name);
   }
 }
@@ -503,7 +502,7 @@ void Deployer::deployFiles(const std::map<sfs::path, int>& source_files,
       continue;
     sfs::path source_path = source_path_ / std::to_string(id) / path;
     if(sfs::is_directory(source_path) ||
-       sfs::exists(dest_path) && (deploy_mode_ == hard_link && !sfs::is_symlink(dest_path) &&
+       pu::exists(dest_path) && (deploy_mode_ == hard_link && !sfs::is_symlink(dest_path) &&
                                     sfs::equivalent(source_path, dest_path) ||
                                   deploy_mode_ == sym_link && sfs::is_symlink(dest_path) &&
                                     sfs::read_symlink(dest_path) == source_path))
@@ -714,8 +713,7 @@ void Deployer::setLog(const std::function<void(Log::LogLevel, const std::string&
 void Deployer::cleanup()
 {
   deploy(std::vector<int>{});
-  if(sfs::exists(dest_path_ / deployed_files_name_))
-    sfs::remove(dest_path_ / deployed_files_name_);
+  sfs::remove(dest_path_ / deployed_files_name_);
 }
 
 bool Deployer::autoUpdateConflictGroups() const
@@ -766,7 +764,7 @@ std::vector<std::pair<sfs::path, int>> Deployer::getExternallyModifiedFiles(
     const auto target_path = dest_path_ / path;
     const auto mod_file_path = source_path_ / std::to_string(mod_id) / path;
     const bool file_exists_and_is_modified_link =
-      modPathExists(mod_id) && sfs::exists(target_path) && sfs::exists(mod_file_path) &&
+      modPathExists(mod_id) && pu::exists(target_path) && sfs::exists(mod_file_path) &&
       !sfs::is_directory(target_path) &&
       (deploy_mode_ == hard_link && !sfs::equivalent(mod_file_path, target_path) ||
        deploy_mode_ == sym_link &&
@@ -796,12 +794,11 @@ void Deployer::keepOrRevertFileModifications(const FileChangeChoices& changes_to
   {
     const auto target_path = dest_path_ / path;
     const auto mod_file_path = source_path_ / std::to_string(mod_id) / path;
-    if(!checkModPathExistsAndMaybeLogError(mod_id) || !sfs::exists(target_path))
+    if(!checkModPathExistsAndMaybeLogError(mod_id) || !pu::exists(target_path))
       continue;
     if(keep_change)
     {
-      if(sfs::exists(mod_file_path))
-        sfs::remove(mod_file_path);
+      sfs::remove(mod_file_path);
       try
       {
         if(!sfs::is_symlink(target_path))
@@ -838,13 +835,11 @@ void Deployer::updateDeployedFilesForMod(int mod_id,
     const sfs::path dest_path = dest_path_ / path;
     const sfs::path source_path = source_path_ / std::to_string(mod_id) / path;
 
-    if(sfs::exists(dest_path) && sfs::is_directory(dest_path) || !sfs::exists(source_path) ||
+    if(pu::exists(dest_path) && sfs::is_directory(dest_path) || !sfs::exists(source_path) ||
        sfs::is_directory(source_path))
       continue;
 
-    if(sfs::exists(dest_path))
-      sfs::remove(dest_path);
-
+    sfs::remove(dest_path);
     if(deploy_mode_ == sym_link)
       sfs::create_symlink(source_path, dest_path);
     else if(deploy_mode_ == DeployMode::copy)
@@ -862,10 +857,8 @@ void Deployer::fixInvalidLinkDeployMode()
   const std::string file_name = "_lmm_write_test_file_";
   try
   {
-    if(sfs::exists(source_path_ / file_name))
-      sfs::remove(source_path_ / file_name);
-    if(sfs::exists(dest_path_ / file_name))
-      sfs::remove(dest_path_ / file_name);
+    sfs::remove(source_path_ / file_name);
+    sfs::remove(dest_path_ / file_name);
 
     sfs::create_hard_link(source_path_ / file_name, dest_path_ / file_name);
   }
@@ -877,10 +870,8 @@ void Deployer::fixInvalidLinkDeployMode()
   }
   try
   {
-    if(sfs::exists(source_path_ / file_name))
-      sfs::remove(source_path_ / file_name);
-    if(sfs::exists(dest_path_ / file_name))
-      sfs::remove(dest_path_ / file_name);
+    sfs::remove(source_path_ / file_name);
+    sfs::remove(dest_path_ / file_name);
   }
   catch(...)
   {
@@ -940,9 +931,5 @@ void Deployer::applyModAction(int action, int mod_id) {}
 
 void Deployer::removeManagedDirFile(const sfs::path& directory) const
 {
-  const sfs::path file_path = directory / managed_dir_file_name_;
-  if(!sfs::exists(file_path))
-    return;
-
-  sfs::remove(file_path);
+  sfs::remove(directory / managed_dir_file_name_);
 }

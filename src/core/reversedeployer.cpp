@@ -91,8 +91,7 @@ void ReverseDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
   for(const auto& [path, _] : managed_files_[deployed_profile_])
   {
     const sfs::path full_dest_path = dest_path_ / path;
-    if(sfs::exists(full_dest_path))
-      sfs::remove(full_dest_path);
+    sfs::remove(full_dest_path);
   }
   deployed_profile_ = -1;
   deployed_loadorder_.clear();
@@ -100,9 +99,14 @@ void ReverseDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
 
 void ReverseDeployer::changeLoadorder(int from_index, int to_index)
 {
-  log_(Log::LOG_DEBUG,
-       "WARNING: You are trying to change the load order of a reverse deployer."
-       "This will have no effect.");
+  log_(
+    Log::LOG_DEBUG,
+    "WARNING: You are trying to change the load order of a reverse deployer." "This will have " "no"
+                                                                                                " e"
+                                                                                                "ff"
+                                                                                                "ec"
+                                                                                                "t"
+                                                                                                ".");
 }
 
 void ReverseDeployer::setModStatus(int mod_id, bool status)
@@ -154,11 +158,10 @@ void ReverseDeployer::removeProfile(int profile)
       unDeploy();
       current_profile_ = cur_profile;
     }
-    if(sfs::exists(source_path_ / std::to_string(profile)))
-      sfs::remove_all(source_path_ / std::to_string(profile));
+    sfs::remove_all(source_path_ / std::to_string(profile));
     for(int prof = profile + 1; prof < managed_files_.size() - 1; prof++)
     {
-      if(sfs::exists(source_path_ / std::to_string(prof)))
+      if(pu::exists(source_path_ / std::to_string(prof)))
         sfs::rename(source_path_ / std::to_string(prof), source_path_ / std::to_string(prof - 1));
     }
   }
@@ -202,17 +205,23 @@ std::vector<std::tuple<int, bool>> ReverseDeployer::getLoadorder() const
 
 bool ReverseDeployer::addMod(int mod_id, bool enabled, bool update_conflicts)
 {
-  log_(Log::LOG_DEBUG,
-       "WARNING: You are trying to add a mod to an autonomous"
-       " deployer. This will have no effect.");
+  log_(
+    Log::LOG_DEBUG,
+    "WARNING: You are trying to add a mod to an autonomous" " deployer. This will have no effect.");
   return false;
 }
 
 bool ReverseDeployer::removeMod(int mod_id)
 {
-  log_(Log::LOG_DEBUG,
-       "WARNING: You are trying to remove a mod from an autonomous"
-       " deployer. This will have no effect.");
+  log_(
+    Log::LOG_DEBUG,
+    "WARNING: You are trying to remove a mod from an autonomous" " deployer. This will have no " "e"
+                                                                                                 "f"
+                                                                                                 "f"
+                                                                                                 "e"
+                                                                                                 "c"
+                                                                                                 "t"
+                                                                                                 ".");
   return false;
 }
 
@@ -223,9 +232,10 @@ bool ReverseDeployer::hasMod(int mod_id) const
 
 bool ReverseDeployer::swapMod(int old_id, int new_id)
 {
-  log_(Log::LOG_DEBUG,
-       "WARNING: You are trying to swap a mod in an autonomous"
-       " deployer. This will have no effect.");
+  log_(
+    Log::LOG_DEBUG,
+    "WARNING: You are trying to swap a mod in an autonomous" " deployer. This will have no " "effec"
+                                                                                             "t.");
   return false;
 }
 
@@ -338,7 +348,7 @@ void ReverseDeployer::keepOrRevertFileModifications(const FileChangeChoices& cha
     else
     {
       const bool source_exists = sfs::exists(full_source_path);
-      const bool dest_exists = sfs::exists(full_dest_path);
+      const bool dest_exists = pu::exists(full_dest_path);
       if(dest_exists && source_exists)
       {
         log_(
@@ -442,7 +452,7 @@ void ReverseDeployer::enableSeparateDirs(bool enabled)
   {
     int temp_id = 0;
     sfs::path temp_path = source_path_ / ("rev_depl_temp_dir_" + std::to_string(temp_id));
-    while(sfs::exists(temp_path))
+    while(pu::exists(temp_path))
       temp_path = source_path_ / ("rev_depl_temp_dir_" + std::to_string(++temp_id));
     sfs::create_directories(temp_path);
     for(const auto& dir_entry : sfs::directory_iterator(source_path_))
@@ -469,12 +479,12 @@ void ReverseDeployer::enableSeparateDirs(bool enabled)
     log_(Log::LOG_INFO, std::format("Deployer {}: Deleting files for inactive profiles...", name_));
     for(int prof = 0; prof < managed_files_.size(); prof++)
     {
-      if(prof != current_profile_ && sfs::exists(source_path_ / std::to_string(prof)))
+      if(prof != current_profile_)
         sfs::remove_all(source_path_ / std::to_string(prof));
     }
     int temp_id = 0;
     sfs::path temp_dir = "rev_depl_temp_dir_" + std::to_string(temp_id);
-    while(sfs::exists(source_path_ / std::to_string(current_profile_) / temp_dir))
+    while(pu::exists(source_path_ / std::to_string(current_profile_) / temp_dir))
       temp_dir = "rev_depl_temp_dir_" + std::to_string(++temp_id);
     sfs::rename(source_path_ / std::to_string(current_profile_), source_path_ / temp_dir);
     for(const auto& dir_entry : sfs::directory_iterator(source_path_ / temp_dir))
@@ -549,8 +559,7 @@ void ReverseDeployer::addModToIgnoreList(int mod_id)
 
   sfs::path relative_path = current_loadorder_[mod_id].first;
   const sfs::path source_path = getSourcePath(relative_path, current_profile_);
-  if(sfs::exists(source_path))
-    sfs::remove(source_path);
+  sfs::remove(source_path);
 
   current_loadorder_.erase(current_loadorder_.begin() + mod_id);
   for(int prof = 0; prof < managed_files_.size(); prof++)
@@ -739,7 +748,7 @@ void ReverseDeployer::moveFilesFromTargetToSource() const
   {
     const sfs::path full_dest_path = dest_path_ / path;
     const sfs::path full_source_path = getSourcePath(path, current_profile_);
-    const bool dest_exists = sfs::exists(full_dest_path);
+    const bool dest_exists = pu::exists(full_dest_path);
     const bool source_exists = sfs::exists(full_source_path);
     if(!dest_exists)
     {
@@ -820,8 +829,7 @@ void ReverseDeployer::deployManagedFiles()
       continue;
     }
 
-    if(sfs::exists(full_dest_path))
-      sfs::remove(full_dest_path);
+    sfs::remove(full_dest_path);
     if(!enabled)
       continue;
 
@@ -845,10 +853,8 @@ sfs::path ReverseDeployer::getSourcePath(const sfs::path& path, int profile) con
 
 void ReverseDeployer::deleteFile(const sfs::path& path, int profile)
 {
-  if(sfs::exists(dest_path_ / path))
-    sfs::remove(dest_path_ / path);
-  if(sfs::exists(getSourcePath(path, profile)))
-    sfs::remove(getSourcePath(path, profile));
+  sfs::remove(dest_path_ / path);
+  sfs::remove(getSourcePath(path, profile));
 
   for(int cur_prof = 0; cur_prof < managed_files_.size(); cur_prof++)
   {

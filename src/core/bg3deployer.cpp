@@ -36,7 +36,8 @@ void Bg3Deployer::unDeploy(std::optional<ProgressNode*> progress_node)
   const std::string plugin_backup_path =
     dest_path_ / (plugin_file_name_ + UNDEPLOY_BACKUP_EXTENSION);
   if(!sfs::exists(plugin_backup_path))
-    sfs::copy(dest_path_ / plugin_file_name_, plugin_backup_path);
+    sfs::copy(
+      dest_path_ / plugin_file_name_, plugin_backup_path, sfs::copy_options::overwrite_existing);
 
   log_(Log::LOG_INFO, std::format("Deployer '{}': Updating plugins...", name_));
   plugins_.clear();
