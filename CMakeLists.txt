@@ -73,22 +73,10 @@ if(NOT DEFINED LIBLOOT_PATH)
 endif()
 
 # lz4
-if(NOT DEFINED LZ4_INCLUDE_DIR)
-    find_file(LZ4_HEADER_PATH "lz4.h" REQUIRED)
-    cmake_path(GET LZ4_HEADER_PATH PARENT_PATH LZ4_INCLUDE_DIR)
-endif()
-if(NOT DEFINED LZ4_PATH)
-    find_library(LZ4_PATH liblz4.so REQUIRED)
-endif()
+pkg_check_modules(LZ4 REQUIRED liblz4)
 
 # zstd
-if(NOT DEFINED ZSTD_INCLUDE_DIR)
-    find_file(ZSTD_HEADER_PATH "zstd.h" REQUIRED)
-    cmake_path(GET ZSTD_HEADER_PATH PARENT_PATH ZSTD_INCLUDE_DIR)
-endif()
-if(NOT DEFINED ZSTD_PATH)
-    find_library(ZSTD_PATH libzstd.a REQUIRED)
-endif()
+pkg_check_modules(ZSTD REQUIRED libzstd)
 
 # zlib
 find_package(ZLIB REQUIRED)
@@ -333,8 +321,8 @@ target_include_directories(Limo
     PRIVATE ${LIBLOOT_INCLUDE_DIR}
     PRIVATE ${JSONCPP_INCLUDE_DIRS}
     PRIVATE ${LIBUNRAR_INCLUDE_DIR}
-    PRIVATE ${LZ4_INCLUDE_DIR}
-    PRIVATE ${ZSTD_INCLUDE_DIR})
+    PRIVATE ${LZ4_INCLUDE_DIRS}
+    PRIVATE ${ZSTD_INCLUDE_DIRS})
 
 target_link_libraries(Limo
     PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
@@ -346,8 +334,8 @@ target_link_libraries(Limo
     PRIVATE OpenSSL::SSL
     PRIVATE Qt${QT_VERSION_MAJOR}::Network
     PRIVATE ${LIBUNRAR_PATH}
-    PRIVATE ${LZ4_PATH}
-    PRIVATE ${ZSTD_PATH}
+    PRIVATE ${LZ4_LIBRARIES}
+    PRIVATE ${ZSTD_LIBRARIES}
     PRIVATE pugixml::pugixml
     PRIVATE ZLIB::ZLIB)
 
