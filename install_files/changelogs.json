@@ -17,7 +17,7 @@
         },
         {
           "type" : 0,
-          "short_description" : "OpenMW Plugin Deployer now manages additionally manages .omwscript files"
+          "short_description" : "OpenMW Plugin Deployer now additionally manages .omwscripts files"
         },
         {
           "type" : 1,

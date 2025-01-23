@@ -29,6 +29,7 @@
         <li>Simple backup system</li>
         <li>LOOT integration</li>
         <li>NexusMods API support</li>
+        <li>Baldur's Gate 3 support</li>
     </ul>
     <p>For a guide on how to set up Limo, refer to the GitHub wiki page.</p>
   </description>
@@ -40,6 +41,21 @@
   
   
   <releases>
+    <release version="1.1" date="2025-01-23">
+      <description>
+        <p>Baldur's Gate 3 support</p>
+        <ul>
+          <li>Added deployer type for Baldur's Gate 3</li>
+          <li>Added changelog dialog</li>
+          <li>OpenMW Plugin Deployer now manages all .omw* files</li>
+          <li>Added support for groundcover plugins to OpenMW Plugin Deployer</li>
+          <li>Temporarily disabled LOOT support for OpenMW Plugin Deployer</li>
+          <li>Fixed broken symlinks not being detected</li>
+          <li>Fixed plugins.txt file generation for older Bethesda games</li>
+          <li>Fixed paths for Steam app icons</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.0.11" date="2024-12-26">
       <description>
         <p>OpenMW support</p>
