@@ -123,5 +123,6 @@ int main(int argc, char* argv[])
     w.setCmdArgument(argument);
   emit w.getApplicationNames(false);
   w.show();
+  w.initChangelog();
   return app.exec();
 }

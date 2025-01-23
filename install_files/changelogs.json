@@ -1,0 +1,82 @@
+{
+  "versions":
+  [
+    {
+      "version" : "1.1",
+      "date" : 1737597600,
+      "title" : "Baldur's Gate 3 support",
+      "changes" :
+      [
+        {
+          "type" : 0,
+          "short_description" : "Added deployer type to manage mods in modsettings.lsx for Baldur's Gate 3"
+        },
+        {
+          "type" : 0,
+          "short_description" : "Added this dialog"
+        },
+        {
+          "type" : 0,
+          "short_description" : "OpenMW Plugin Deployer now manages additionally manages .omwscript files"
+        },
+        {
+          "type" : 1,
+          "short_description" : "Removed LOOT support for OpenMW Plugin Deployer",
+          "long_description" : "LOOT currently does not support .omwaddon and .omwplugin files. Without this, showing conflicts or sorting by them is not useful."
+        },
+        {
+          "type" : 0,
+          "short_description" : "OpenMW Plugin Deployer now supports adding a groundcover tag and adds tagged plugins as groundcover entries to openmw.cfg",
+          "issue" : 91
+        },
+        {
+          "type" : 1,
+          "short_description" : "OpenMW Plugin Deployer now handles files with the following extensions: .esm, .esp, .omwgame, .omwaddon, .omwscript",
+          "issue" : 95
+        },
+        {
+          "type" : 2,
+          "short_description" : "For Fallout 3, Fallout: New Vegas and Oblivion: Loot Deployer new only adds active plugins to plugins.txt and adapts plugin file timestamps according to the load order",
+          "issue" : 109
+        },
+        {
+          "type" : 2,
+          "short_description" : "App launch command now uses xdg-open to support both flatpak and system Steam",
+          "pull_request" : 101
+        },
+        {
+          "type" : 2,
+          "short_description" : "Fixed tags and deployer duplication when importing steam apps while reusing an existing staging directory",
+          "issue" : 105,
+          "pull_request" : 108
+        },
+        {
+          "type" : 0,
+          "short_description" : "Added import config for: Stardew Valley",
+          "pull_request" : 113,
+        },
+        {
+          "type" : 0,
+          "short_description" : "Added import config for: Fallout 3, Oblivion GOTY, Fallout 3 GOTY, Fallout: New Vegas, Fallout 4, Subnautica: Below Zero, Oblivion GOTY Deluxe",
+          "pull_request" : 115,
+        },
+        {
+          "type" : 2,
+          "short_description" : "Fixed broken symlinks not being detected"
+        }
+      ]
+    },
+    {
+      "version" : "1.0.11",
+      "date" : 1737577600,
+      "title" : "dummy",
+      "changes":
+      [
+        {
+          "type" : 0,
+          "short_description" : "THIS"
+        }
+      ]
+    }
+  ]
+}

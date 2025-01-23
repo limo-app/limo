@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(Limo VERSION 1.0.11 LANGUAGES CXX)
+project(Limo VERSION 1.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -100,6 +100,8 @@ set(PROJECT_SOURCES
         src/core/bg3plugin.h
         src/core/casematchingdeployer.cpp
         src/core/casematchingdeployer.h
+        src/core/changelogentry.cpp
+        src/core/changelogentry.h
         src/core/compressionerror.h
         src/core/conflictinfo.h
         src/core/consts.h
@@ -172,6 +174,8 @@ set(PROJECT_SOURCES
         src/core/tagconditionnode.h
         src/core/tool.cpp
         src/core/tool.h
+        src/core/versionchangelog.cpp
+        src/core/versionchangelog.h
         src/main.cpp
         src/ui/addapikeydialog.cpp
         src/ui/addapikeydialog.h
@@ -217,6 +221,9 @@ set(PROJECT_SOURCES
         src/ui/changeapipwdialog.cpp
         src/ui/changeapipwdialog.h
         src/ui/changeapipwdialog.ui
+        src/ui/changelogdialog.cpp
+        src/ui/changelogdialog.h
+        src/ui/changelogdialog.ui
         src/ui/colors.h
         src/ui/conflictsmodel.cpp
         src/ui/conflictsmodel.h

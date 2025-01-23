@@ -151,6 +151,17 @@ void MainWindow::setDebugMode(bool enabled)
   Log::debug(std::format("Debug mode {}", enabled ? "enabled" : "disabled"));
 }
 
+void MainWindow::initChangelog()
+{
+  changelog_dialog_ = std::make_unique<ChangelogDialog>(is_a_flatpak_, this);
+  if(APP_VERSION != previous_app_version_)
+  {
+    changelog_dialog_->show();
+    changelog_dialog_->activateWindow();
+    changelog_dialog_->raise();
+  }
+}
+
 // clang-format off
 void MainWindow::setupConnections()
 {
@@ -1290,9 +1301,9 @@ void MainWindow::checkForContainers()
 void MainWindow::updateOutdatedSettings()
 {
   auto settings = QSettings(QCoreApplication::applicationName());
-  QString app_version = settings.value("app_version", "1.0.4").toString();
+  previous_app_version_ = settings.value("app_version", "1.0.4").toString();
 
-  if(versionIsLessOrEqual(app_version, "1.0.4"))
+  if(versionIsLessOrEqual(previous_app_version_, "1.0.4"))
   {
     const std::map<std::string, std::string> old_urls = {
       { "fo3_url", "https://raw.githubusercontent.com/loot/fallout3/master/masterlist.yaml" },

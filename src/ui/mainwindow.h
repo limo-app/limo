@@ -30,6 +30,7 @@
 #include "overwritebackupdialog.h"
 #include "settingsdialog.h"
 #include "tablecelldelegate.h"
+#include "ui/changelogdialog.h"
 #include "ui/editautotagsdialog.h"
 #include "ui/editmanualtagsdialog.h"
 #include "ui/exportappconfigdialog.h"
@@ -102,6 +103,11 @@ public:
    * \param enabled If true: Print debug messages.
    */
   void setDebugMode(bool enabled);
+  /*!
+   *  \brief Initializes the changelogdialog. Show the dialog if
+   *  current version > version on last start
+   */
+  void initChangelog();
 
 private:
   /*! \brief Contains auto-generated ui elements. */
@@ -212,6 +218,8 @@ private:
   std::unique_ptr<ExternalChangesDialog> external_changes_dialog_;
   /*! \brief Reusable dialog for exporting the configuration of the current app. */
   std::unique_ptr<ExportAppConfigDialog> export_app_config_dialog_;
+  /*! \brief Reusable dialog for showing changelogs. */
+  std::unique_ptr<ChangelogDialog> changelog_dialog_;
   /*! \brief Stores the index in ui->mod_list of a mod before being added to a group. */
   int last_mod_list_index_ = -1;
   /*! \brief Contains all queued mods to be downloaded or extracted. */
@@ -307,6 +315,8 @@ private:
    *  the deployer list context menu for the current deployer.
    */
   std::vector<ListAction*> deployer_mod_actions_;
+  /*! \brief APP_VERSION the last time the app was run. */
+  QString previous_app_version_;
 
   /*! \brief Creates signal/ slot connections between this and the ApplicationManager. */
   void setupConnections();
