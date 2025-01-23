@@ -1530,7 +1530,10 @@ void MainWindow::onGetApplicationNames(QStringList names, QStringList icon_paths
     if(icon_paths[i] == "")
       ui->app_selection_box->addItem(names[i]);
     else
+    {
       ui->app_selection_box->addItem(QIcon(icon_paths[i]), names[i]);
+      qDebug() << icon_paths[i];
+    }
     ui->app_selection_box->setItemData(
       ui->app_selection_box->count() - 1, icon_paths[i], Qt::UserRole);
   }

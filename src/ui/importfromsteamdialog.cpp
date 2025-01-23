@@ -8,6 +8,7 @@
 #include <QStandardPaths>
 #include <fstream>
 #include <regex>
+#include <set>
 
 namespace sfs = std::filesystem;
 
@@ -164,6 +165,27 @@ bool ImportFromSteamDialog::addTableRow(std::string app_id, sfs::path path)
   if(sfs::exists(path / "steamapps" / "compatdata" / app_id))
     has_prefix = "True";
   sfs::path icon_path = path / "appcache" / "librarycache" / (app_id + "_icon.jpg");
+  if(!sfs::exists(icon_path))
+  {
+    icon_path = path / "appcache" / "librarycache" / app_id;
+    std::regex name_regex(R"(([0-9a-fA-F]{40})\.jpg)");
+    bool found = false;
+    if(sfs::exists(icon_path))
+    {
+      for(const auto& dir_entry : sfs::directory_iterator(icon_path))
+      {
+        const std::string file_name = dir_entry.path().filename();
+        if(std::regex_match(file_name, name_regex))
+        {
+          icon_path /= file_name;
+          found = true;
+          break;
+        }
+      }
+    }
+    if(!found)
+      icon_path.clear();
+  }
   int row = ui->app_table->rowCount();
   ui->app_table->insertRow(row);
   ui->app_table->setItem(

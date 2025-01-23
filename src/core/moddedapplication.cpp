@@ -1994,6 +1994,8 @@ void ModdedApplication::updateState(bool read)
     }
     updateAutoTagMap();
   }
+
+  updateSteamIconPath();
 }
 
 std::string ModdedApplication::getModName(int mod_id) const
@@ -2291,4 +2293,31 @@ std::string ModdedApplication::generalizeSteamPath(const std::string& path)
   else if(std::regex_match(path, match, home_regex))
     modified_path.replace(0, match[1].length(), "$HOME$");
   return modified_path;
+}
+
+void ModdedApplication::updateSteamIconPath()
+{
+  std::regex old_path_regex(R"((.*?/steam/appcache/librarycache)/(\d+)_icon\.jpg)");
+  std::smatch match;
+  std::string path_str = icon_path_.string();
+  std::regex_match(path_str, match, old_path_regex);
+  if(match.empty() || sfs::exists(icon_path_))
+    return;
+
+  sfs::path steam_path(match[1].str());
+  steam_path /= match[2].str();
+  if(!sfs::exists(steam_path))
+    return;
+
+  std::regex name_regex(R"(([0-9a-fA-F]{40})\.jpg)");
+  for(const auto& dir_entry : sfs::directory_iterator(steam_path))
+  {
+    const std::string file_name = dir_entry.path().filename();
+    if(std::regex_match(file_name, name_regex))
+    {
+      icon_path_ = steam_path / file_name;
+      updateSettings(true);
+      return;
+    }
+  }
 }

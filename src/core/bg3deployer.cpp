@@ -2,6 +2,7 @@
 #include "pathutils.h"
 #include <algorithm>
 #include <filesystem>
+#include <format>
 #include <fstream>
 #include <ranges>
 

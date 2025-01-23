@@ -795,4 +795,6 @@ private:
    * \return If no steam paths are found: The input path, else: The modified path.
    */
   std::string generalizeSteamPath(const std::string& path);
+  /*! \brief If the icon path is a steam path: Update it to the new format. */
+  void updateSteamIconPath();
 };

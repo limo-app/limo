@@ -63,6 +63,10 @@
         {
           "type" : 2,
           "short_description" : "Fixed broken symlinks not being detected"
+        },
+        {
+          "type" : 2,
+          "short_description" : "Fixed paths for Steam app icons"
         }
       ]
     }

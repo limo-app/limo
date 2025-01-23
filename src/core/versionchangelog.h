@@ -5,8 +5,9 @@
 
 #pragma once
 
-#include <json/json.h>
 #include "changelogentry.h"
+#include <chrono>
+#include <json/json.h>
 
 
 /*!
@@ -53,7 +54,7 @@ public:
    * \param other Changelog to compare to.
    * \return True if date of this is earlier than date of other.
    */
-  bool operator < (const VersionChangelog& other) const;
+  bool operator<(const VersionChangelog& other) const;
 
 private:
   /*! \brief Version number of this changelog. */
