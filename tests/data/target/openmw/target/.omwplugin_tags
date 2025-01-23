@@ -42,7 +42,7 @@
 		]
 	},
 	{
-		"plugin" : "g.omwscript",
+		"plugin" : "g.omwscripts",
 		"tags" : 
 		[
 			"OpenMW",
@@ -50,7 +50,7 @@
 		]
 	},
 	{
-		"plugin" : "h.omwscript",
+		"plugin" : "h.omwscripts",
 		"tags" : 
 		[
 			"OpenMW",

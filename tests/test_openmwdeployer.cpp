@@ -39,13 +39,14 @@ TEST_CASE("State is read", "[.openmw]")
   OpenMwPluginDeployer p_depl(
     DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "");
   const std::vector<std::string> mod_names{"Morrowind.esm", "f.omwgame", "c.esp", "d.EsP", "a.esp", "e.omwaddon",
-                                           "g.omwscript", "h.omwscript"};
+                                           "g.omwscripts", "h.omwscripts"};
   REQUIRE(p_depl.getNumMods() == mod_names.size());
   for(const auto& [i, name] : str::enumerate_view(mod_names))
   {
     auto loadorder = p_depl.getModNames();
     auto iter = str::find(loadorder, name);
-    p_depl.changeLoadorder(iter - loadorder.begin(), i);
+    if(iter != loadorder.end())
+      p_depl.changeLoadorder(iter - loadorder.begin(), i);
   }
   REQUIRE_THAT(p_depl.getModNames(),
                Catch::Matchers::Equals(mod_names));
@@ -67,12 +68,13 @@ TEST_CASE("Load order can be edited", "[.openmw]")
     DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "");
   
   const std::vector<std::string> mod_names{"Morrowind.esm", "f.omwgame", "c.esp", "d.EsP", "a.esp", "e.omwaddon",
-                                           "g.omwscript", "h.omwscript"};
+                                           "g.omwscripts", "h.omwscripts"};
   for(const auto& [i, name] : str::enumerate_view(mod_names))
   {
     auto loadorder = p_depl.getModNames();
     auto iter = str::find(loadorder, name);
-    p_depl.changeLoadorder(iter - loadorder.begin(), i);
+    if(iter != loadorder.end())
+      p_depl.changeLoadorder(iter - loadorder.begin(), i);
   }
   
   a_depl.changeLoadorder(1, 2);
@@ -107,12 +109,13 @@ TEST_CASE("Profiles are managed", "[.openmw]")
     DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "");
   
   const std::vector<std::string> mod_names{"Morrowind.esm", "f.omwgame", "c.esp", "d.EsP", "a.esp", "e.omwaddon",
-                                           "g.omwscript", "h.omwscript"};
+                                           "g.omwscripts", "h.omwscripts"};
   for(const auto& [i, name] : str::enumerate_view(mod_names))
   {
     auto loadorder = p_depl.getModNames();
     auto iter = str::find(loadorder, name);
-    p_depl.changeLoadorder(iter - loadorder.begin(), i);
+    if(iter != loadorder.end())
+      p_depl.changeLoadorder(iter - loadorder.begin(), i);
   }
   
   a_depl.addProfile(-1);

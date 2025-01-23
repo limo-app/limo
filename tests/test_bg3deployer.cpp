@@ -30,7 +30,8 @@ TEST_CASE("Plugins are found", "[.bg3]")
   {
     auto loadorder = depl.getModNames();
     auto iter = str::find(loadorder, name);
-    depl.changeLoadorder(iter - loadorder.begin(), i);
+    if(iter != loadorder.end())
+      depl.changeLoadorder(iter - loadorder.begin(), i);
   }
   REQUIRE_THAT(depl.getModNames(), 
                Catch::Matchers::Equals(mod_names));
@@ -48,7 +49,8 @@ TEST_CASE("Loadorder can be modified", "[.bg3]")
   {
     auto loadorder = depl.getModNames();
     auto iter = str::find(loadorder, name);
-    depl.changeLoadorder(iter - loadorder.begin(), i);
+    if(iter != loadorder.end())
+      depl.changeLoadorder(iter - loadorder.begin(), i);
   }
   depl.changeLoadorder(3, 0);
   depl.changeLoadorder(2, 1);
@@ -73,7 +75,8 @@ TEST_CASE("Profiles are managed", "[.bg3]")
   {
     auto loadorder = depl.getModNames();
     auto iter = str::find(loadorder, name);
-    depl.changeLoadorder(iter - loadorder.begin(), i);
+    if(iter != loadorder.end())
+      depl.changeLoadorder(iter - loadorder.begin(), i);
   }
   
   depl.addProfile(0);

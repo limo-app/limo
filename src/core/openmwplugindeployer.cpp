@@ -18,16 +18,15 @@ OpenMwPluginDeployer::OpenMwPluginDeployer(const sfs::path& source_path,
   type_ = "OpenMW Plugin Deployer";
   is_autonomous_ = true;
   plugin_regex_ =
-    std::regex(R"(.*\.(?:es[pm]|omwscript|omwaddon|omwgame)$)", std::regex_constants::icase);
+    std::regex(R"(.*\.(?:es[pm]|omwscripts|omwaddon|omwgame)$)", std::regex_constants::icase);
   plugin_file_line_regex_ = std::regex(
-    R"(^\s*(\*?)([^#]*\.(?:es[pm]|omwscript|omwaddon|omwgame))(\r?))", std::regex_constants::icase);
+    R"(^\s*(\*?)([^#]*\.(?:es[pm]|omwscripts|omwaddon|omwgame))(\r?))", std::regex_constants::icase);
   config_file_name_ = ".plugin_config";
   source_mods_file_name_ = ".plugin_mod_sources";
   plugin_file_name_ = ".plugins.txt";
   tags_file_name_ = ".omwplugin_tags";
   bool initialized_plugins = initPluginFile();
-  if(!initialized_plugins)
-    loadPlugins();
+  if(!initialized_plugins)    loadPlugins();
   readPluginTags();
   updatePlugins();
   if(initialized_plugins)
@@ -57,7 +56,7 @@ std::vector<std::vector<int>> OpenMwPluginDeployer::getConflictGroups() const
   for(int i = 0; i < 3; i++)
     groups.push_back({});
 
-  std::regex script_regex(R"(.*\.omwscript$)", std::regex_constants::icase);
+  std::regex script_regex(R"(.*\.omwscripts$)", std::regex_constants::icase);
   for(const auto& [i, pair] : str::enumerate_view(plugins_))
   {
     const auto& [plugin, enabled] = pair;
@@ -158,9 +157,9 @@ bool OpenMwPluginDeployer::initPluginFile()
     throw std::runtime_error(std::format("Error: Could not open '{}'.", config_file_path.string()));
 
   std::string line;
-  std::regex plugin_regex(R"(^content=(.*\.(?:es[pm]|omwscript|omwaddon|omwgame)))",
+  std::regex plugin_regex(R"(^content=(.*\.(?:es[pm]|omwscripts|omwaddon|omwgame)))",
                           std::regex_constants::icase);
-  std::regex groundcover_regex(R"(^groundcover=(.*\.(?:es[pm]|omwscript|omwaddon|omwgame)))",
+  std::regex groundcover_regex(R"(^groundcover=(.*\.(?:es[pm]|omwscripts|omwaddon|omwgame)))",
                                std::regex_constants::icase);
   num_groundcover_plugins_ = 0;
   while(getline(in_file, line))
@@ -262,8 +261,8 @@ void OpenMwPluginDeployer::updateTagVector()
 
 void OpenMwPluginDeployer::updatePluginTagsPrivate()
 {
-  std::regex omw_regex(R"(.*\.(?:omwscript|omwaddon|omwgame))", std::regex_constants::icase);
-  std::regex script_regex(R"(.*\.omwscript)", std::regex_constants::icase);
+  std::regex omw_regex(R"(.*\.(?:omwscripts|omwaddon|omwgame))", std::regex_constants::icase);
+  std::regex script_regex(R"(.*\.omwscripts)", std::regex_constants::icase);
   std::regex es_regex(R"(.*\.es[pm])", std::regex_constants::icase);
   num_openmw_plugins_ = 0;
   num_es_plugins_ = 0;

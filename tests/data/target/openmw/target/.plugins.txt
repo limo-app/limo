@@ -4,5 +4,5 @@
 *f.omwgame
 *a.esp
 *e.omwaddon
-*g.omwscript
-*h.omwscript
+*g.omwscripts
+*h.omwscripts
