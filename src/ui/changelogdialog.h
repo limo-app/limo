@@ -30,6 +30,11 @@ public:
   explicit ChangelogDialog(bool is_flatpak, QWidget* parent = nullptr);
   /*! \brief Deletes the UI. */
   ~ChangelogDialog();
+  /*!
+   * \brief Checks if changelogs could be found.
+   * \return True if found.
+   */
+  bool hasChanges() const;
 
 private slots:
   /*!
@@ -45,4 +50,6 @@ private:
   bool is_flatpak_;
   /*! \brief For every version: The changelog for that version. */
   std::vector<VersionChangelog> versions_;
+  /*! \brief Indicates that changes exist. */
+  bool has_changes_ = false;
 };

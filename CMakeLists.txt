@@ -358,6 +358,8 @@ if(IS_FLATPAK)
             DESTINATION /app/share/applications)
     install(DIRECTORY steam_app_configs
             DESTINATION /app/share/limo)
+    install(FILES install_files/changelogs.json
+            DESTINATION /app/share/limo)
 else()
     install(DIRECTORY steam_app_configs
             DESTINATION ${LIMO_INSTALL_PREFIX}/share/limo)
@@ -365,4 +367,6 @@ else()
             DESTINATION ${LIMO_INSTALL_PREFIX}/share/icons/hicolor/512x512/apps)
     install(FILES install_files/limo.desktop
             DESTINATION ${LIMO_INSTALL_PREFIX}/share/applications)
+    install(FILES install_files/changelogs.json
+            DESTINATION ${LIMO_INSTALL_PREFIX}/share/limo)
 endif()

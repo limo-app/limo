@@ -1,4 +1,5 @@
 #include "changelogdialog.h"
+#include "core/consts.h"
 #include "core/log.h"
 #include "ui_changelogdialog.h"
 #include <QScrollBar>
@@ -15,8 +16,11 @@ ChangelogDialog::ChangelogDialog(bool is_flatpak, QWidget* parent) :
 {
   ui->setupUi(this);
   setWindowTitle("Changelog");
-  // TODO: Make relative
-  sfs::path path("/home/christian/workspaces/Qt/LinuxModManager/install_files/changelogs.json");
+  sfs::path path(is_flatpak ? "/app" : APP_INSTALL_PREFIX);
+  path /= sfs::path("share") / "limo";
+  if(!is_flatpak && sfs::exists("install_files"))
+    path = "install_files";
+  path /= "changelogs.json";
   if(!sfs::exists(path))
   {
     Log::error(std::format("Could not find changelog file at '{}'.", path.string()));
@@ -41,6 +45,7 @@ ChangelogDialog::ChangelogDialog(bool is_flatpak, QWidget* parent) :
   ui->version_box->setCurrentIndex(ui->version_box->count() - 1);
   ui->version_box->blockSignals(false);
   on_version_box_currentIndexChanged(ui->version_box->currentIndex());
+  has_changes_ = true;
 }
 
 ChangelogDialog::~ChangelogDialog()
@@ -102,4 +107,9 @@ void ChangelogDialog::on_version_box_currentIndexChanged(int index)
     ui->changelog->append(paragraph);
   }
   ui->changelog->verticalScrollBar()->setValue(0);
+}
+
+bool ChangelogDialog::hasChanges() const
+{
+  return has_changes_;
 }

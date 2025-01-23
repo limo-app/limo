@@ -154,7 +154,7 @@ void MainWindow::setDebugMode(bool enabled)
 void MainWindow::initChangelog()
 {
   changelog_dialog_ = std::make_unique<ChangelogDialog>(is_a_flatpak_, this);
-  if(APP_VERSION != previous_app_version_)
+  if(changelog_dialog_->hasChanges() && APP_VERSION != previous_app_version_)
   {
     changelog_dialog_->show();
     changelog_dialog_->activateWindow();
