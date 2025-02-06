@@ -379,3 +379,8 @@ else()
     install(FILES install_files/changelogs.json
             DESTINATION ${LIMO_INSTALL_PREFIX}/share/limo)
 endif()
+
+if (BUILD_TESTING)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
