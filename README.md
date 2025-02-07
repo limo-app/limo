@@ -129,7 +129,7 @@ cmake --build build
 ```
 cmake -DCMAKE_BUILD_TYPE=Release -S . -B build -DBUILD_TESTING=ON
 cmake --build build
-build/tests/tests
+ctest --test-dir build
 ```
 
 #### (Optional) Build the documentation:

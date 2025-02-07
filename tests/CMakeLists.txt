@@ -127,3 +127,6 @@ PRIVATE Catch2::Catch2WithMain
     PRIVATE ${ZSTD_LIBRARIES}
     PRIVATE ZLIB::ZLIB
     PRIVATE pugixml::pugixml)
+
+include(Catch)
+catch_discover_tests(tests)
