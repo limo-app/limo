@@ -2,7 +2,7 @@
 #include "test_utils.h"
 #include <catch2/catch_test_macros.hpp>
 
-TEST_CASE("Required files are detected", "[.fomod]")
+TEST_CASE("Required files are detected", "[fomod]")
 {
   fomod::FomodInstaller installer;
   installer.init(DATA_DIR / "source" / "fomod" / "fomod" / "simple.xml");
@@ -16,7 +16,7 @@ TEST_CASE("Required files are detected", "[.fomod]")
   REQUIRE_THAT(files, Catch::Matchers::Equals(target));
 }
 
-TEST_CASE("Steps are executed", "[.fomod]")
+TEST_CASE("Steps are executed", "[fomod]")
 {
   fomod::FomodInstaller installer;
   installer.init(DATA_DIR / "source" / "fomod" / "fomod" / "steps.xml");
@@ -44,7 +44,7 @@ TEST_CASE("Steps are executed", "[.fomod]")
   REQUIRE_THAT(result, Catch::Matchers::Equals(target));
 }
 
-TEST_CASE("Installation matrix is parsed", "[.fomod]")
+TEST_CASE("Installation matrix is parsed", "[fomod]")
 {
   fomod::FomodInstaller installer;
   installer.init(DATA_DIR / "source" / "fomod" / "fomod" / "matrix.xml");

@@ -17,7 +17,7 @@ void resetBg3Files()
   sfs::copy(source, target);
 }
 
-TEST_CASE("Plugins are found", "[.bg3]")
+TEST_CASE("Plugins are found", "[bg3]")
 {
   resetBg3Files();
   
@@ -39,7 +39,7 @@ TEST_CASE("Plugins are found", "[.bg3]")
                       DATA_DIR / "target" / "bg3" / "1" / "modsettings.lsx");
 }
 
-TEST_CASE("Loadorder can be modified", "[.bg3]")
+TEST_CASE("Loadorder can be modified", "[bg3]")
 {
   resetBg3Files();
   
@@ -63,7 +63,7 @@ TEST_CASE("Loadorder can be modified", "[.bg3]")
   REQUIRE_THAT(depl.getModNames(), Catch::Matchers::Equals(depl_2.getModNames()));
 }
 
-TEST_CASE("Profiles are managed", "[.bg3]")
+TEST_CASE("Profiles are managed", "[bg3]")
 {
   resetBg3Files();
   

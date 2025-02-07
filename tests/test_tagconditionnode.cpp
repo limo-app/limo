@@ -4,7 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 
-TEST_CASE("Expressions are validated", "[.tags]")
+TEST_CASE("Expressions are validated", "[tags]")
 {
   REQUIRE_FALSE(TagConditionNode::expressionIsValid("", 1));
   REQUIRE_FALSE(TagConditionNode::expressionIsValid("and", 1));
@@ -37,7 +37,7 @@ TEST_CASE("Expressions are validated", "[.tags]")
   REQUIRE(TagConditionNode::expressionIsValid("not(not0) and (1) or    2", 3));
 }
 
-TEST_CASE("Single node detects files", "[.tags]")
+TEST_CASE("Single node detects files", "[tags]")
 {
   std::vector<TagCondition> conditions{
     { false, TagCondition::Type::file_name, false, "*.txt" },
@@ -80,7 +80,7 @@ TEST_CASE("Single node detects files", "[.tags]")
   REQUIRE_FALSE(node_7.evaluate(files.at(1)));
 }
 
-TEST_CASE("Expressions of depth 1 are parsed", "[.tags]")
+TEST_CASE("Expressions of depth 1 are parsed", "[tags]")
 {
   std::vector<TagCondition> conditions{ { false, TagCondition::Type::file_name, false, "*.txt" },
                                         { false, TagCondition::Type::file_name, false, "*12*abc" },
@@ -98,7 +98,7 @@ TEST_CASE("Expressions of depth 1 are parsed", "[.tags]")
   REQUIRE(node2.evaluate(files.at(1)));
 }
 
-TEST_CASE("Complex expressions are parsed", "[.tags]")
+TEST_CASE("Complex expressions are parsed", "[tags]")
 {
   std::vector<TagCondition> conditions{
     { false, TagCondition::Type::file_name, false, "*.txt" },
