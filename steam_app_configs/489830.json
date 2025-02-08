@@ -20,35 +20,139 @@
       "target_dir": "$STEAM_PREFIX_PATH$/users/steamuser/Local Settings/Application Data/Skyrim Special Edition",
       "deploy_mode": "hard link",
       "source_dir": "$STEAM_INSTALL_PATH$/Data"
-    },
-  ],
-  "auto_tags":
-  [
-    {
-      "name": "Plugin",
-      "expression": "0",
-      "conditions": 
-      [
-        {
-          "condition_type": "path",
-          "invert": false,
-          "search_string": "[^/]*\\.es[pml]",
-          "use_regex": true
-        }
-      ]
-    },
-    {
-      "name": "SKSE",
-      "expression": "0",
-      "conditions": 
-      [
-        {
-          "condition_type": "path",
-          "invert": false,
-          "search_string": "skse/*",
-          "use_regex": false
-        }
-      ]
     }
-  ]
+  ],
+  "auto_tags" : 
+	[
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*_CID\\.ini$",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "CID"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*_DESC\\.ini$",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "DESC"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*_FLM\\.ini$",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "FLM"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*\\.ini$",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "INI"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : ".*\\.json$",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "JSON"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*_KID\\.ini$",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "KID"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "path",
+					"invert" : false,
+					"search_string" : "MCM/*",
+					"use_regex" : false
+				}
+			],
+			"expression" : "0",
+			"name" : "MCM"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "path",
+					"invert" : false,
+					"search_string" : "[^/]*\\.es[pml]",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "Plugin"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "path",
+					"invert" : false,
+					"search_string" : "skse/*",
+					"use_regex" : false
+				}
+			],
+			"expression" : "0",
+			"name" : "SKSE"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*_DISTR\\.ini$",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "SPID"
+		}
+	]
 }
