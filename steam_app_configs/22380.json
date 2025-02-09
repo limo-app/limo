@@ -20,7 +20,7 @@
       "target_dir": "$STEAM_PREFIX_PATH$/users/steamuser/Local Settings/Application Data/Fallout New Vegas",
       "deploy_mode": "hard link",
       "source_dir": "$STEAM_INSTALL_PATH$/Data"
-    },
+    }
   ],
   "auto_tags":
   [
