@@ -8,7 +8,7 @@
 #include <ranges>
 
 
-TEST_CASE("Mods are added and removed", "[.deployer]")
+TEST_CASE("Mods are added and removed", "[deployer]")
 {
   Deployer depl = Deployer(DATA_DIR / "source", DATA_DIR / "app", "");
   depl.addProfile();
@@ -18,7 +18,7 @@ TEST_CASE("Mods are added and removed", "[.deployer]")
   REQUIRE(depl.getNumMods() == 0);
 }
 
-TEST_CASE("Mods are being deployed", "[.deployer]")
+TEST_CASE("Mods are being deployed", "[deployer]")
 {
   resetAppDir();
   Deployer depl = Deployer(DATA_DIR / "source", DATA_DIR / "app", "");
@@ -28,7 +28,7 @@ TEST_CASE("Mods are being deployed", "[.deployer]")
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "mod1", true);
 }
 
-TEST_CASE("Mod status works", "[.deployer]")
+TEST_CASE("Mod status works", "[deployer]")
 {
   resetAppDir();
   Deployer depl = Deployer(DATA_DIR / "source", DATA_DIR / "app", "");
@@ -41,7 +41,7 @@ TEST_CASE("Mod status works", "[.deployer]")
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "mod1", true);
 }
 
-TEST_CASE("Deployed mods are removed", "[.deployer]")
+TEST_CASE("Deployed mods are removed", "[deployer]")
 {
   resetAppDir();
   Deployer depl = Deployer(DATA_DIR / "source", DATA_DIR / "app", "");
@@ -53,7 +53,7 @@ TEST_CASE("Deployed mods are removed", "[.deployer]")
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "source" / "app", true);
 }
 
-TEST_CASE("Conflicts are resolved", "[.deployer]")
+TEST_CASE("Conflicts are resolved", "[deployer]")
 {
   resetAppDir();
   Deployer depl = Deployer(DATA_DIR / "source", DATA_DIR / "app", "");
@@ -65,7 +65,7 @@ TEST_CASE("Conflicts are resolved", "[.deployer]")
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "mod012", true);
 }
 
-TEST_CASE("Files are restored", "[.deployer]")
+TEST_CASE("Files are restored", "[deployer]")
 {
   resetAppDir();
   Deployer depl = Deployer(DATA_DIR / "source", DATA_DIR / "app", "");
@@ -81,7 +81,7 @@ TEST_CASE("Files are restored", "[.deployer]")
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "source" / "app", true);
 }
 
-TEST_CASE("Loadorder is being changed", "[.deployer]")
+TEST_CASE("Loadorder is being changed", "[deployer]")
 {
   resetAppDir();
   Deployer depl = Deployer(DATA_DIR / "source", DATA_DIR / "app", "");
@@ -95,7 +95,7 @@ TEST_CASE("Loadorder is being changed", "[.deployer]")
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "mod012", true);
 }
 
-TEST_CASE("Profiles", "[.deployer]")
+TEST_CASE("Profiles", "[deployer]")
 {
   resetAppDir();
   Deployer depl = Deployer(DATA_DIR / "source", DATA_DIR / "app", "");
@@ -119,7 +119,7 @@ TEST_CASE("Profiles", "[.deployer]")
   }
 }
 
-TEST_CASE("Get mod conflicts", "[.deployer]")
+TEST_CASE("Get mod conflicts", "[deployer]")
 {
   Deployer depl = Deployer(DATA_DIR / "source", DATA_DIR / "app", "");
   depl.addProfile();
@@ -135,7 +135,7 @@ TEST_CASE("Get mod conflicts", "[.deployer]")
   REQUIRE(conflicts.contains(0));
 }
 
-TEST_CASE("Get file conflicts", "[.deployer]")
+TEST_CASE("Get file conflicts", "[deployer]")
 {
   Deployer depl = Deployer(DATA_DIR / "source", DATA_DIR / "app", "");
   depl.addProfile();
@@ -148,7 +148,7 @@ TEST_CASE("Get file conflicts", "[.deployer]")
   REQUIRE(conflicts.size() == 3);
 }
 
-TEST_CASE("Conflict groups are created", "[.deployer]")
+TEST_CASE("Conflict groups are created", "[deployer]")
 {
   Deployer depl(DATA_DIR / "source" / "conflicts", DATA_DIR / "app", "");
   depl.addProfile();
@@ -161,7 +161,7 @@ TEST_CASE("Conflict groups are created", "[.deployer]")
                  std::vector<std::vector<int>>{ { 0, 1, 2, 3, 5 }, { 4, 6 }, { 7 } }));
 }
 
-TEST_CASE("Mods are sorted", "[.deployer]")
+TEST_CASE("Mods are sorted", "[deployer]")
 {
   Deployer depl(DATA_DIR / "source" / "conflicts", DATA_DIR / "app", "");
   depl.addProfile();
@@ -179,7 +179,7 @@ TEST_CASE("Mods are sorted", "[.deployer]")
                                                                                     { 7, true } }));
 }
 
-TEST_CASE("Case matching deployer", "[.deployer]")
+TEST_CASE("Case matching deployer", "[deployer]")
 {
   resetAppDir();
   sfs::remove_all(DATA_DIR / "source" / "case_matching" / "0");
@@ -204,7 +204,7 @@ TEST_CASE("Case matching deployer", "[.deployer]")
                      false);
 }
 
-TEST_CASE("External changes are handeld", "[.deployer]")
+TEST_CASE("External changes are handeld", "[deployer]")
 {
   resetAppDir();
   resetStagingDir();
@@ -253,7 +253,7 @@ TEST_CASE("External changes are handeld", "[.deployer]")
   REQUIRE(sfs::equivalent(DATA_DIR / "staging" / "2" / "0.txt", DATA_DIR / "app" / "0.txt"));
 }
 
-TEST_CASE("Files are deployed as sym links", "[.deployer]")
+TEST_CASE("Files are deployed as sym links", "[deployer]")
 {
   resetAppDir();
   Deployer depl = Deployer(DATA_DIR / "source", DATA_DIR / "app", "", Deployer::sym_link);

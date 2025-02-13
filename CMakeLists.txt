@@ -81,9 +81,8 @@ pkg_check_modules(ZSTD REQUIRED libzstd)
 # zlib
 find_package(ZLIB REQUIRED)
 
-
-set(PROJECT_SOURCES
-        resources/icons.qrc
+# Separated for tests
+set(CORE_SOURCES
         src/core/addmodinfo.h
         src/core/appinfo.h
         src/core/autotag.cpp
@@ -176,6 +175,32 @@ set(PROJECT_SOURCES
         src/core/tool.h
         src/core/versionchangelog.cpp
         src/core/versionchangelog.h
+)
+
+add_library(core OBJECT ${CORE_SOURCES})
+target_include_directories(core
+    PRIVATE ${PROJECT_SOURCE_DIR}/src
+    PUBLIC ${LibArchive_INCLUDE_DIRS}
+    PUBLIC ${LIBLOOT_INCLUDE_DIR}
+    PUBLIC ${JSONCPP_INCLUDE_DIRS}
+    PUBLIC ${LIBUNRAR_INCLUDE_DIR}
+    PUBLIC ${LZ4_INCLUDE_DIRS}
+    PUBLIC ${ZSTD_INCLUDE_DIRS})
+
+target_link_libraries(core
+    PUBLIC ${JSONCPP_LIBRARIES}
+    PUBLIC ${LibArchive_LIBRARIES}
+    PUBLIC ${LIBLOOT_PATH}
+    PUBLIC cpr::cpr
+    PUBLIC OpenSSL::SSL
+    PUBLIC ${LIBUNRAR_PATH}
+    PUBLIC ${LZ4_LIBRARIES}
+    PUBLIC ${ZSTD_LIBRARIES}
+    PUBLIC pugixml::pugixml
+    PUBLIC ZLIB::ZLIB)
+
+set(PROJECT_SOURCES
+        resources/icons.qrc
         src/main.cpp
         src/ui/addapikeydialog.cpp
         src/ui/addapikeydialog.h
@@ -322,29 +347,13 @@ configure_file(src/core/consts.h.in
 add_executable(Limo
     ${PROJECT_SOURCES})
 
-target_include_directories(Limo
-    PRIVATE ${PROJECT_SOURCE_DIR}/src
-    PRIVATE ${LibArchive_INCLUDE_DIRS}
-    PRIVATE ${LIBLOOT_INCLUDE_DIR}
-    PRIVATE ${JSONCPP_INCLUDE_DIRS}
-    PRIVATE ${LIBUNRAR_INCLUDE_DIR}
-    PRIVATE ${LZ4_INCLUDE_DIRS}
-    PRIVATE ${ZSTD_INCLUDE_DIRS})
+target_include_directories(Limo PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
 target_link_libraries(Limo
+    PRIVATE core
     PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
-    PRIVATE ${JSONCPP_LIBRARIES}
-    PRIVATE ${LibArchive_LIBRARIES}
-    PRIVATE ${LIBLOOT_PATH}
     PRIVATE Qt${QT_VERSION_MAJOR}::Svg
-    PRIVATE cpr::cpr
-    PRIVATE OpenSSL::SSL
-    PRIVATE Qt${QT_VERSION_MAJOR}::Network
-    PRIVATE ${LIBUNRAR_PATH}
-    PRIVATE ${LZ4_LIBRARIES}
-    PRIVATE ${ZSTD_LIBRARIES}
-    PRIVATE pugixml::pugixml
-    PRIVATE ZLIB::ZLIB)
+    PRIVATE Qt${QT_VERSION_MAJOR}::Network)
 
 install(PROGRAMS ${CMAKE_BINARY_DIR}/Limo
     DESTINATION bin RENAME limo)
@@ -369,4 +378,9 @@ else()
             DESTINATION ${LIMO_INSTALL_PREFIX}/share/applications)
     install(FILES install_files/changelogs.json
             DESTINATION ${LIMO_INSTALL_PREFIX}/share/limo)
+endif()
+
+if (BUILD_TESTING)
+    enable_testing()
+    add_subdirectory(tests)
 endif()

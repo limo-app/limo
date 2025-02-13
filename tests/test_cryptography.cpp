@@ -16,7 +16,7 @@ std::string generateRandomString(std::default_random_engine& e)
   return str;
 }
 
-TEST_CASE("String are encrypted", "[.crypto]")
+TEST_CASE("String are encrypted", "[crypto]")
 {
   std::random_device r;
   std::default_random_engine e(r());

@@ -2,7 +2,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 
-TEST_CASE("Overwrite commands are generated", "[.tool]")
+TEST_CASE("Overwrite commands are generated", "[tool]")
 {
   const std::string command_string = "my command string";
   Tool tool("t", "", command_string);
@@ -11,7 +11,7 @@ TEST_CASE("Overwrite commands are generated", "[.tool]")
   REQUIRE(tool.getCommand(true) == "flatpak-spawn --host " + command_string);
 }
 
-TEST_CASE("Native commands are generated", "[.tool]")
+TEST_CASE("Native commands are generated", "[tool]")
 {
   Tool tool_1("t1", "", "prog", "", {}, "");
   REQUIRE(tool_1.getCommand(false) == R"("prog")");
@@ -25,7 +25,7 @@ TEST_CASE("Native commands are generated", "[.tool]")
   REQUIRE(tool_4.getCommand(true) == R"(flatpak-spawn --host --directory="/tmp" --env=VAR_1="VAL_1" --env=VAR_2="VAL_2" "/bin/prog" -v -a 2)");
 }
 
-TEST_CASE("Wine commands are generated", "[.tool]")
+TEST_CASE("Wine commands are generated", "[tool]")
 {
   Tool tool_1("t1", "", "/bin/prog.exe", "", "", {}, "");
   REQUIRE(tool_1.getCommand(false) == R"(wine "/bin/prog.exe")");
@@ -35,7 +35,7 @@ TEST_CASE("Wine commands are generated", "[.tool]")
   REQUIRE(tool_2.getCommand(true) == R"(flatpak-spawn --host --directory="/tmp" --env=VAR_1="VAL_1" --env=WINEPREFIX="/tmp/wine_prefix" wine "/bin/prog.exe" -b)");
 }
 
-TEST_CASE("Protontricks commands are generated", "[.tool]")
+TEST_CASE("Protontricks commands are generated", "[tool]")
 {
   Tool tool_1("t1", "", "/bin/prog.exe", false, 220, "/tmp", {{"VAR_1", "VAL_1"}}, "-arg", "-parg");
   REQUIRE(tool_1.getCommand(false) == R"(cd "/tmp"; VAR_1="VAL_1" protontricks-launch --appid 220 -parg "/bin/prog.exe" -arg)");
@@ -45,7 +45,7 @@ TEST_CASE("Protontricks commands are generated", "[.tool]")
     R"(flatpak run --command=protontricks-launch com.github.Matoking.protontricks --appid 220 -parg "/bin/prog.exe" -arg)");
 }
 
-TEST_CASE("Steam commands are generated", "[.tool]")
+TEST_CASE("Steam commands are generated", "[tool]")
 {
   Tool tool_1("t1", "", 220, false);
   REQUIRE(tool_1.getCommand(false) == "steam -applaunch 220");
@@ -54,7 +54,7 @@ TEST_CASE("Steam commands are generated", "[.tool]")
   REQUIRE(tool_2.getCommand(true) == "flatpak-spawn --host flatpak run com.valvesoftware.Steam -applaunch 220");
 }
 
-TEST_CASE("State is serialized", "[.tool]")
+TEST_CASE("State is serialized", "[tool]")
 {
   std::vector<Tool> tools =
   {

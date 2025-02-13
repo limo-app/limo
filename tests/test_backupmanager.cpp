@@ -5,7 +5,7 @@
 #include <iostream>
 
 
-TEST_CASE("Backups are created", "[.backup]")
+TEST_CASE("Backups are created", "[backup]")
 {
   resetAppDir();
   BackupManager bak_man;
@@ -25,7 +25,7 @@ TEST_CASE("Backups are created", "[.backup]")
   verifyDirsAreEqual(DATA_DIR / "app" / "a", DATA_DIR / "app" / "a.4.lmmbakman", true);
 }
 
-TEST_CASE("Backups are activated", "[.backup]")
+TEST_CASE("Backups are activated", "[backup]")
 {
   resetAppDir();
   BackupManager bak_man;
@@ -58,7 +58,7 @@ TEST_CASE("Backups are activated", "[.backup]")
     DATA_DIR / "target" / "bak_man" / "change_bak" / "a", DATA_DIR / "app" / "a.1.lmmbakman", true);
 }
 
-TEST_CASE("Backups are removed", "[.backup]")
+TEST_CASE("Backups are removed", "[backup]")
 {
   resetAppDir();
   BackupManager bak_man;
@@ -78,7 +78,7 @@ TEST_CASE("Backups are removed", "[.backup]")
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "bak_man" / "remove_bak_2");
 }
 
-TEST_CASE("Profiles are working", "[.backup]")
+TEST_CASE("Profiles are working", "[backup]")
 {
   resetAppDir();
   BackupManager bak_man;
@@ -118,7 +118,7 @@ TEST_CASE("Profiles are working", "[.backup]")
                       DATA_DIR / "target" / "bak_man" / "profiles_1" / "a-Fil _3");
 }
 
-TEST_CASE("State is saved", "[.backup]")
+TEST_CASE("State is saved", "[backup]")
 {
   resetAppDir();
   BackupManager bak_man;
@@ -154,7 +154,7 @@ TEST_CASE("State is saved", "[.backup]")
                       DATA_DIR / "target" / "bak_man" / "profiles_0" / "a-Fil _3");
 }
 
-TEST_CASE("Invalid state is repaired", "[.backup]")
+TEST_CASE("Invalid state is repaired", "[backup]")
 {
   resetAppDir();
   BackupManager bak_man;
@@ -174,7 +174,7 @@ TEST_CASE("Invalid state is repaired", "[.backup]")
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "bak_man" / "invalid_state");
 }
 
-TEST_CASE("Targets are removed", "[.backup]")
+TEST_CASE("Targets are removed", "[backup]")
 {
   resetAppDir();
   BackupManager bak_man;
@@ -192,7 +192,7 @@ TEST_CASE("Targets are removed", "[.backup]")
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "source" / "app", true);
 }
 
-TEST_CASE("Backups are overwritten", "[.backup]")
+TEST_CASE("Backups are overwritten", "[backup]")
 {
   resetAppDir();
   BackupManager bak_man;

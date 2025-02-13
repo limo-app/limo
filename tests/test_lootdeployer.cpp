@@ -17,7 +17,7 @@ void resetFiles()
 }
 
 
-TEST_CASE("State is read", "[.loot]")
+TEST_CASE("State is read", "[loot]")
 {
   resetFiles();
   LootDeployer depl(
@@ -30,7 +30,7 @@ TEST_CASE("State is read", "[.loot]")
                  std::vector<std::tuple<int, bool>>{ { -1, true }, { -1, false }, { -1, true }, { -1, true } }));
 }
 
-TEST_CASE("Load order can be edited", "[.loot]")
+TEST_CASE("Load order can be edited", "[loot]")
 {
   resetFiles();
   LootDeployer depl(
@@ -50,7 +50,7 @@ TEST_CASE("Load order can be edited", "[.loot]")
   REQUIRE_THAT(depl.getLoadorder(), Catch::Matchers::Equals(depl2.getLoadorder()));
 }
 
-TEST_CASE("Profiles are managed", "[.loot]")
+TEST_CASE("Profiles are managed", "[loot]")
 {
   resetFiles();
   LootDeployer depl(
