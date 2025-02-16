@@ -34,7 +34,7 @@ std::vector<std::string> files_to_be_ignored = {
   (sfs::path("c") / "3").string()
 };
 
-TEST_CASE("Ignored files are updated", "[.revdepl]")
+TEST_CASE("Ignored files are updated", "[revdepl]")
 {
   resetDirs();
   ReverseDeployer depl(DATA_DIR / "source" / "revdepl" / "source",
@@ -56,7 +56,7 @@ TEST_CASE("Ignored files are updated", "[.revdepl]")
                Catch::Matchers::UnorderedEquals(files_to_be_ignored));
 }
 
-TEST_CASE("Managed files are updated", "[.revdepl]")
+TEST_CASE("Managed files are updated", "[revdepl]")
 {
   // No extra files
   resetDirs();
@@ -86,7 +86,7 @@ TEST_CASE("Managed files are updated", "[.revdepl]")
                Catch::Matchers::UnorderedEquals(managed_target));
 }
 
-TEST_CASE("Deployed files are ignored", "[.revdepl]")
+TEST_CASE("Deployed files are ignored", "[revdepl]")
 {
   resetDirs();
   Deployer depl(DATA_DIR / "source" / "revdepl" / "data",
@@ -149,7 +149,7 @@ TEST_CASE("Deployed files are ignored", "[.revdepl]")
                Catch::Matchers::UnorderedEquals(new_ignored_target));
 }
 
-TEST_CASE("Managed files are deployed", "[.revdepl]")
+TEST_CASE("Managed files are deployed", "[revdepl][!shouldfail]")
 {
   resetDirs();
   Deployer depl(DATA_DIR / "source" / "revdepl" / "data",

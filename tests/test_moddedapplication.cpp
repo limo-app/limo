@@ -10,7 +10,7 @@
 
 const int INSTALLER_FLAGS = Installer::preserve_case | Installer::preserve_directories;
 
-TEST_CASE("Mods are installed", "[.app]")
+TEST_CASE("Mods are installed", "[app]")
 {
   resetStagingDir();
   ModdedApplication app(DATA_DIR / "staging", "test");
@@ -40,7 +40,7 @@ TEST_CASE("Mods are installed", "[.app]")
   REQUIRE(mod_info[0].mod.name == "mod 0->2");
 }
 
-TEST_CASE("Deployers are added", "[.app]")
+TEST_CASE("Deployers are added", "[app]")
 {
   resetStagingDir();
   resetAppDir();
@@ -65,7 +65,7 @@ TEST_CASE("Deployers are added", "[.app]")
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "mod012", true);
 }
 
-TEST_CASE("State is saved", "[.app]")
+TEST_CASE("State is saved", "[app]")
 {
   resetStagingDir();
   resetAppDir();
@@ -111,7 +111,7 @@ TEST_CASE("State is saved", "[.app]")
   sfs::remove_all(DATA_DIR / "app_2");
 }
 
-TEST_CASE("Groups update loadorders", "[.app]")
+TEST_CASE("Groups update loadorders", "[app]")
 {
   resetStagingDir();
   ModdedApplication app(DATA_DIR / "staging", "test");
@@ -148,7 +148,7 @@ TEST_CASE("Groups update loadorders", "[.app]")
                Catch::Matchers::Equals(std::vector<std::tuple<int, bool>>{ { 2, true } }));
 }
 
-TEST_CASE("Mods are split", "[.app]")
+TEST_CASE("Mods are split", "[app]")
 {
   resetStagingDir();
   ModdedApplication app(DATA_DIR / "staging", "test");
@@ -188,7 +188,7 @@ TEST_CASE("Mods are split", "[.app]")
   verifyDirsAreEqual(DATA_DIR / "staging", DATA_DIR / "target" / "split");
 }
 
-TEST_CASE("Mods are uninstalled", "[.app]")
+TEST_CASE("Mods are uninstalled", "[app]")
 {
   resetStagingDir();
   ModdedApplication app(DATA_DIR / "staging", "test");

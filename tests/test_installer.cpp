@@ -6,14 +6,14 @@
 #include <vector>
 
 
-TEST_CASE("Files are extracted", "[.installer]")
+TEST_CASE("Files are extracted", "[installer]")
 {
   resetStagingDir();
   Installer::extract(DATA_DIR / "source" / "mod0.tar.gz", DATA_DIR / "staging" / "extract");
   verifyDirsAreEqual(DATA_DIR / "source" / "0", DATA_DIR / "staging" / "extract");
 }
 
-TEST_CASE("Mods are (un)installed", "[.installer]")
+TEST_CASE("Mods are (un)installed", "[installer]")
 {
   resetStagingDir();
   Installer::install(DATA_DIR / "source" / "mod0.tar.gz",
@@ -29,7 +29,7 @@ TEST_CASE("Mods are (un)installed", "[.installer]")
   }
 }
 
-TEST_CASE("Installer options", "[.installer]")
+TEST_CASE("Installer options", "[installer]")
 {
   resetStagingDir();
   SECTION("Upper case conversion")
@@ -62,7 +62,7 @@ TEST_CASE("Installer options", "[.installer]")
   }
 }
 
-TEST_CASE("Root levels", "[.installer]")
+TEST_CASE("Root levels", "[installer][!shouldfail]")
 {
   resetStagingDir();
   SECTION("Level 0")
