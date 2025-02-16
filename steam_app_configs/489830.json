@@ -1,54 +1,161 @@
 {
-  "name": "Skyrim SE",
-  "deployers":
-  [
-    {
-      "type": "Case Matching Deployer",
-      "name": "Data",
-      "target_dir": "$STEAM_INSTALL_PATH$/Data",
-      "deploy_mode": "hard link"
-    },
-    {
-      "type": "Case Matching Deployer",
-      "name": "Bin",
-      "target_dir": "$STEAM_INSTALL_PATH$",
-      "deploy_mode": "hard link"
-    },
-    {
-      "type": "Loot Deployer",
-      "name": "Plugins",
-      "target_dir": "$STEAM_PREFIX_PATH$/users/steamuser/Local Settings/Application Data/Skyrim Special Edition",
-      "deploy_mode": "hard link",
-      "source_dir": "$STEAM_INSTALL_PATH$/Data"
-    },
-  ],
-  "auto_tags":
-  [
-    {
-      "name": "Plugin",
-      "expression": "0",
-      "conditions": 
-      [
-        {
-          "condition_type": "path",
-          "invert": false,
-          "search_string": "[^/]*\\.es[pml]",
-          "use_regex": true
-        }
-      ]
-    },
-    {
-      "name": "SKSE",
-      "expression": "0",
-      "conditions": 
-      [
-        {
-          "condition_type": "path",
-          "invert": false,
-          "search_string": "skse/*",
-          "use_regex": false
-        }
-      ]
-    }
-  ]
+	"auto_tags" : 
+	[
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*\\.bsa$",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "Archive BSA"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*_DISTR\\.ini$",
+					"use_regex" : true
+				},
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*_CID\\.ini$",
+					"use_regex" : true
+				},
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*_DESC\\.ini$",
+					"use_regex" : true
+				},
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*_FLM\\.ini$",
+					"use_regex" : true
+				},
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*_KID\\.ini$",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0or1or2or3or4",
+			"name" : "Distributors"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*\\.ini$",
+					"use_regex" : true
+				},
+				{
+					"condition_type" : "file_name",
+					"invert" : true,
+					"search_string" : "^.*meta\\.ini$",
+					"use_regex" : false
+				}
+			],
+			"expression" : "0and1",
+			"name" : "INI"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : ".*\\.json$",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "JSON"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "path",
+					"invert" : false,
+					"search_string" : "MCM/*",
+					"use_regex" : false
+				},
+				{
+					"condition_type" : "path",
+					"invert" : false,
+					"search_string" : "mcm/*",
+					"use_regex" : false
+				}
+			],
+			"expression" : "0or1",
+			"name" : "MCM"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "path",
+					"invert" : false,
+					"search_string" : "[^/]*\\.es[pml]",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "Plugin"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "path",
+					"invert" : false,
+					"search_string" : "skse/*",
+					"use_regex" : false
+				},
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "SKSE/*",
+					"use_regex" : false
+				}
+			],
+			"expression" : "0or1",
+			"name" : "SKSE"
+		}
+	],
+	"deployers" : 
+	[
+		{
+			"deploy_mode" : "hard_link",
+			"name" : "Data",
+			"target_dir" : "$STEAM_INSTALL_PATH$/Data",
+			"type" : "Case Matching Deployer"
+		},
+		{
+			"deploy_mode" : "hard_link",
+			"name" : "Bin",
+			"target_dir" : "$STEAM_INSTALL_PATH$",
+			"type" : "Case Matching Deployer"
+		},
+		{
+			"deploy_mode" : "copy",
+			"name" : "Plugins",
+			"source_dir" : "$STEAM_INSTALL_PATH$/Data",
+			"target_dir" : "$STEAM_PREFIX_PATH$/users/steamuser/Local Settings/Application Data/Skyrim Special Edition",
+			"type" : "Loot Deployer"
+		}
+	],
+	"name" : "Skyrim SE"
 }
