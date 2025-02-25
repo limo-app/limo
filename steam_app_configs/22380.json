@@ -1,54 +1,118 @@
 {
-  "name": "Fallout: New Vegas",
-  "deployers":
-  [
-    {
-      "type": "Case Matching Deployer",
-      "name": "Data",
-      "target_dir": "$STEAM_INSTALL_PATH$/Data",
-      "deploy_mode": "hard link"
-    },
-    {
-      "type": "Case Matching Deployer",
-      "name": "Bin",
-      "target_dir": "$STEAM_INSTALL_PATH$",
-      "deploy_mode": "hard link"
-    },
-    {
-      "type": "Loot Deployer",
-      "name": "Plugins",
-      "target_dir": "$STEAM_PREFIX_PATH$/users/steamuser/Local Settings/Application Data/Fallout New Vegas",
-      "deploy_mode": "hard link",
-      "source_dir": "$STEAM_INSTALL_PATH$/Data"
-    },
-  ],
-  "auto_tags":
-  [
-    {
-      "name": "Plugin",
-      "expression": "0",
-      "conditions":
-      [
-        {
-          "condition_type": "path",
-          "invert": false,
-          "search_string": "[^/]*\\.es[pml]",
-          "use_regex": true
-        }
-      ]
-    },
-    {
-      "name": "NVSE",
-      "expression": "0",
-      "conditions":
-      [
-        {
-          "condition_type": "path",
-          "invert": false,
-          "search_string": "nvse/*",
-          "use_regex": false
-        }
-      ]
-    }
-  ]
+	"auto_tags" : 
+	[
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*\\\\.bsa$",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "Archive BSA"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : "^.*\\\\.ini$",
+					"use_regex" : false
+				},
+				{
+					"condition_type" : "file_name",
+					"invert" : true,
+					"search_string" : "^.*meta\\\\.ini$",
+					"use_regex" : false
+				}
+			],
+			"expression" : "0or1",
+			"name" : "INI"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "file_name",
+					"invert" : false,
+					"search_string" : ".*\\\\.json$",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "Json"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "path",
+					"invert" : false,
+					"search_string" : "MCM/*",
+					"use_regex" : false
+				}
+			],
+			"expression" : "0",
+			"name" : "MCM"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "path",
+					"invert" : false,
+					"search_string" : "nvse/*",
+					"use_regex" : false
+				},
+				{
+					"condition_type" : "path",
+					"invert" : false,
+					"search_string" : "NVSE/*",
+					"use_regex" : false
+				}
+			],
+			"expression" : "0or1",
+			"name" : "NVSE"
+		},
+		{
+			"conditions" : 
+			[
+				{
+					"condition_type" : "path",
+					"invert" : false,
+					"search_string" : "[^/]*\\.es[pml]",
+					"use_regex" : true
+				}
+			],
+			"expression" : "0",
+			"name" : "Plugin"
+		}
+	],
+	"deployers" : 
+	[
+		{
+			"deploy_mode" : "hard_link",
+			"name" : "Data",
+			"target_dir" : "$STEAM_INSTALL_PATH$/Data",
+			"type" : "Case Matching Deployer"
+		},
+		{
+			"deploy_mode" : "hard_link",
+			"name" : "Bin",
+			"target_dir" : "$STEAM_INSTALL_PATH$",
+			"type" : "Case Matching Deployer"
+		},
+		{
+			"deploy_mode" : "copy",
+			"name" : "Plugin",
+			"source_dir" : "$STEAM_INSTALL_PATH$/Data",
+			"target_dir" : "$STEAM_PREFIX_PATH$/users/steamuser/AppData/Local/FalloutNV",
+			"type" : "Loot Deployer"
+		}
+	],
+	"name" : "Fallout: New Vegas"
 }
