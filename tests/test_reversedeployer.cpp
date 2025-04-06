@@ -149,7 +149,7 @@ TEST_CASE("Deployed files are ignored", "[revdepl]")
                Catch::Matchers::UnorderedEquals(new_ignored_target));
 }
 
-TEST_CASE("Managed files are deployed", "[revdepl][!shouldfail]")
+TEST_CASE("Managed files are deployed", "[revdepl]")
 {
   resetDirs();
   Deployer depl(DATA_DIR / "source" / "revdepl" / "data",

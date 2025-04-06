@@ -481,6 +481,7 @@ AppInfo ModdedApplication::getAppInfo() const
     info.deployer_source_dirs.push_back(deployer->getSourcePath());
     info.deployer_mods.push_back(deployer->getNumMods());
     info.deploy_modes.push_back(deployer->getDeployMode());
+    info.deployer_is_case_invariant.push_back(deployer->isCaseInvariant());
   }
   info.tools = tools_;
   for(const auto& tag : manual_tags_)
@@ -1713,7 +1714,10 @@ void ModdedApplication::updateSettings(bool write)
   for(int depl = 0; depl < deployers_.size(); depl++)
   {
     json_settings_["deployers"][depl]["dest_path"] = deployers_[depl]->getDestPath();
-    json_settings_["deployers"][depl]["source_path"] = deployers_[depl]->sourcePath().string();
+    if(deployers_[depl]->isAutonomous())
+      json_settings_["deployers"][depl]["source_path"] = deployers_[depl]->sourcePath().string();
+    else
+      json_settings_["deployers"][depl]["source_path"] = staging_dir_.string();
     json_settings_["deployers"][depl]["name"] = deployers_[depl]->getName();
     json_settings_["deployers"][depl]["type"] = deployers_[depl]->getType();
     json_settings_["deployers"][depl]["deploy_mode"] = deployers_[depl]->getDeployMode();

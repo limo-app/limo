@@ -62,7 +62,7 @@ TEST_CASE("Installer options", "[installer]")
   }
 }
 
-TEST_CASE("Root levels", "[installer][!shouldfail]")
+TEST_CASE("Root levels", "[installer]")
 {
   resetStagingDir();
   SECTION("Level 0")

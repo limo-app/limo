@@ -59,6 +59,11 @@ void CaseMatchingDeployer::updateDeployedFilesForMod(
   }
 }
 
+bool CaseMatchingDeployer::isCaseInvariant() const
+{
+  return true;
+}
+
 void CaseMatchingDeployer::adaptDirectoryFiles(const sfs::path& path,
                                                int mod_id,
                                                const sfs::path& target_path) const

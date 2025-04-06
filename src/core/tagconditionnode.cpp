@@ -128,7 +128,7 @@ bool TagConditionNode::evaluateWithoutInversion(
         return true;
     return false;
   }
-  else
+  else // type == Type::and_connector
   {
     for(const auto& child : children_)
       if(!child.evaluateOnce(files, results))

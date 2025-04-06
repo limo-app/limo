@@ -46,6 +46,11 @@ public:
   virtual void updateDeployedFilesForMod(
     int mod_id,
     std::optional<ProgressNode*> progress_node = {}) const override;
+  /*!
+   * \brief Returns whether or not this deployer types is case invariant.
+   * \return True.
+   */
+  virtual bool isCaseInvariant() const override;
 
 private:
   /*!

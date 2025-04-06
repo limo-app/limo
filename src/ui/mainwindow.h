@@ -317,6 +317,8 @@ private:
   std::vector<ListAction*> deployer_mod_actions_;
   /*! \brief APP_VERSION the last time the app was run. */
   QString previous_app_version_;
+  /*! \brief Contains data about the currently active application. */
+  AppInfo app_info_;
 
   /*! \brief Creates signal/ slot connections between this and the ApplicationManager. */
   void setupConnections();

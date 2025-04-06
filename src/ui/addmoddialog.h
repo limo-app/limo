@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "deployerlistmodel.h"
+#include "modlistmodel.h"
 #include "ui/fomoddialog.h"
 #include <QButtonGroup>
 #include <QCompleter>
@@ -30,9 +32,13 @@ class AddModDialog : public QDialog
 public:
   /*!
    * \brief Initializes the UI.
+   * \param mod_list_model Model used to store mod data.
+   * \param deployer_list_model Model used to store deployer data.
    * \param parent Parent for this widget, this is passed to the constructor of QDialog.
    */
-  explicit AddModDialog(QWidget* parent = nullptr);
+  explicit AddModDialog(ModListModel* mod_list_model,
+                        DeployerListModel* deployer_list_model,
+                        QWidget* parent = nullptr);
   /*! \brief Deletes the UI. */
   ~AddModDialog();
 
@@ -41,18 +47,16 @@ public:
    * \param name Default mod name.
    * \param deployers Contains all available \ref Deployer "deployers".
    * \param cur_deployer The currently active Deployer.
-   * \param groups Contains all mod names which act as targets for groups.
-   * \param mod_ids Ids of all currently installed mods.
    * \param path Source path for the new mod.
    * \param deployer_paths Contains target paths for all non autonomous deployers.
    * \param app_id Id of currently active application.
    * \param autonomous_deployers Vector of bools indicating for each deployer
    * if that deployer is autonomous.
+   * \param case_invariant_deployers Vector of bools indicating for each deployer
+   * if that deployer is case invariant.
    * \param local_source Source archive for the mod.
    * \param remote_source URL from where the mod was downloaded.
    * \param mod_id If =! -1: Id of the mod to the group of which the new mod should be added by default.
-   * \param mod_names Contains the name of all currently installed mods.
-   * \param mod_versions Contains the versions of all currently installed mods.
    * \param version_overwrite If not empty: Use this to overwrite the default version.
    * \param name_overwrite If not empty: Use this to overwrite the default name.
    * \return True if dialog creation was successful.
@@ -60,18 +64,15 @@ public:
   bool setupDialog(const QString& name,
                    const QStringList& deployers,
                    int cur_deployer,
-                   const QStringList& groups,
-                   const std::vector<int>& mod_ids,
                    const QString& path,
                    const QStringList& deployer_paths,
                    int app_id,
                    const std::vector<bool>& autonomous_deployers,
+                   const std::vector<bool>& case_invariant_deployers,
                    const QString& app_version,
                    const QString& local_source,
                    const QString& remote_source,
                    int mod_id,
-                   const QStringList& mod_names,
-                   const QStringList& mod_versions,
                    const QString& version_overwrite,
                    const QString& name_overwrite);
   /*!
@@ -86,7 +87,7 @@ private:
   /*! \brief Contains auto-generated UI elements. */
   Ui::AddModDialog* ui;
   /*! \brief Contains mod ids corresponding to entries in the field. */
-  std::vector<int> mod_ids_;
+  // std::vector<int> mod_ids_;
   /*! \brief Source path for the new mod data. */
   QString mod_path_;
   /*! \brief Stores the id of the currently active \ref ModdedApplication "application". */
@@ -119,6 +120,12 @@ private:
   QString remote_source_;
   /*! \brief Indicates whether the dialog has been completed. */
   bool dialog_completed_ = false;
+  /*! \brief Model containing all mod related data. */
+  ModListModel* mod_list_model_;
+  /*! \brief Model containing all deployer related data. */
+  DeployerListModel* deployer_list_model_;
+  /*! \brief For every deployer: A bool indicating whether that deployer is case invariant. */
+  std::vector<bool> case_invariant_deployers_;
 
   /*!
    * \brief Updates the enabled state of this dialog's OK button to only be enabled when
@@ -161,6 +168,13 @@ private:
    * \param error Source of error.
    */
   void showError(const std::runtime_error& error);
+  /*!
+   * \brief Auto-detects the appropriate root level from the mod's content. Assumes that ui->content_tree
+   * has been initialized.
+   * \param deployer Deployer used to check for matching files.
+   * \return The detected root level.
+   */
+  int detectRootLevel(int deployer) const;
 
 private slots:
   /*! \brief Closes the dialog and emits a signal for completion. */

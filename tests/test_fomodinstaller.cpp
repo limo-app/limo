@@ -16,7 +16,7 @@ TEST_CASE("Required files are detected", "[fomod]")
   REQUIRE_THAT(files, Catch::Matchers::Equals(target));
 }
 
-TEST_CASE("Steps are executed", "[fomod][!shouldfail]")
+TEST_CASE("Steps are executed", "[fomod]")
 {
   fomod::FomodInstaller installer;
   installer.init(DATA_DIR / "source" / "fomod" / "fomod" / "steps.xml");
@@ -44,7 +44,7 @@ TEST_CASE("Steps are executed", "[fomod][!shouldfail]")
   REQUIRE_THAT(result, Catch::Matchers::Equals(target));
 }
 
-TEST_CASE("Installation matrix is parsed", "[fomod][!shouldfail]")
+TEST_CASE("Installation matrix is parsed", "[fomod]")
 {
   fomod::FomodInstaller installer;
   installer.init(DATA_DIR / "source" / "fomod" / "fomod" / "matrix.xml");

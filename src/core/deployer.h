@@ -367,6 +367,11 @@ public:
    * \param mod_id Target mod.
    */
   virtual void applyModAction(int action, int mod_id);
+  /*!
+   * \brief Returns whether or not this deployer type is case invariant.
+   * \return False.
+   */
+  virtual bool isCaseInvariant() const;
 
 protected:
   /*! \brief Type of this deployer, e.g. Simple Deployer. */

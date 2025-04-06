@@ -929,6 +929,11 @@ std::vector<std::vector<int>> Deployer::getValidModActions() const
 
 void Deployer::applyModAction(int action, int mod_id) {}
 
+bool Deployer::isCaseInvariant() const
+{
+  return false;
+}
+
 void Deployer::removeManagedDirFile(const sfs::path& directory) const
 {
   sfs::remove(directory / managed_dir_file_name_);

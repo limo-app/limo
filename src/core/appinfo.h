@@ -74,4 +74,8 @@ struct AppInfo
    *  for non-autonomous deployers.
    */
   std::vector<std::string> deployer_source_dirs{};
+  /*!
+   * \brief For every deployer: Whether or not it is case invariant.
+   */
+  std::vector<bool> deployer_is_case_invariant{};
 };

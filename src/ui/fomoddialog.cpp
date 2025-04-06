@@ -35,12 +35,14 @@ void FomodDialog::setupDialog(const sfs::path& config_file,
                               const sfs::path& target_path,
                               const QString& app_version,
                               const AddModInfo& info,
-                              int app_id)
+                              int app_id,
+                              bool paths_are_case_invariant)
 {
   dialog_completed_ = false;
   add_mod_info_ = info;
   app_id_ = app_id;
-  installer_->init(config_file, target_path, app_version.toStdString());
+  paths_are_case_invariant_ = paths_are_case_invariant;
+  installer_->init(config_file, paths_are_case_invariant, target_path, app_version.toStdString());
   back_button_->setVisible(false);
   has_no_steps_ = installer_->hasNoSteps();
   updateInstallStep();

@@ -580,7 +580,7 @@ void MainWindow::setupDialogs()
           this,
           &MainWindow::onAddDeployerDialogComplete);
 
-  add_mod_dialog_ = std::make_unique<AddModDialog>();
+  add_mod_dialog_ = std::make_unique<AddModDialog>(mod_list_model_, deployer_model_);
   connect(
     add_mod_dialog_.get(), &AddModDialog::addModAccepted, this, &MainWindow::onAddModDialogAccept);
   connect(add_mod_dialog_.get(), &AddModDialog::addModAborted, this, &MainWindow::onAddModAborted);
@@ -1720,6 +1720,7 @@ void MainWindow::onGetFileConflicts(std::vector<ConflictInfo> conflicts)
 void MainWindow::onGetAppInfo(AppInfo app_info)
 {
   ignore_tool_changes_ = true;
+  app_info_ = app_info;
 
   num_mods_per_manual_tag_ = app_info.num_mods_per_manual_tag;
   ui->actionEdit_Tags_for_mods->setVisible(!num_mods_per_manual_tag_.empty());
@@ -2019,22 +2020,6 @@ void MainWindow::onExtractionComplete(int app_id,
   QStringList deployers;
   for(int i = 0; i < ui->deployer_selection_box->count(); i++)
     deployers << ui->deployer_selection_box->itemText(i);
-  QStringList group_names;
-  QStringList mod_names;
-  QStringList mod_versions;
-  std::vector<int> mod_ids;
-  const auto mods = mod_list_model_->getModInfo();
-  for(int i = 0; i < mods.size(); i++)
-  {
-    Mod mod = mods[i].mod;
-    std::string prefix = "";
-    if(mods[i].group != -1 && !mods[i].is_active_group_member)
-      prefix = "[INACTIVE] ";
-    group_names << (prefix + mod.name + " [" + std::to_string(mod.id) + "]").c_str();
-    mod_names << mod.name.c_str();
-    mod_versions << mod.version.c_str();
-    mod_ids.push_back(mod.id);
-  }
   int deployer =
     ui->app_tab_widget->currentIndex() == 2 ? ui->deployer_selection_box->currentIndex() : -1;
   const std::vector<bool> auto_deployers = getAutonomousDeployers();
@@ -2049,18 +2034,15 @@ void MainWindow::onExtractionComplete(int app_id,
   bool was_successful = add_mod_dialog_->setupDialog(mod_path.filename().c_str(),
                                                      deployers,
                                                      deployer,
-                                                     group_names,
-                                                     mod_ids,
                                                      extracted_path,
                                                      deployer_paths,
                                                      app_id,
                                                      auto_deployers,
+                                                     app_info_.deployer_is_case_invariant,
                                                      ui->info_version_label->text(),
                                                      local_source,
                                                      remote_source,
                                                      mod_id,
-                                                     mod_names,
-                                                     mod_versions,
                                                      version,
                                                      name);
   if(was_successful)
