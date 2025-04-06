@@ -34,7 +34,7 @@ public:
    * \param target_path Installation target, this is only used to check file dependencies.
    */
   void init(const std::filesystem::path& config_file,
-            bool paths_are_case_invariant,
+            bool paths_are_case_invariant = true,
             const std::filesystem::path& target_path = "",
             const std::string& app_version = "");
   /*!
