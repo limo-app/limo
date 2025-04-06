@@ -127,9 +127,8 @@ int AddModDialog::detectRootLevel(int deployer) const
       deployer_target_level = cur_level;
     for(int i = 0; i < cur_item->childCount(); i++)
     {
-      if(pu::pathExists(cur_item->child(i)->text(0).toStdString(),
-                        deployer_path,
-                        is_case_invariant))
+      if(pu::pathExists(
+           cur_item->child(i)->text(0).toStdString(), deployer_path, is_case_invariant))
         return cur_level;
     }
 
@@ -162,38 +161,14 @@ bool AddModDialog::setupDialog(const QString& name,
                                const QString& name_overwrite)
 {
   groups_.clear();
-  // mod_ids_.clear();
   const auto& mod_infos = mod_list_model_->getModInfo();
-  // for(int i = 0; i < mod_infos.size(); i++)
   for(const auto& mod_info : mod_infos)
   {
     std::string prefix = "";
     if(mod_info.group != -1 && !mod_info.is_active_group_member)
       prefix = "[INACTIVE] ";
     groups_ << (prefix + mod_info.mod.name + " [" + std::to_string(mod_info.mod.id) + "]").c_str();
-    // mod_names_ << mod.name.c_str();
-    // mod_versions_ << mod.version.c_str();
-    // mod_ids_.push_back(mod.id);
   }
-
-
-  // QStringList group_names;
-  // QStringList mod_names;
-  // QStringList mod_versions;
-  // std::vector<int> mod_ids;
-  // const auto mods = mod_list_model_->getModInfo();
-  // for(int i = 0; i < mods.size(); i++)
-  // {
-  //   Mod mod = mods[i].mod;
-  //   std::string prefix = "";
-  //   if(mods[i].group != -1 && !mods[i].is_active_group_member)
-  //     prefix = "[INACTIVE] ";
-  //   group_names << (prefix + mod.name + " [" + std::to_string(mod.id) + "]").c_str();
-  //   mod_names << mod.name.c_str();
-  //   mod_versions << mod.version.c_str();
-  //   mod_ids.push_back(mod.id);
-  // }
-
 
   ui->content_tree->clear();
   ui->root_level_box->setValue(0);
@@ -230,7 +205,7 @@ bool AddModDialog::setupDialog(const QString& name,
     }
   }
 
-  std::regex name_regex(R"(-\d+((?:-[\dA-Za-z]+)+)-\d+\.(?:zip|7z|rar)$)");
+  std::regex name_regex(R"(-\d+((?:-[\dA-Za-z]+)+)-\d+(?:\(\d+\))?\.(?:zip|7z|rar)$)");
   std::smatch match;
   std::string name_str = name.toStdString();
   if(!name_overwrite.isEmpty())
@@ -283,16 +258,23 @@ bool AddModDialog::setupDialog(const QString& name,
       ui->version_text->setText(version.c_str());
   }
 
-  auto local_source_matches = [&local_source](const auto& pair)
-  { return local_source.toStdString() == std::get<1>(pair).mod.local_source; };
+  const std::string mod_name = ui->name_text->text().toStdString();
+  const std::string remote_source_str = remote_source.toStdString();
+  auto remote_source_or_name_matches = [&remote_source_str, &mod_name](const auto& pair)
+  {
+    const Mod mod = std::get<1>(pair).mod;
+    return !remote_source_str.empty() && remote_source_str == mod.remote_source ||
+           mod.name == mod_name;
+  };
   int group_index = -1;
   int max_match_quality = -1;
-  // QRegularExpression regex(QString("^") + QRegularExpression::escape(ui->name_text->text()) +
-  //                          R"(( \[\d+\]$)?)");
-  for(const auto& [i, mod_info] : mod_infos | stv::enumerate | stv::filter(local_source_matches))
+  for(const auto& [i, mod_info] :
+      mod_infos | stv::enumerate | stv::filter(remote_source_or_name_matches))
   {
     int match_quality = 0;
-    if(ui->name_text->text().toStdString() == mod_info.mod.name)
+    if(remote_source_str == mod_info.mod.remote_source)
+      match_quality += 4;
+    if(mod_name == mod_info.mod.name)
       match_quality += 2;
     if(mod_info.is_active_group_member)
       match_quality += 1;
@@ -302,8 +284,6 @@ bool AddModDialog::setupDialog(const QString& name,
       group_index = i;
     }
   }
-
-  // const int group_index = groups_.indexOf(regex);
   if(group_index != -1)
     ui->group_field->setText(groups_[group_index]);
 
