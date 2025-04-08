@@ -188,10 +188,16 @@ void LootDeployer::sortModsByConflicts(std::optional<ProgressNode*> progress_nod
   if(progress_node)
     (*progress_node)->child(1).advance();
   std::vector<sfs::path> plugin_paths;
+  std::vector<std::string> plugin_file_names;
   plugin_paths.reserve(plugins_.size());
+  plugin_file_names.reserve(plugins_.size());
   for(const auto& [path, s] : plugins_)
+  {
     plugin_paths.emplace_back(source_path_ / path);
-  auto sorted_plugins = loot_handle->SortPlugins(plugin_paths);
+    plugin_file_names.emplace_back(path);
+  }
+  loot_handle->LoadPlugins(plugin_paths, false);
+  auto sorted_plugins = loot_handle->SortPlugins(plugin_file_names);
   if(progress_node)
     (*progress_node)->child(2).advance();
   std::vector<std::pair<std::string, bool>> new_plugins;
