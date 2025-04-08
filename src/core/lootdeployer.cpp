@@ -187,7 +187,7 @@ void LootDeployer::sortModsByConflicts(std::optional<ProgressNode*> progress_nod
   loot_handle->GetDatabase().LoadLists(master_list_path, user_list_path, prelude_path);
   if(progress_node)
     (*progress_node)->child(1).advance();
-  std::vector<sfs::path> plugin_paths;
+  std::vector<std::string> plugin_paths;
   plugin_paths.reserve(plugins_.size());
   for(const auto& [path, s] : plugins_)
     plugin_paths.emplace_back(source_path_ / path);
