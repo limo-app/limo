@@ -169,3 +169,8 @@ bool DeployerListModel::hasIgnoredFiles() const
 {
   return deployer_info_.has_ignored_files;
 }
+
+bool DeployerListModel::usesUnsafeSorting() const
+{
+  return deployer_info_.uses_unsafe_sorting;
+}

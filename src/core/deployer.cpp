@@ -934,6 +934,16 @@ bool Deployer::isCaseInvariant() const
   return false;
 }
 
+bool Deployer::getEnableUnsafeSorting() const
+{
+  return enable_unsafe_sorting_;
+}
+
+void Deployer::setEnableUnsafeSorting(bool enable)
+{
+  enable_unsafe_sorting_ = enable;
+}
+
 void Deployer::removeManagedDirFile(const sfs::path& directory) const
 {
   sfs::remove(directory / managed_dir_file_name_);

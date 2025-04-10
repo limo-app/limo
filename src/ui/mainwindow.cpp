@@ -844,6 +844,7 @@ void MainWindow::showEditDeployerDialog(int deployer)
     deploy_mode,
     currentApp(),
     deployer,
+    deployer_model_->usesUnsafeSorting(),
     deployer_model_->hasSeparateDirs(),
     deployer_model_->hasIgnoredFiles());
   setBusyStatus(true, false);

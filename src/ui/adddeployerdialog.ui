@@ -120,6 +120,17 @@
     </layout>
    </item>
    <item>
+    <widget class="QCheckBox" name="unsafe_sorting_box">
+     <property name="toolTip">
+      <string>When enabled: Sorting plugins uses LOOT. This will affect override order. 
+When disabled: Sorting only groups plugins by types. Does not affect override order.</string>
+     </property>
+     <property name="text">
+      <string>Use LOOT for sorting</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QCheckBox" name="rev_depl_ignore_cb">
      <property name="toolTip">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds all files currently in the target directory to a ignore list.&lt;br&gt;Does not include files managed by other deployers.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -165,7 +176,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
       <bool>true</bool>
      </property>
      <property name="textInteractionFlags">
-      <set>Qt::LinksAccessibleByMouse</set>
+      <set>Qt::TextInteractionFlag::LinksAccessibleByMouse</set>
      </property>
     </widget>
    </item>
@@ -182,7 +193,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
    <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
-      <enum>Qt::Vertical</enum>
+      <enum>Qt::Orientation::Vertical</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>
@@ -195,10 +206,10 @@ li.checked::marker { content: &quot;\2612&quot;; }
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
      </property>
     </widget>
    </item>

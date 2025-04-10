@@ -307,6 +307,7 @@ void ModdedApplication::addDeployer(const EditDeployerInfo& info)
                                                      info.deploy_mode,
                                                      info.separate_profile_dirs,
                                                      info.update_ignore_list));
+  deployers_.back()->setEnableUnsafeSorting(info.enable_unsafe_sorting);
   for(int i = 0; i < profile_names_.size(); i++)
     deployers_.back()->addProfile();
   deployers_.back()->setProfile(current_profile_);
@@ -532,6 +533,7 @@ void ModdedApplication::editDeployer(int deployer, const EditDeployerInfo& info)
     deployers_[deployer]->setName(info.name);
     deployers_[deployer]->setDestPath(info.target_dir);
     deployers_[deployer]->setDeployMode(info.deploy_mode);
+    deployers_[deployer]->setEnableUnsafeSorting(info.enable_unsafe_sorting);
   }
   else
   {
@@ -550,6 +552,7 @@ void ModdedApplication::editDeployer(int deployer, const EditDeployerInfo& info)
     json_settings_["deployers"][deployer]["dest_path"] = info.target_dir;
     json_settings_["deployers"][deployer]["type"] = info.type;
     json_settings_["deployers"][deployer]["deploy_mode"] = info.deploy_mode;
+    json_settings_["deployers"][deployer]["enable_unsafe_sorting"] = info.enable_unsafe_sorting;
     updateState();
   }
   if(deployers_[deployer]->isAutonomous() && info.type != DeployerFactory::REVERSEDEPLOYER)
@@ -914,7 +917,8 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->idsAreSourceReferences(),
              {},
              deployers_[deployer]->getModActions(),
-             deployers_[deployer]->getValidModActions() };
+             deployers_[deployer]->getValidModActions(),
+             deployers_[deployer]->getEnableUnsafeSorting() };
   }
   else
   {
@@ -964,7 +968,8 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->idsAreSourceReferences(),
              mod_names,
              deployers_[deployer]->getModActions(),
-             deployers_[deployer]->getValidModActions() };
+             deployers_[deployer]->getValidModActions(),
+             deployers_[deployer]->getEnableUnsafeSorting() };
   }
 }
 
@@ -1721,6 +1726,8 @@ void ModdedApplication::updateSettings(bool write)
     json_settings_["deployers"][depl]["name"] = deployers_[depl]->getName();
     json_settings_["deployers"][depl]["type"] = deployers_[depl]->getType();
     json_settings_["deployers"][depl]["deploy_mode"] = deployers_[depl]->getDeployMode();
+    json_settings_["deployers"][depl]["enable_unsafe_sorting"] =
+      deployers_[depl]->getEnableUnsafeSorting();
 
     if(!deployers_[depl]->isAutonomous())
     {
@@ -1908,6 +1915,8 @@ void ModdedApplication::updateState(bool read)
                                     sfs::path(deployers[depl]["dest_path"].asString()),
                                     deployers[depl]["name"].asString(),
                                     deploy_mode));
+    if(deployers[depl].isMember("enable_unsafe_sorting"))
+      deployers_.back()->setEnableUnsafeSorting(deployers[depl]["enable_unsafe_sorting"].asBool());
 
     if(!deployers_[depl]->isAutonomous())
     {

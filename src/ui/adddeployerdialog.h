@@ -43,6 +43,7 @@ public:
    * \param deploy_mode Determines how files are deployed to the target directory.
    * \param app_id Id of the ModdedApplication owning the edited Deployer.
    * \param deployer_id Id of the edited Deployer.
+   * \param uses_unsafe_sorting Determines whether sorting mods can affect overwrite behavior.
    * \param has_separate_dirs Used by ReverseDeployers: If true: Store files on a per profile basis.
    * Else: All profiles use the same files.
    * \param has_ignored_files Used by ReverseDeployers: If true: Deployer has files on the ignore list.
@@ -54,6 +55,7 @@ public:
                    Deployer::DeployMode deploy_mode,
                    int app_id,
                    int deployer_id,
+                   bool uses_unsafe_sorting,
                    bool has_separate_dirs = false,
                    bool has_ignored_files = false);
   /*! \brief Enables/ Disables the ui elements responsible for setting a source directory. */
