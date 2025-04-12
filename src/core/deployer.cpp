@@ -289,7 +289,9 @@ std::pair<int, std::string> Deployer::verifyDirectories()
   catch(const std::ios_base::failure& f)
   {
     return { 1,
-             std::format("The error was: '{}'. (Code: {}. Message: '{}')",
+             std::format("Deployer name: '{}', type: '{}'. The error was: '{}'. (Code: {}. Message: '{}')",
+                         name_,
+                         type_,
                          f.what(),
                          f.code().value(),
                          f.code().message()) };
@@ -310,7 +312,9 @@ std::pair<int, std::string> Deployer::verifyDirectories()
     {
       sfs::remove(source_path_ / file_name);
       return { 3,
-               std::format("The error was: '{}'.\n(Code: {}. Message: '{}')",
+               std::format("Deployer name: '{}', type: '{}'. The error was: '{}'..(Code: {}. Message: '{}')",
+                           name_,
+                           type_,
                            e.what(),
                            e.code().value(),
                            e.code().message()) };
@@ -325,14 +329,18 @@ std::pair<int, std::string> Deployer::verifyDirectories()
       {
         sfs::remove(source_path_ / file_name);
         return { 3,
-                 std::format("The error was: '{}'.\n(Code: {}. Message: '{}')",
+                 std::format("Deployer name: '{}', type: '{}'. The error was: '{}'..(Code: {}. Message: '{}')",
+                             name_,
+                             type_,
                              e.what(),
                              e.code().value(),
                              e.code().message()) };
       }
       sfs::remove(source_path_ / file_name);
       return { 2,
-               std::format("The error was: '{}'.\n(Code: {}. Message: '{}')",
+               std::format("Deployer name: '{}', type: '{}'. The error was: '{}'..(Code: {}. Message: '{}')",
+                           name_,
+                           type_,
                            e.what(),
                            e.code().value(),
                            e.code().message()) };
