@@ -41,6 +41,18 @@
   
   
   <releases>
+      <release version="1.2" date="2025-04-12">
+      <description>
+        <p>Baldur's Gate 3 support</p>
+        <ul>
+          <li>Added root level auto detection</li>
+          <li>Added LOOT support for OpenMW Plugin Deployer</li>
+          <li>Improved matching between downloaded mods and installed mods</li>
+          <li>Improved auto detection for mod name and version when downloading from NexusMods</li>
+          <li>Fixed OpenMW Archive Deployer not deploying when using Flatpak OpenMW</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.1" date="2025-01-23">
       <description>
         <p>Baldur's Gate 3 support</p>

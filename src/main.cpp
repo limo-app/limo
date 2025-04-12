@@ -117,28 +117,6 @@ int main(int argc, char* argv[])
     return 0;
   }
 
-
-
-
-
-
-
-  // TODO: Remove
-  std::cout << "Info size: " << sizeof(ImportModInfo) << std::endl;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   app.setWindowIcon(QIcon(":/logo.png"));
   MainWindow w;
   w.setDebugMode(debug_mode);
