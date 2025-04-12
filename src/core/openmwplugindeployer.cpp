@@ -15,6 +15,8 @@ OpenMwPluginDeployer::OpenMwPluginDeployer(const sfs::path& source_path,
                                            const std::string& name) :
   LootDeployer(source_path, dest_path, name, false, false)
 {
+  // make sure no hard link related checks are performed
+  deploy_mode_ = copy;
   type_ = "OpenMW Plugin Deployer";
   is_autonomous_ = true;
   app_type_ = loot::GameType::openmw;
