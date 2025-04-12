@@ -43,7 +43,7 @@
   <releases>
       <release version="1.2" date="2025-04-12">
       <description>
-        <p>Baldur's Gate 3 support</p>
+        <p>Installation Improvements</p>
         <ul>
           <li>Added root level auto detection</li>
           <li>Added LOOT support for OpenMW Plugin Deployer</li>
