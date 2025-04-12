@@ -107,6 +107,7 @@ int main(int argc, char* argv[])
     if(pos_args.empty())
     {
       client.sendString("Started");
+      std::cout << "Another instance is already running. Sending arguments..." << std::endl;
       return 2;
     }
     std::regex nxm_regex(R"(nxm:\/\/.*\mods\/\d+\/files\/\d+\?.*)");
@@ -115,6 +116,28 @@ int main(int argc, char* argv[])
       client.sendString(argument);
     return 0;
   }
+
+
+
+
+
+
+
+  // TODO: Remove
+  std::cout << "Info size: " << sizeof(ImportModInfo) << std::endl;
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   app.setWindowIcon(QIcon(":/logo.png"));
   MainWindow w;

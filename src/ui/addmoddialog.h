@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "../core/importmodinfo.h"
 #include "deployerlistmodel.h"
 #include "modlistmodel.h"
 #include "ui/fomoddialog.h"
@@ -44,37 +45,23 @@ public:
 
   /*!
    * \brief Initializes this dialog with data needed for mod installation.
-   * \param name Default mod name.
    * \param deployers Contains all available \ref Deployer "deployers".
    * \param cur_deployer The currently active Deployer.
-   * \param path Source path for the new mod.
    * \param deployer_paths Contains target paths for all non autonomous deployers.
-   * \param app_id Id of currently active application.
    * \param autonomous_deployers Vector of bools indicating for each deployer
    * if that deployer is autonomous.
    * \param case_invariant_deployers Vector of bools indicating for each deployer
    * if that deployer is case invariant.
-   * \param local_source Source archive for the mod.
-   * \param remote_source URL from where the mod was downloaded.
-   * \param mod_id If =! -1: Id of the mod to the group of which the new mod should be added by default.
-   * \param version_overwrite If not empty: Use this to overwrite the default version.
-   * \param name_overwrite If not empty: Use this to overwrite the default name.
+   * \param info Contains data relating to the current status of the mod import.
    * \return True if dialog creation was successful.
    */
-  bool setupDialog(const QString& name,
-                   const QStringList& deployers,
+  bool setupDialog(const QStringList& deployers,
                    int cur_deployer,
-                   const QString& path,
                    const QStringList& deployer_paths,
-                   int app_id,
                    const std::vector<bool>& autonomous_deployers,
                    const std::vector<bool>& case_invariant_deployers,
                    const QString& app_version,
-                   const QString& local_source,
-                   const QString& remote_source,
-                   int mod_id,
-                   const QString& version_overwrite,
-                   const QString& name_overwrite);
+                   const ImportModInfo& info);
   /*!
    * \brief Closes the dialog and emits a signal indicating installation has been canceled.
    * \param event The close even sent upon closing the dialog.
@@ -86,12 +73,6 @@ public:
 private:
   /*! \brief Contains auto-generated UI elements. */
   Ui::AddModDialog* ui;
-  /*! \brief Contains mod ids corresponding to entries in the field. */
-  // std::vector<int> mod_ids_;
-  /*! \brief Source path for the new mod data. */
-  QString mod_path_;
-  /*! \brief Stores the id of the currently active \ref ModdedApplication "application". */
-  int app_id_;
   /*! \brief Holds radio button groups used to select installation options. */
   QList<QButtonGroup*> option_groups_;
   /*! \brief Used to color tree nodes which will not be removed. */
@@ -114,10 +95,6 @@ private:
   static constexpr int REPLACE_MOD_INDEX = 1;
   /*! \brief App version used for fomod conditions. */
   QString app_version_;
-  /*! \brief Path to the source archive for the mod. */
-  QString local_source_;
-  /*! \brief URL from where the mod was downloaded. */
-  QString remote_source_;
   /*! \brief Indicates whether the dialog has been completed. */
   bool dialog_completed_ = false;
   /*! \brief Model containing all mod related data. */
@@ -126,6 +103,8 @@ private:
   DeployerListModel* deployer_list_model_;
   /*! \brief For every deployer: A bool indicating whether that deployer is case invariant. */
   std::vector<bool> case_invariant_deployers_;
+  /*! \brief Contains all data related to the current state of the mod installation. */
+  ImportModInfo import_mod_info_;
 
   /*!
    * \brief Updates the enabled state of this dialog's OK button to only be enabled when
@@ -212,7 +191,7 @@ private slots:
    * \param app_id Application for which the new mod is to be installed.
    * \param info Contains all data needed to install the mod.
    */
-  void onFomodDialogComplete(int app_id, AddModInfo info);
+  void onFomodDialogComplete(int app_id, ImportModInfo info);
   /*! \brief Called when fomod dialog has been canceled. Emits addModAborted */
   void onFomodDialogAborted();
 
@@ -222,7 +201,7 @@ signals:
    * \param app_id Application for which the new mod is to be installed.
    * \param info Contains all data needed to install the mod.
    */
-  void addModAccepted(int app_id, AddModInfo info);
+  void addModAccepted(int app_id, ImportModInfo info);
   /*!
    * \brief Signals mod installation has been aborted.
    * \param temp_dir Directory used for mod extraction.

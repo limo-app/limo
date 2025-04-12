@@ -145,20 +145,13 @@ int AddModDialog::detectRootLevel(int deployer) const
   return 0;
 }
 
-bool AddModDialog::setupDialog(const QString& name,
-                               const QStringList& deployers,
+bool AddModDialog::setupDialog(const QStringList& deployers,
                                int cur_deployer,
-                               const QString& path,
                                const QStringList& deployer_paths,
-                               int app_id,
                                const std::vector<bool>& autonomous_deployers,
                                const std::vector<bool>& case_invariant_deployers,
                                const QString& app_version,
-                               const QString& local_source,
-                               const QString& remote_source,
-                               int mod_id,
-                               const QString& version_overwrite,
-                               const QString& name_overwrite)
+                               const ImportModInfo& info)
 {
   groups_.clear();
   const auto& mod_infos = mod_list_model_->getModInfo();
@@ -170,16 +163,13 @@ bool AddModDialog::setupDialog(const QString& name,
     groups_ << (prefix + mod_info.mod.name + " [" + std::to_string(mod_info.mod.id) + "]").c_str();
   }
 
+  import_mod_info_ = info;
   ui->content_tree->clear();
   ui->root_level_box->setValue(0);
   ui->name_text->setFocus();
-  app_id_ = app_id;
-  mod_path_ = path;
   deployer_paths_ = deployer_paths;
   case_invariant_deployers_ = case_invariant_deployers;
   app_version_ = app_version;
-  local_source_ = local_source;
-  remote_source_ = remote_source;
   ui->group_combo_box->setCurrentIndex(ADD_TO_GROUP_INDEX);
   ui->deployer_list->setEnabled(true);
   ui->group_field->clear();
@@ -192,10 +182,11 @@ bool AddModDialog::setupDialog(const QString& name,
   ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
   ui->group_check->setCheckState(Qt::Unchecked);
   int mod_index = -1;
-  if(mod_id != -1)
+  if(info.target_group_id != -1)
   {
-    auto iter =
-      str::find_if(mod_infos, [mod_id](const ModInfo& info) { return mod_id == info.mod.id; });
+    auto iter = str::find_if(mod_infos,
+                             [mod_id = info.target_group_id](const ModInfo& info)
+                             { return mod_id == info.mod.id; });
     if(iter != mod_infos.end())
     {
       mod_index = iter - mod_infos.begin();
@@ -207,10 +198,8 @@ bool AddModDialog::setupDialog(const QString& name,
 
   std::regex name_regex(R"(-\d+((?:-[\dA-Za-z]+)+)-\d+(?:\(\d+\))?\.(?:zip|7z|rar)$)");
   std::smatch match;
-  std::string name_str = name.toStdString();
-  if(!name_overwrite.isEmpty())
-    ui->name_text->setText(name_overwrite);
-  else if(mod_index >= 0 && mod_index < mod_infos.size())
+  std::string name_str = info.local_source.filename().string();
+  if(mod_index >= 0 && mod_index < mod_infos.size())
   {
     ui->name_text->setText(mod_infos[mod_index].mod.name.c_str());
     ui->version_text->setText(mod_infos[mod_index].mod.version.c_str());
@@ -227,11 +216,18 @@ bool AddModDialog::setupDialog(const QString& name,
   else
   {
     ui->version_text->setText("1.0");
-    ui->name_text->setText(name);
+    ui->name_text->setText(name_str.c_str());
   }
 
-  if(!version_overwrite.isEmpty())
-    ui->version_text->setText(version_overwrite);
+  if(!info.remote_file_name.empty())
+    ui->name_text->setText(info.remote_file_name.c_str());
+  if(!info.remote_file_version.empty())
+    ui->version_text->setText(info.remote_file_version.c_str());
+
+  if(!info.name_overwrite.empty())
+    ui->name_text->setText(info.name_overwrite.c_str());
+  if(!info.version_overwrite.empty())
+    ui->version_text->setText(info.version_overwrite.c_str());
 
   ui->installer_box->clear();
   int root_level = 0;
@@ -239,53 +235,65 @@ bool AddModDialog::setupDialog(const QString& name,
   std::string detected_type;
   try
   {
-    auto signature = Installer::detectInstallerSignature(path.toStdString());
+    auto signature = Installer::detectInstallerSignature(info.current_path);
     std::tie(root_level, prefix, detected_type) = signature;
   }
   catch(std::runtime_error& error)
   {
     showError(error);
-    emit addModAborted(mod_path_);
+    emit addModAborted(info.current_path.c_str());
     return false;
   }
   if(detected_type == Installer::FOMODINSTALLER)
   {
     auto [name, version] =
-      fomod::FomodInstaller::getMetaData(sfs::path(mod_path_.toStdString()) / prefix);
-    if(!name.empty() && name_overwrite.isEmpty())
+      fomod::FomodInstaller::getMetaData(info.current_path / prefix);
+    if(!name.empty() && info.name_overwrite.empty())
       ui->name_text->setText(name.c_str());
-    if(!version.empty() && version_overwrite.isEmpty())
+    if(!version.empty() && info.version_overwrite.empty())
       ui->version_text->setText(version.c_str());
   }
 
   const std::string mod_name = ui->name_text->text().toStdString();
-  const std::string remote_source_str = remote_source.toStdString();
-  auto remote_source_or_name_matches = [&remote_source_str, &mod_name](const auto& pair)
+  auto remote_source_or_name_matches =
+    [&mod_info = std::as_const(info), &mod_name](const auto& pair)
   {
     const Mod mod = std::get<1>(pair).mod;
-    return !remote_source_str.empty() && remote_source_str == mod.remote_source ||
-           mod.name == mod_name;
+    return !mod_info.remote_source.empty() && mod_info.remote_source == mod.remote_source ||
+           mod.name == mod_name ||
+           mod.remote_mod_id != -1 && mod_info.remote_mod_id == mod.remote_mod_id;
   };
-  int group_index = -1;
-  int max_match_quality = -1;
-  for(const auto& [i, mod_info] :
-      mod_infos | stv::enumerate | stv::filter(remote_source_or_name_matches))
+
+  if(info.target_group_id == -1)
   {
-    int match_quality = 0;
-    if(remote_source_str == mod_info.mod.remote_source)
-      match_quality += 4;
-    if(mod_name == mod_info.mod.name)
-      match_quality += 2;
-    if(mod_info.is_active_group_member)
-      match_quality += 1;
-    if(match_quality > max_match_quality)
+    int group_index = -1;
+    int max_match_quality = -1;
+    for(const auto& [i, mod_info] :
+        mod_infos | stv::enumerate | stv::filter(remote_source_or_name_matches))
     {
-      max_match_quality = match_quality;
-      group_index = i;
+      int match_quality = 0;
+      if(info.remote_type == mod_info.mod.remote_type)
+      {
+        if(mod_info.mod.remote_mod_id != -1 && mod_info.mod.remote_mod_id == info.remote_mod_id)
+          match_quality += 16;
+        if(mod_info.mod.remote_file_id != -1 && mod_info.mod.remote_file_id == info.remote_file_id)
+          match_quality += 8;
+      }
+      if(info.remote_source == mod_info.mod.remote_source)
+        match_quality += 4;
+      if(mod_name == mod_info.mod.name)
+        match_quality += 2;
+      if(mod_info.is_active_group_member)
+        match_quality += 1;
+      if(match_quality > max_match_quality)
+      {
+        max_match_quality = match_quality;
+        group_index = i;
+      }
     }
+    if(group_index != -1)
+      ui->group_field->setText(groups_[group_index]);
   }
-  if(group_index != -1)
-    ui->group_field->setText(groups_[group_index]);
 
   path_prefix_ = prefix.c_str();
   int target_idx = 0;
@@ -304,7 +312,7 @@ bool AddModDialog::setupDialog(const QString& name,
   ui->deployer_list->clear();
   std::set<int> selected_deployers;
   auto settings = QSettings(QCoreApplication::applicationName());
-  settings.beginGroup(QString::number(app_id));
+  settings.beginGroup(QString::number(info.app_id));
   int size = settings.beginReadArray("selected_deployers");
   for(int i = 0; i < size; i++)
   {
@@ -315,7 +323,7 @@ bool AddModDialog::setupDialog(const QString& name,
 
   try
   {
-    auto mod_file_paths = Installer::getArchiveFileNames(path.toStdString());
+    auto mod_file_paths = Installer::getArchiveFileNames(info.current_path);
     int max_depth = 0;
     for(const auto& path : mod_file_paths)
       max_depth = std::max(addTreeNode(ui->content_tree, path), max_depth);
@@ -325,7 +333,7 @@ bool AddModDialog::setupDialog(const QString& name,
   catch(std::runtime_error& error)
   {
     showError(error);
-    emit addModAborted(mod_path_);
+    emit addModAborted(info.current_path.c_str());
     return false;
   }
 
@@ -365,7 +373,7 @@ void AddModDialog::closeEvent(QCloseEvent* event)
   if(dialog_completed_)
     return;
   dialog_completed_ = true;
-  emit addModAborted(mod_path_);
+  emit addModAborted(import_mod_info_.current_path.c_str());
   QDialog::reject();
 }
 
@@ -374,7 +382,7 @@ void AddModDialog::reject()
   if(dialog_completed_)
     return;
   dialog_completed_ = true;
-  emit addModAborted(mod_path_);
+  emit addModAborted(import_mod_info_.current_path.c_str());
   QDialog::reject();
 }
 
@@ -440,7 +448,7 @@ void AddModDialog::on_buttonBox_accepted()
     group = mod_list_model_->getModInfo()[groups_.indexOf(group_name)].mod.id;
   std::vector<int> deployers;
   auto settings = QSettings(QCoreApplication::applicationName());
-  settings.beginGroup(QString::number(app_id_));
+  settings.beginGroup(QString::number(import_mod_info_.app_id));
   settings.beginWriteArray("selected_deployers");
   int settings_index = 0;
   for(int i = 0; i < ui->deployer_list->count(); i++)
@@ -455,19 +463,16 @@ void AddModDialog::on_buttonBox_accepted()
   settings.endArray();
   settings.setValue("fomod_target_deployer", ui->fomod_deployer_box->currentIndex());
   settings.endGroup();
-  std::vector<std::pair<sfs::path, sfs::path>> fomod_files{};
-  AddModInfo info{ ui->name_text->text().toStdString(),
-                   ui->version_text->text().toStdString(),
-                   Installer::INSTALLER_TYPES[ui->installer_box->currentIndex()],
-                   mod_path_.toStdString(),
-                   deployers,
-                   group,
-                   options,
-                   ui->root_level_box->value(),
-                   fomod_files,
-                   replace_mod,
-                   local_source_.toStdString(),
-                   remote_source_.toStdString() };
+  import_mod_info_.action_type = ImportModInfo::ActionType::install;
+  import_mod_info_.name = ui->name_text->text().toStdString();
+  import_mod_info_.version = ui->version_text->text().toStdString();
+  import_mod_info_.installer = Installer::INSTALLER_TYPES[ui->installer_box->currentIndex()];
+  import_mod_info_.deployers = deployers;
+  import_mod_info_.target_group_id = group;
+  import_mod_info_.installer_flags = options;
+  import_mod_info_.root_level = ui->root_level_box->value();
+  import_mod_info_.files = {};
+  import_mod_info_.replace_mod = replace_mod;
   if(Installer::INSTALLER_TYPES[ui->installer_box->currentIndex()] == Installer::FOMODINSTALLER)
   {
     bool case_invariant = true;
@@ -480,22 +485,22 @@ void AddModDialog::on_buttonBox_accepted()
       }
     }
     fomod_dialog_->setupDialog(
-      sfs::path(mod_path_.toStdString()) / path_prefix_.toStdString(),
+      import_mod_info_.current_path / path_prefix_.toStdString(),
       deployer_paths_[ui->fomod_deployer_box->currentIndex()].toStdString(),
       app_version_,
-      info,
-      app_id_,
+      import_mod_info_,
+      import_mod_info_.app_id,
       case_invariant);
     if(!fomod_dialog_->hasSteps())
     {
-      info.files = fomod_dialog_->getResult();
-      emit addModAccepted(app_id_, info);
+      import_mod_info_.files = fomod_dialog_->getResult();
+      emit addModAccepted(import_mod_info_.app_id, import_mod_info_);
     }
     else
       fomod_dialog_->show();
   }
   else
-    emit addModAccepted(app_id_, info);
+    emit addModAccepted(import_mod_info_.app_id, import_mod_info_);
 }
 
 void AddModDialog::on_group_check_stateChanged(int state)
@@ -512,7 +517,7 @@ void AddModDialog::on_buttonBox_rejected()
   if(dialog_completed_)
     return;
   dialog_completed_ = true;
-  emit addModAborted(mod_path_);
+  emit addModAborted(import_mod_info_.current_path.c_str());
 }
 
 void AddModDialog::on_name_text_textChanged(const QString& text)
@@ -559,12 +564,12 @@ void AddModDialog::on_group_combo_box_currentIndexChanged(int index)
                                 ui->group_check->checkState() == Qt::Unchecked);
 }
 
-void AddModDialog::onFomodDialogComplete(int app_id, AddModInfo info)
+void AddModDialog::onFomodDialogComplete(int app_id, ImportModInfo info)
 {
   emit addModAccepted(app_id, info);
 }
 
 void AddModDialog::onFomodDialogAborted()
 {
-  emit addModAborted(mod_path_);
+  emit addModAborted(import_mod_info_.current_path.c_str());
 }

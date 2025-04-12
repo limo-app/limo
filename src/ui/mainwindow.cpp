@@ -50,7 +50,6 @@ Q_DECLARE_METATYPE(std::unordered_set<int>);
 Q_DECLARE_METATYPE(QList<QList<QString>>);
 Q_DECLARE_METATYPE(EditApplicationInfo);
 Q_DECLARE_METATYPE(EditDeployerInfo);
-Q_DECLARE_METATYPE(AddModInfo);
 Q_DECLARE_METATYPE(std::vector<bool>);
 Q_DECLARE_METATYPE(Log::LogLevel);
 Q_DECLARE_METATYPE(std::vector<int>);
@@ -62,6 +61,7 @@ Q_DECLARE_METATYPE(nexus::Page);
 Q_DECLARE_METATYPE(ExternalChangesInfo);
 Q_DECLARE_METATYPE(FileChangeChoices);
 Q_DECLARE_METATYPE(Tool);
+Q_DECLARE_METATYPE(ImportModInfo);
 
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
@@ -130,15 +130,14 @@ void MainWindow::setCmdArgument(std::string argument)
     argument.erase(0, 1);
   if(argument.ends_with('\"'))
     argument.erase(argument.size() - 1, 1);
-  std::regex nxm_regex(R"(nxm:\/\/.*\mods\/\d+\/files\/\d+\?.*)");
-  std::smatch match;
-  if(std::regex_match(argument, match, nxm_regex))
+
+  if(nexus::Api::nxmUrlIsValid(argument))
   {
     Log::debug("Received download request for \"" + argument + "\".");
     ImportModInfo info;
     info.app_id = currentApp();
-    info.type = ImportModInfo::download;
-    info.remote_source = argument;
+    info.action_type = ImportModInfo::download;
+    info.remote_request_url = argument;
     mod_import_queue_.push(info);
   }
 }
@@ -175,7 +174,6 @@ void MainWindow::setupConnections()
   qRegisterMetaType<QList<QList<QString>>>();
   qRegisterMetaType<EditApplicationInfo>();
   qRegisterMetaType<EditDeployerInfo>();
-  qRegisterMetaType<AddModInfo>();
   qRegisterMetaType<std::vector<bool>>();
   qRegisterMetaType<Log::LogLevel>();
   qRegisterMetaType<std::vector<int>>();
@@ -187,6 +185,7 @@ void MainWindow::setupConnections()
   qRegisterMetaType<ExternalChangesInfo>();
   qRegisterMetaType<FileChangeChoices>();
   qRegisterMetaType<Tool>();
+  qRegisterMetaType<ImportModInfo>();
 
   connect(this, &MainWindow::getModInfo,
           app_manager_, &ApplicationManager::getModInfo);
@@ -380,8 +379,6 @@ void MainWindow::setupConnections()
           this, &MainWindow::onDownloadComplete);
   connect(app_manager_, &ApplicationManager::downloadFailed,
           this, &MainWindow::onDownloadFailed);
-  connect(this, &MainWindow::downloadModFile,
-          app_manager_, &ApplicationManager::downloadModFile);
   connect(this, &MainWindow::checkForModUpdates,
           app_manager_, &ApplicationManager::checkForModUpdates);
   connect(this, &MainWindow::checkModsForUpdates,
@@ -853,51 +850,41 @@ void MainWindow::showEditDeployerDialog(int deployer)
 
 void MainWindow::importMod()
 {
-  auto info = mod_import_queue_.top();
+  ImportModInfo info = mod_import_queue_.top();
   setBusyStatus(true);
-  if(info.type == ImportModInfo::download)
+  if(info.action_type == ImportModInfo::download)
   {
     if(!initNexusApiKey())
     {
-      mod_import_queue_.pop();
       setBusyStatus(false);
       if(!mod_import_queue_.empty())
         importMod();
       return;
     }
     setStatusMessage("Downloading mod");
-    if(info.mod_id != -1)
-      emit downloadModFile(
-        info.app_id, info.mod_id, info.nexus_file_id, info.remote_source.c_str());
-    else
-      emit downloadMod(info.app_id, info.remote_source.c_str());
-    return;
+    emit downloadMod(info);
   }
-
-  if(std::filesystem::exists(info.target_path))
+  else if(info.action_type == ImportModInfo::extract)
   {
-    try
+    if(std::filesystem::exists(info.target_path))
     {
-      std::filesystem::remove_all(info.target_path);
+      try
+      {
+        std::filesystem::remove_all(info.target_path);
+      }
+      catch(std::filesystem::filesystem_error& error)
+      {
+        onReceiveError(
+          "File system error",
+          std::format("Error while trying to delete '{}'", info.target_path.string()).c_str());
+        setBusyStatus(false);
+        return;
+      }
     }
-    catch(std::filesystem::filesystem_error& error)
-    {
-      onReceiveError(
-        "File system error",
-        std::format("Error while trying to delete '{}'", info.target_path.string()).c_str());
-      setBusyStatus(false);
-      return;
-    }
+    Log::info("Importing mod '" + info.local_source.string() + "'");
+    setStatusMessage("Importing mod");
+    emit extractArchive(info);
   }
-  Log::info("Importing mod '" + info.local_source.string() + "'");
-  setStatusMessage("Importing mod");
-  emit extractArchive(info.app_id,
-                      info.mod_id,
-                      info.local_source.c_str(),
-                      info.target_path.c_str(),
-                      info.remote_source.c_str(),
-                      info.version_overwrite.c_str(),
-                      info.name_overwrite.c_str());
 }
 
 void MainWindow::setBusyStatus(bool busy, bool show_progress_bar, bool disable_app_launch)
@@ -1371,7 +1358,7 @@ void MainWindow::onModAdded(QList<QUrl> paths)
   {
     ImportModInfo info;
     info.app_id = currentApp();
-    info.type = ImportModInfo::extract;
+    info.action_type = ImportModInfo::extract;
     info.local_source = url.path().toStdString();
     info.target_path = ui->info_sdir_label->text().toStdString();
     info.target_path /= temp_dir_.toStdString();
@@ -1381,7 +1368,7 @@ void MainWindow::onModAdded(QList<QUrl> paths)
     importMod();
 }
 
-void MainWindow::onAddModDialogAccept(int app_id, AddModInfo info)
+void MainWindow::onAddModDialogAccept(int app_id, ImportModInfo info)
 {
   setBusyStatus(true);
   setStatusMessage(QString("Installing \"") + info.name.c_str() + "\"");
@@ -1402,7 +1389,7 @@ void MainWindow::onGetModInfo(std::vector<ModInfo> mod_info)
   mod_list_proxy_->updateRowCountLabel();
   if(!is_initialized_ && !mod_import_queue_.empty())
   {
-    auto info = mod_import_queue_.top();
+    ImportModInfo info = mod_import_queue_.top();
     mod_import_queue_.pop();
     info.app_id = currentApp();
     info.queue_time = std::chrono::high_resolution_clock::now();
@@ -1943,8 +1930,6 @@ void MainWindow::onModAddedToGroup(int mod_id, int target_id)
 
 void MainWindow::onAddModAborted(QString temp_dir)
 {
-  if(!mod_import_queue_.empty())
-    mod_import_queue_.pop();
   Log::info("Mod installation aborted");
   bool abort = true;
   if(!mod_import_queue_.empty())
@@ -1996,24 +1981,16 @@ void MainWindow::onModMovedTo(int from, int to)
   emit getDeployerInfo(currentApp(), currentDeployer());
 }
 
-void MainWindow::onExtractionComplete(int app_id,
-                                      int mod_id,
-                                      bool success,
-                                      QString extracted_path,
-                                      QString local_source,
-                                      QString remote_source,
-                                      QString version,
-                                      QString name)
+void MainWindow::onExtractionComplete(ImportModInfo info)
 {
   setBusyStatus(false);
-  if(!success)
+  mod_import_queue_.pop();
+  if(!info.last_action_was_successful)
   {
-    if(!mod_import_queue_.empty())
-      mod_import_queue_.pop();
     if(!mod_import_queue_.empty())
       importMod();
     setStatusMessage("Import failed", 3000);
-    Log::error("Failed to import mod \"" + local_source.toStdString() + "\"");
+    Log::error("Failed to import mod \"" + info.local_source.string() + "\"");
     return;
   }
   setStatusMessage("Mod imported", 3000);
@@ -2031,28 +2008,22 @@ void MainWindow::onExtractionComplete(int app_id,
       deployer_paths.append(
         ui->info_deployer_list->item(i, getColumnIndex(ui->info_deployer_list, "Target"))->text());
   }
-  std::filesystem::path mod_path = local_source.toStdString();
-  bool was_successful = add_mod_dialog_->setupDialog(mod_path.filename().c_str(),
-                                                     deployers,
+  info.action_type = ImportModInfo::ActionType::install_dialog;
+  bool was_successful = add_mod_dialog_->setupDialog(deployers,
                                                      deployer,
-                                                     extracted_path,
                                                      deployer_paths,
-                                                     app_id,
                                                      auto_deployers,
                                                      app_info_.deployer_is_case_invariant,
                                                      ui->info_version_label->text(),
-                                                     local_source,
-                                                     remote_source,
-                                                     mod_id,
-                                                     version,
-                                                     name);
+                                                     info);
   if(was_successful)
   {
     setBusyStatus(true, false);
     add_mod_dialog_->show();
   }
   else
-    onReceiveError("Error", ("Failed to import mod from \"" + mod_path.string() + "\"").c_str());
+    onReceiveError("Error",
+                   ("Failed to import mod from \"" + info.local_source.string() + "\"").c_str());
 }
 
 void MainWindow::onSettingsDialogComplete()
@@ -3167,16 +3138,15 @@ void MainWindow::onReceiveIpcMessage(QString message)
   activateWindow();
   if(message == "Started")
     return;
-  std::regex nxm_regex(R"(nxm:\/\/.*\mods\/\d+\/files\/\d+\?.*)");
-  std::smatch match;
+
   std::string message_str = message.toStdString();
-  if(std::regex_match(message_str, match, nxm_regex))
+  if(nexus::Api::nxmUrlIsValid(message_str))
   {
     Log::debug("Received download request for \"" + message.toStdString() + "\".");
     ImportModInfo info;
     info.app_id = currentApp();
-    info.type = ImportModInfo::download;
-    info.remote_source = message.toStdString();
+    info.action_type = ImportModInfo::download;
+    info.remote_request_url = message.toStdString();
     mod_import_queue_.push(info);
     if(mod_import_queue_.size() == 1)
       importMod();
@@ -3185,16 +3155,11 @@ void MainWindow::onReceiveIpcMessage(QString message)
     Log::debug("Unknown IPC message: \"" + message.toStdString() + "\"");
 }
 
-void MainWindow::onDownloadComplete(int app_id, int mod_id, QString file_path, QString mod_url)
+void MainWindow::onDownloadComplete(ImportModInfo info)
 {
   onCompletedOperations("Download complete");
   mod_import_queue_.pop();
-  ImportModInfo info;
-  info.type = ImportModInfo::extract;
-  info.app_id = app_id;
-  info.mod_id = mod_id;
-  info.local_source = file_path.toStdString();
-  info.remote_source = mod_url.toStdString();
+  info.action_type = ImportModInfo::extract;
   info.target_path = ui->info_sdir_label->text().toStdString();
   info.target_path /= temp_dir_.toStdString();
   mod_import_queue_.push(info);
@@ -3209,10 +3174,10 @@ void MainWindow::onModDownloadRequested(int app_id,
 {
   ImportModInfo info;
   info.app_id = app_id;
-  info.type = ImportModInfo::download;
-  info.nexus_file_id = file_id;
+  info.action_type = ImportModInfo::download;
+  info.remote_file_id = file_id;
   info.remote_source = mod_url.toStdString();
-  info.mod_id = mod_id;
+  info.target_group_id = mod_id;
   info.version_overwrite = version.toStdString();
   mod_import_queue_.push(info);
   if(mod_import_queue_.size() == 1)
@@ -3248,10 +3213,10 @@ void MainWindow::on_actionReinstall_From_Local_triggered()
 
   ImportModInfo info;
   info.app_id = currentApp();
-  info.type = ImportModInfo::extract;
+  info.action_type = ImportModInfo::extract;
   info.local_source = local_source;
   info.remote_source = remote_source;
-  info.mod_id = mod_id;
+  info.target_group_id = mod_id;
   info.target_path = ui->info_sdir_label->text().toStdString();
   info.target_path /= temp_dir_.toStdString();
   info.name_overwrite = name;
@@ -3318,8 +3283,6 @@ void MainWindow::on_actionSuppress_Update_triggered()
 void MainWindow::onModInstallationComplete(bool success)
 {
   onCompletedOperations(success ? "Installation complete" : "Installation failed");
-  if(!mod_import_queue_.empty())
-    mod_import_queue_.pop();
   if(!mod_import_queue_.empty())
     importMod();
 }

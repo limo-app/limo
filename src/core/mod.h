@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <json/json.h>
 #include <string>
+#include "importmodinfo.h"
 
 
 /*!
@@ -33,6 +34,12 @@ struct Mod
   unsigned long size_on_disk;
   /*! \brief Timestamp for when the user requested to suppress current update notifications. */
   std::time_t suppress_update_time;
+  /*! \brief If this was retreived from a remote source: The mod id on the remote. */
+  long remote_mod_id = -1;
+  /*! \brief If this was retreived from a remote source: The file id on the remote. */
+  long remote_file_id = -1;
+  /*! \brief Type of remote this mod was retreived from. */
+  ImportModInfo::RemoteType remote_type;
 
   /*!
    * \brief Constructor. Simply initializes members.
@@ -46,6 +53,9 @@ struct Mod
    * \param size Total size of the installed mod on disk.
    * \param suppress_time Timestamp for when the user requested to suppress current update
    * notifications.
+   * \param remote_mod_id If this was retreived from a remote source: The mod id on the remote.
+   * \param remote_file_id If this was retreived from a remote source: The file id on the remote.
+   * \param remote_type Type of remote this mod was retreived from.
    */
   Mod(int id,
       const std::string& name,
@@ -55,13 +65,24 @@ struct Mod
       const std::string& source_r,
       const std::time_t& time_r,
       unsigned long size,
-      const std::time_t& suppress_time);
+      const std::time_t& suppress_time,
+      long remote_mod_id,
+      long remote_file_id,
+      ImportModInfo::RemoteType remote_type);
+  /*!
+   * \brief Copy constructor. Copies all members.
+   * \param other Copy source
+   */
+  Mod(const Mod& other);
   /*!
    * \brief Initializes all members from a JSON object.
    * \param json The source for member values.
    */
   Mod(const Json::Value& json);
-
+  /*!
+   * \brief Serializes this struct to a JSON object.
+   * \return The JSON object.
+   */
   Json::Value toJson() const;
   /*!
    * \brief Compares to another mod by id.

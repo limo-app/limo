@@ -485,7 +485,7 @@ public slots:
    * \param app_id Application for which the new mod is to be installed.
    * \param info Contains all data needed to install the mod.
    */
-  void onAddModDialogAccept(int app_id, AddModInfo info);
+  void onAddModDialogAccept(int app_id, ImportModInfo info);
   /*!
    * \brief Called when a mod gets disabled/ enabled in ui->deployer_list.
    * Updates the mods state.
@@ -631,23 +631,9 @@ public slots:
   void onModMovedTo(int from, int to);
   /*!
    * \brief Called after archive has been extracted. Installs the newly extracted mod.
-   * \param app_id Target app for the mod.
-   * \param mod_id Id of the mod for which the file is to be extracted or -1 if this is a new mod.
-   * \param success False when exception was thrown.
-   * \param extracted_path Path to which the mod was extracted.
-   * \param local_source Source archive for the mod.
-   * \param remote_source URL from where the mod was downloaded.
-   * \param version If not empty: Use this to overwrite the default version.
-   * \param name If not empty: Use this to overwrite the default name.
+   * \param info Contains data for the extracted mod.
    */
-  void onExtractionComplete(int app_id,
-                            int mod_id,
-                            bool success,
-                            QString extracted_path,
-                            QString local_source,
-                            QString remote_source,
-                            QString version,
-                            QString name);
+  void onExtractionComplete(ImportModInfo info);
   /*! \brief Called when the settings dialog has completed. Updates state with new settings. */
   void onSettingsDialogComplete();
   /*!
@@ -980,13 +966,9 @@ private slots:
   void onReceiveIpcMessage(QString message);
   /*!
    * \brief Begins extraction of downloaded mod.
-   * \param app_id App for which the mod has been downloaded.
-   * \param mod_id If !=-1: The downloaded mod should be added to this mods group after
-   * installation.
-   * \param file_path Path to the downloaded file.
-   * \param mod_url Url from which the mod was downloaded.
+   * \param info Contains all relevant data for the extraction process.
    */
-  void onDownloadComplete(int app_id, int mod_id, QString file_path, QString mod_url);
+  void onDownloadComplete(ImportModInfo info);
   /*!
    * \brief Downloads a mod from nexusmods using the given mod_url. Only works if the given
    * api key belongs to a premium user.
@@ -1153,7 +1135,7 @@ signals:
    * \param app_id The target \ref ModdedApplication "application".
    * \param info Contains all data needed to install the mod.
    */
-  void installMod(int app_id, AddModInfo info);
+  void installMod(int app_id, ImportModInfo info);
   /*!
    * \brief Uninstalls the given mods for one \ref ModdedApplication "application", this includes
    * deleting all installed files.
@@ -1389,21 +1371,9 @@ signals:
   void sortModsByConflicts(int app_id, int deployer);
   /*!
    * \brief Extracts an archive to target directory.
-   * \param app_id \ref ModdedApplication "application" for which the mod has been extracted.
-   * \param mod_id Id of the mod for which the file is to be extracted or -1 if this is a new mod.
-   * \param source Source path.
-   * \param target Target path
-   * \param remote_source URL from where the mod was downloaded.
-   * \param version If not empty: Use this to overwrite the default version.
-   * \param name If not empty: Use this to overwrite the default name.
+   * \param info Contains all data needed to extract the mod archive.
    */
-  void extractArchive(int app_id,
-                      int mod_id,
-                      QString source,
-                      QString target,
-                      QString remote_source,
-                      QString version,
-                      QString name);
+  void extractArchive(ImportModInfo info);
   /*!
    * \brief Requests info about backups for one ModdedApplication.
    * \param app_id Target app.
@@ -1551,23 +1521,11 @@ signals:
    */
   void getNexusPage(int app_id, int mod_id);
   /*!
-   * \brief Downloads a mod from nexusmods using the given nxm_url.
-   * \param app_id App for which the mod is to be downloaded. The mod is downloaded to the apps
-   * staging directory.
-   * \param nxm_url Url containing all information needed for the download.
+   * \brief Downloads a mod from remote using the given import info.
+   * \param info Contains either the ImportModInfo::remote_request_url or
+   * ImportModInfo::remote_mod_id and ImportModInfo::remote_file_id.
    */
-  void downloadMod(int app_id, QString nxm_url);
-  /*!
-   * \brief Downloads a mod from nexusmods using the given mod_url. Only works if the given
-   * api key belongs to a premium user.
-   * \param app_id App for which the mod is to be downloaded. The mod is downloaded to the apps
-   * staging directory.
-   * \param mod_id Id of the mod for which the file is to be downloaded. This is the limo internal
-   * mod id, NOT the NexusMods id.
-   * \param file_id NexusMods file id of the target file.
-   * \param mod_url Url to the NexusMods page of the mod.
-   */
-  void downloadModFile(int app_id, int mod_id, int file_id, QString mod_url);
+  void downloadMod(ImportModInfo info);
   /*!
    * \brief Checks for available mod updates on NexusMods.
    * \param app_id App for which mod updates are to be checked.

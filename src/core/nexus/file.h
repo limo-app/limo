@@ -44,7 +44,7 @@ public:
   long uid;
   /*! \brief The file id. */
   long file_id;
-  /*! \brief The name of the actual file on disk. */
+  /*! \brief The files display name. */
   std::string name;
   /*! \brief The files version. */
   std::string version;
@@ -56,15 +56,15 @@ public:
   bool is_primary;
   /*! \brief Size of the file in KibiBytes. */
   long size;
-  /*! \brief The files display name- */
+  /*! \brief The name of the actual file on disk. */
   std::string file_name;
   /*! \brief Timestamp for when the file was uploaded to NexusMods. */
   std::time_t uploaded_time;
   /*! \brief Mod version to which the file belongs. */
   std::string mod_version;
-  /*! \brief Optional: The URL of a virus scanning website (like virustotal.com) for this file. */
+  /*! \brief Optional: The URL of a virus scanning website (e.g. virustotal.com) for this file. */
   std::string external_virus_scan_url;
-  /*! \brief The description if the file. */
+  /*! \brief The description of the file. */
   std::string description;
   /*! \brief Size of the file in KibiBytes. */
   long size_kb;

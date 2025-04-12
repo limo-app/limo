@@ -83,7 +83,6 @@ find_package(ZLIB REQUIRED)
 
 # Separated for tests
 set(CORE_SOURCES
-        src/core/addmodinfo.h
         src/core/appinfo.h
         src/core/autotag.cpp
         src/core/autotag.h

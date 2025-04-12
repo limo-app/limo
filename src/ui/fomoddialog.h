@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "../core/addmodinfo.h"
+#include "../core/importmodinfo.h"
 #include "../core/fomod/fomodinstaller.h"
 #include <QButtonGroup>
 #include <QDialog>
@@ -48,7 +48,7 @@ public:
   void setupDialog(const std::filesystem::path& config_file,
                    const std::filesystem::path& target_path,
                    const QString& app_version,
-                   const AddModInfo& info,
+                   const ImportModInfo& info,
                    int app_id,
                    bool paths_are_case_invariant);
   /*!
@@ -86,7 +86,7 @@ private:
   /*! \brief If true: This dialog is non interactive. */
   bool has_no_steps_;
   /*! \brief Contains necessary data to install the mod upon dialog completion. */
-  AddModInfo add_mod_info_;
+  ImportModInfo import_mod_info_;
   /*! \brief Application for which the new mod is to be installed. */
   int app_id_;
   /*! \brief Indicates whether the dialog has been completed. */
@@ -153,7 +153,7 @@ signals:
    * \param app_id Application for which the new mod is to be installed.
    * \param info Contains all data needed to install the mod.
    */
-  void addModAccepted(int app_id, AddModInfo info);
+  void addModAccepted(int app_id, ImportModInfo info);
   /*! \brief Signals mod installation has been aborted. */
   void addModAborted();
 };

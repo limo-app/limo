@@ -7,8 +7,10 @@
 
 #include "file.h"
 #include "mod.h"
+#include "../importmodinfo.h"
 #include <cpr/cpr.h>
 #include <string>
+#include <regex>
 
 
 /*!
@@ -136,11 +138,6 @@ public:
    * \return The API key.
    */
   static std::string getApiKey();
-
-private:
-  /*! \brief The API key used for all operations. */
-  inline static std::string api_key_ = "";
-
   /*!
    * \brief Extracts the NexusMods domain and mod id from the given mod page URL.
    * \param url URL to the mod on NexusMods.
@@ -148,5 +145,26 @@ private:
    */
   static std::optional<std::pair<std::string, int>> extractDomainAndModId(
     const std::string& mod_url);
+  /*!
+   * \brief Initializes remote members of the given ImportModInfo.
+   *
+   * Uses data retreived for the mod associated with the ImportModInfo::remote_source member.
+   * If remote_source is not valid, uses ImportModInfo::remote_download_url instead.
+   *
+   * \param info Mod info to initialize.
+   * \return True if initialization was successful.
+   */
+  static bool initModInfo(ImportModInfo& info);
+  /*!
+   * \brief Checks whether the given string is a valid NexusMods nxm URL.
+   * \param nxm_url String to check.
+   * \return A regex match object for the string containing a group for every datum in the
+   * URL. If the URL is invalid: An empty optional.
+   */
+  static std::optional<std::smatch> nxmUrlIsValid(const std::string& nxm_url);
+
+private:
+  /*! \brief The API key used for all operations. */
+  inline static std::string api_key_ = "";
 };
 }
