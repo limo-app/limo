@@ -1,6 +1,7 @@
 #include "addmoddialog.h"
 #include "../core/installer.h"
 #include "../core/log.h"
+#include "../core/pathutils.h"
 #include "fomoddialog.h"
 #include "qdebug.h"
 #include "ui_addmoddialog.h"
@@ -14,11 +15,17 @@
 #include <regex>
 #include <set>
 
+namespace pu = path_utils;
 namespace sfs = std::filesystem;
 namespace str = std::ranges;
+namespace stv = std::views;
 
 
-AddModDialog::AddModDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AddModDialog)
+AddModDialog::AddModDialog(ModListModel* mod_list_model,
+                           DeployerListModel* deployer_list_model,
+                           QWidget* parent) :
+  mod_list_model_(mod_list_model), deployer_list_model_(deployer_list_model), QDialog(parent),
+  ui(new Ui::AddModDialog)
 {
   ui->setupUi(this);
   fomod_dialog_ = std::make_unique<FomodDialog>();
@@ -71,8 +78,14 @@ void AddModDialog::updateOkButton()
 
 void AddModDialog::colorTreeNodes(QTreeWidgetItem* node, int cur_depth, int root_level)
 {
-  auto color = cur_depth < root_level ? COLOR_REMOVE_ : COLOR_KEEP_;
-  node->setForeground(0, color);
+  qDebug() << node->text(0);
+  if(cur_depth < root_level)
+  {
+    node->setForeground(0, COLOR_REMOVE_);
+    node->setExpanded(true);
+  }
+  else
+    node->setForeground(0, COLOR_KEEP_);
   for(int i = 0; i < node->childCount(); i++)
     colorTreeNodes(node->child(i), cur_depth + 1, root_level);
 }
@@ -86,66 +99,110 @@ void AddModDialog::showError(const std::runtime_error& error)
   error_box->exec();
 }
 
-bool AddModDialog::setupDialog(const QString& name,
-                               const QStringList& deployers,
-                               int cur_deployer,
-                               const QStringList& groups,
-                               const std::vector<int>& mod_ids,
-                               const QString& path,
-                               const QStringList& deployer_paths,
-                               int app_id,
-                               const std::vector<bool>& autonomous_deployers,
-                               const QString& app_version,
-                               const QString& local_source,
-                               const QString& remote_source,
-                               int mod_id,
-                               const QStringList& mod_names,
-                               const QStringList& mod_versions,
-                               const QString& version_overwrite,
-                               const QString& name_overwrite)
+int AddModDialog::detectRootLevel(int deployer) const
 {
+  bool is_case_invariant = case_invariant_deployers_[deployer];
+  sfs::path deployer_path = deployer_paths_[deployer].toStdString();
+
+  auto cur_item = ui->content_tree->invisibleRootItem();
+  if(cur_item->childCount() != 1)
+    return 0;
+
+  std::string path_string = deployer_path.string();
+  if(path_string.ends_with("/"))
+    path_string = path_string.substr(0, path_string.size() - 1);
+  if(path_string.empty())
+    return 0;
+  std::string last_path_component = *std::prev(std::filesystem::path(path_string).end());
+  if(is_case_invariant)
+    last_path_component = pu::toLowerCase(last_path_component);
+
+  int cur_level = 0;
+  int deployer_target_level = -1;
+  while(true)
+  {
+    const auto cur_text = is_case_invariant ? cur_item->text(0).toLower().toStdString()
+                                            : cur_item->text(0).toStdString();
+    if(deployer_target_level == -1 && cur_text == last_path_component)
+      deployer_target_level = cur_level;
+    for(int i = 0; i < cur_item->childCount(); i++)
+    {
+      if(pu::pathExists(
+           cur_item->child(i)->text(0).toStdString(), deployer_path, is_case_invariant))
+        return cur_level;
+    }
+
+    if(cur_item->childCount() != 1)
+      break;
+
+    cur_item = cur_item->child(0);
+    cur_level++;
+  }
+
+  if(cur_item->childCount() == 0)
+    return deployer_target_level == -1 ? 0 : deployer_target_level;
+
+  return 0;
+}
+
+bool AddModDialog::setupDialog(const QStringList& deployers,
+                               int cur_deployer,
+                               const QStringList& deployer_paths,
+                               const std::vector<bool>& autonomous_deployers,
+                               const std::vector<bool>& case_invariant_deployers,
+                               const QString& app_version,
+                               const ImportModInfo& info)
+{
+  groups_.clear();
+  const auto& mod_infos = mod_list_model_->getModInfo();
+  for(const auto& mod_info : mod_infos)
+  {
+    std::string prefix = "";
+    if(mod_info.group != -1 && !mod_info.is_active_group_member)
+      prefix = "[INACTIVE] ";
+    groups_ << (prefix + mod_info.mod.name + " [" + std::to_string(mod_info.mod.id) + "]").c_str();
+  }
+
+  import_mod_info_ = info;
+  ui->content_tree->clear();
+  ui->root_level_box->setValue(0);
   ui->name_text->setFocus();
-  app_id_ = app_id;
-  mod_ids_ = mod_ids;
-  mod_path_ = path;
   deployer_paths_ = deployer_paths;
-  groups_ = groups;
+  case_invariant_deployers_ = case_invariant_deployers;
   app_version_ = app_version;
-  local_source_ = local_source;
-  remote_source_ = remote_source;
   ui->group_combo_box->setCurrentIndex(ADD_TO_GROUP_INDEX);
   ui->deployer_list->setEnabled(true);
   ui->group_field->clear();
   ui->group_field->setEnabled(false);
   ui->group_field->updateValidation();
-  completer_ = std::make_unique<QCompleter>(groups);
+  completer_ = std::make_unique<QCompleter>(groups_);
   completer_->setCaseSensitivity(Qt::CaseInsensitive);
   completer_->setFilterMode(Qt::MatchContains);
   ui->group_field->setCompleter(completer_.get());
   ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
   ui->group_check->setCheckState(Qt::Unchecked);
   int mod_index = -1;
-  if(mod_id != -1)
+  if(info.target_group_id != -1)
   {
-    auto iter = str::find(mod_ids, mod_id);
-    if(iter != mod_ids.end())
+    auto iter = str::find_if(mod_infos,
+                             [mod_id = info.target_group_id](const ModInfo& info)
+                             { return mod_id == info.mod.id; });
+    if(iter != mod_infos.end())
     {
-      mod_index = iter - mod_ids.begin();
-      ui->group_field->setText(groups[mod_index]);
+      mod_index = iter - mod_infos.begin();
+      ui->group_field->setText(groups_[mod_index]);
       ui->group_check->setCheckState(Qt::Checked);
       ui->group_combo_box->setCurrentIndex(REPLACE_MOD_INDEX);
     }
   }
 
-  std::regex name_regex(R"(-\d+((?:-[\dA-Za-z]+)+)-\d+\.(?:zip|7z|rar)$)");
+  std::regex name_regex(R"(-\d+((?:-[\dA-Za-z]+)+)-\d+(?:\(\d+\))?\.(?:zip|7z|rar)$)");
   std::smatch match;
-  std::string name_str = name.toStdString();
-  if(!name_overwrite.isEmpty())
-    ui->name_text->setText(name_overwrite);
-  else if(mod_index >= 0 && mod_index < mod_names.size())
+  std::string name_str = info.local_source.filename().string();
+  if(mod_index >= 0 && mod_index < mod_infos.size())
   {
-    ui->name_text->setText(mod_names[mod_index]);
-    ui->version_text->setText(mod_versions[mod_index]);
+    ui->name_text->setText(mod_infos[mod_index].mod.name.c_str());
+    ui->version_text->setText(mod_infos[mod_index].mod.version.c_str());
   }
   else if(std::regex_search(name_str, match, name_regex))
   {
@@ -159,11 +216,18 @@ bool AddModDialog::setupDialog(const QString& name,
   else
   {
     ui->version_text->setText("1.0");
-    ui->name_text->setText(name);
+    ui->name_text->setText(name_str.c_str());
   }
 
-  if(!version_overwrite.isEmpty())
-    ui->version_text->setText(version_overwrite);
+  if(!info.remote_file_name.empty())
+    ui->name_text->setText(info.remote_file_name.c_str());
+  if(!info.remote_file_version.empty())
+    ui->version_text->setText(info.remote_file_version.c_str());
+
+  if(!info.name_overwrite.empty())
+    ui->name_text->setText(info.name_overwrite.c_str());
+  if(!info.version_overwrite.empty())
+    ui->version_text->setText(info.version_overwrite.c_str());
 
   ui->installer_box->clear();
   int root_level = 0;
@@ -171,30 +235,65 @@ bool AddModDialog::setupDialog(const QString& name,
   std::string detected_type;
   try
   {
-    auto signature = Installer::detectInstallerSignature(path.toStdString());
+    auto signature = Installer::detectInstallerSignature(info.current_path);
     std::tie(root_level, prefix, detected_type) = signature;
   }
   catch(std::runtime_error& error)
   {
     showError(error);
-    emit addModAborted(mod_path_);
+    emit addModAborted(info.current_path.c_str());
     return false;
   }
   if(detected_type == Installer::FOMODINSTALLER)
   {
     auto [name, version] =
-      fomod::FomodInstaller::getMetaData(sfs::path(mod_path_.toStdString()) / prefix);
-    if(!name.empty() && name_overwrite.isEmpty())
+      fomod::FomodInstaller::getMetaData(info.current_path / prefix);
+    if(!name.empty() && info.name_overwrite.empty())
       ui->name_text->setText(name.c_str());
-    if(!version.empty() && version_overwrite.isEmpty())
+    if(!version.empty() && info.version_overwrite.empty())
       ui->version_text->setText(version.c_str());
   }
 
-  QRegularExpression regex(QString("^") + QRegularExpression::escape(ui->name_text->text()) +
-                           R"(( \[\d+\]$)?)");
-  const int group_index = groups.indexOf(regex);
-  if(group_index != -1)
-    ui->group_field->setText(groups[group_index]);
+  const std::string mod_name = ui->name_text->text().toStdString();
+  auto remote_source_or_name_matches =
+    [&mod_info = std::as_const(info), &mod_name](const auto& pair)
+  {
+    const Mod mod = std::get<1>(pair).mod;
+    return !mod_info.remote_source.empty() && mod_info.remote_source == mod.remote_source ||
+           mod.name == mod_name ||
+           mod.remote_mod_id != -1 && mod_info.remote_mod_id == mod.remote_mod_id;
+  };
+
+  if(info.target_group_id == -1)
+  {
+    int group_index = -1;
+    int max_match_quality = -1;
+    for(const auto& [i, mod_info] :
+        mod_infos | stv::enumerate | stv::filter(remote_source_or_name_matches))
+    {
+      int match_quality = 0;
+      if(info.remote_type == mod_info.mod.remote_type)
+      {
+        if(mod_info.mod.remote_mod_id != -1 && mod_info.mod.remote_mod_id == info.remote_mod_id)
+          match_quality += 16;
+        if(mod_info.mod.remote_file_id != -1 && mod_info.mod.remote_file_id == info.remote_file_id)
+          match_quality += 8;
+      }
+      if(info.remote_source == mod_info.mod.remote_source)
+        match_quality += 4;
+      if(mod_name == mod_info.mod.name)
+        match_quality += 2;
+      if(mod_info.is_active_group_member)
+        match_quality += 1;
+      if(match_quality > max_match_quality)
+      {
+        max_match_quality = match_quality;
+        group_index = i;
+      }
+    }
+    if(group_index != -1)
+      ui->group_field->setText(groups_[group_index]);
+  }
 
   path_prefix_ = prefix.c_str();
   int target_idx = 0;
@@ -213,7 +312,7 @@ bool AddModDialog::setupDialog(const QString& name,
   ui->deployer_list->clear();
   std::set<int> selected_deployers;
   auto settings = QSettings(QCoreApplication::applicationName());
-  settings.beginGroup(QString::number(app_id));
+  settings.beginGroup(QString::number(info.app_id));
   int size = settings.beginReadArray("selected_deployers");
   for(int i = 0; i < size; i++)
   {
@@ -222,14 +321,39 @@ bool AddModDialog::setupDialog(const QString& name,
   }
   settings.endArray();
 
+  try
+  {
+    auto mod_file_paths = Installer::getArchiveFileNames(info.current_path);
+    int max_depth = 0;
+    for(const auto& path : mod_file_paths)
+      max_depth = std::max(addTreeNode(ui->content_tree, path), max_depth);
+    ui->root_level_box->setMaximum(std::max(max_depth - 1, 0));
+    ui->root_level_box->setValue(root_level);
+  }
+  catch(std::runtime_error& error)
+  {
+    showError(error);
+    emit addModAborted(info.current_path.c_str());
+    return false;
+  }
+
   ui->fomod_deployer_box->clear();
+  bool root_level_checked = false;
   for(int i = 0; i < deployers.size(); i++)
   {
+    const bool is_target = selected_deployers.contains(i) | (i == cur_deployer);
     if(!autonomous_deployers[i])
+    {
       ui->fomod_deployer_box->addItem(deployers[i]);
+      if(!root_level_checked && is_target && detected_type != Installer::FOMODINSTALLER)
+      {
+        root_level_checked = true;
+        root_level = detectRootLevel(i);
+        ui->root_level_box->setValue(root_level);
+      }
+    }
     auto item = new QListWidgetItem(deployers[i], ui->deployer_list);
-    item->setCheckState((selected_deployers.contains(i) | (i == cur_deployer)) ? Qt::Checked
-                                                                               : Qt::Unchecked);
+    item->setCheckState(is_target ? Qt::Checked : Qt::Unchecked);
     item->setHidden(autonomous_deployers[i]);
   }
 
@@ -240,23 +364,6 @@ bool AddModDialog::setupDialog(const QString& name,
     ui->fomod_deployer_box->setCurrentIndex(cur_deployer);
   settings.endGroup();
 
-  try
-  {
-    auto paths = Installer::getArchiveFileNames(path.toStdString());
-    int max_depth = 0;
-    ui->content_tree->clear();
-    for(const auto& path : paths)
-      max_depth = std::max(addTreeNode(ui->content_tree, path), max_depth);
-    ui->root_level_box->setMaximum(std::max(max_depth - 1, 0));
-    ui->root_level_box->setValue(root_level);
-    on_root_level_box_valueChanged(root_level);
-  }
-  catch(std::runtime_error& error)
-  {
-    showError(error);
-    emit addModAborted(mod_path_);
-    return false;
-  }
   dialog_completed_ = false;
   return true;
 }
@@ -266,7 +373,7 @@ void AddModDialog::closeEvent(QCloseEvent* event)
   if(dialog_completed_)
     return;
   dialog_completed_ = true;
-  emit addModAborted(mod_path_);
+  emit addModAborted(import_mod_info_.current_path.c_str());
   QDialog::reject();
 }
 
@@ -275,7 +382,7 @@ void AddModDialog::reject()
   if(dialog_completed_)
     return;
   dialog_completed_ = true;
-  emit addModAborted(mod_path_);
+  emit addModAborted(import_mod_info_.current_path.c_str());
   QDialog::reject();
 }
 
@@ -338,10 +445,10 @@ void AddModDialog::on_buttonBox_accepted()
   int group = -1;
   const QString group_name = ui->group_field->text();
   if(ui->group_check->isChecked() && groups_.contains(group_name))
-    group = mod_ids_[groups_.indexOf(group_name)];
+    group = mod_list_model_->getModInfo()[groups_.indexOf(group_name)].mod.id;
   std::vector<int> deployers;
   auto settings = QSettings(QCoreApplication::applicationName());
-  settings.beginGroup(QString::number(app_id_));
+  settings.beginGroup(QString::number(import_mod_info_.app_id));
   settings.beginWriteArray("selected_deployers");
   int settings_index = 0;
   for(int i = 0; i < ui->deployer_list->count(); i++)
@@ -356,36 +463,44 @@ void AddModDialog::on_buttonBox_accepted()
   settings.endArray();
   settings.setValue("fomod_target_deployer", ui->fomod_deployer_box->currentIndex());
   settings.endGroup();
-  std::vector<std::pair<sfs::path, sfs::path>> fomod_files{};
-  AddModInfo info{ ui->name_text->text().toStdString(),
-                   ui->version_text->text().toStdString(),
-                   Installer::INSTALLER_TYPES[ui->installer_box->currentIndex()],
-                   mod_path_.toStdString(),
-                   deployers,
-                   group,
-                   options,
-                   ui->root_level_box->value(),
-                   fomod_files,
-                   replace_mod,
-                   local_source_.toStdString(),
-                   remote_source_.toStdString() };
+  import_mod_info_.action_type = ImportModInfo::ActionType::install;
+  import_mod_info_.name = ui->name_text->text().toStdString();
+  import_mod_info_.version = ui->version_text->text().toStdString();
+  import_mod_info_.installer = Installer::INSTALLER_TYPES[ui->installer_box->currentIndex()];
+  import_mod_info_.deployers = deployers;
+  import_mod_info_.target_group_id = group;
+  import_mod_info_.installer_flags = options;
+  import_mod_info_.root_level = ui->root_level_box->value();
+  import_mod_info_.files = {};
+  import_mod_info_.replace_mod = replace_mod;
   if(Installer::INSTALLER_TYPES[ui->installer_box->currentIndex()] == Installer::FOMODINSTALLER)
   {
+    bool case_invariant = true;
+    for(int i = 0; i < ui->deployer_list->count(); i++)
+    {
+      if(ui->deployer_list->item(i)->checkState() == Qt::Checked && !case_invariant_deployers_[i])
+      {
+        case_invariant = false;
+        break;
+      }
+    }
     fomod_dialog_->setupDialog(
-      sfs::path(mod_path_.toStdString()) / path_prefix_.toStdString(),
+      import_mod_info_.current_path / path_prefix_.toStdString(),
       deployer_paths_[ui->fomod_deployer_box->currentIndex()].toStdString(),
       app_version_,
-      info,
-      app_id_);
+      import_mod_info_,
+      import_mod_info_.app_id,
+      case_invariant);
     if(!fomod_dialog_->hasSteps())
     {
-      info.files = fomod_dialog_->getResult();
-      emit addModAccepted(app_id_, info);
+      import_mod_info_.files = fomod_dialog_->getResult();
+      emit addModAccepted(import_mod_info_.app_id, import_mod_info_);
     }
-    fomod_dialog_->show();
+    else
+      fomod_dialog_->show();
   }
   else
-    emit addModAccepted(app_id_, info);
+    emit addModAccepted(import_mod_info_.app_id, import_mod_info_);
 }
 
 void AddModDialog::on_group_check_stateChanged(int state)
@@ -402,7 +517,7 @@ void AddModDialog::on_buttonBox_rejected()
   if(dialog_completed_)
     return;
   dialog_completed_ = true;
-  emit addModAborted(mod_path_);
+  emit addModAborted(import_mod_info_.current_path.c_str());
 }
 
 void AddModDialog::on_name_text_textChanged(const QString& text)
@@ -449,12 +564,12 @@ void AddModDialog::on_group_combo_box_currentIndexChanged(int index)
                                 ui->group_check->checkState() == Qt::Unchecked);
 }
 
-void AddModDialog::onFomodDialogComplete(int app_id, AddModInfo info)
+void AddModDialog::onFomodDialogComplete(int app_id, ImportModInfo info)
 {
   emit addModAccepted(app_id, info);
 }
 
 void AddModDialog::onFomodDialogAborted()
 {
-  emit addModAborted(mod_path_);
+  emit addModAborted(import_mod_info_.current_path.c_str());
 }

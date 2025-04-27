@@ -6,6 +6,7 @@
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <ranges>
 
 namespace sfs = std::filesystem;

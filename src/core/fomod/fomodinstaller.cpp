@@ -12,9 +12,11 @@ namespace pu = path_utils;
 
 
 void FomodInstaller::init(const sfs::path& config_file,
+                          bool paths_are_case_invariant,
                           const sfs::path& target_path,
                           const std::string& app_version)
 {
+  paths_are_case_invariant_ = paths_are_case_invariant;
   if(!app_version.empty())
     version_eval_fun_ = [app_version](std::string version) { return app_version == version; };
   cur_step_ = -1;
@@ -255,10 +257,18 @@ void FomodInstaller::parseInstallList()
     {
       auto duplicate_iter =
         std::ranges::find_if(files_,
-                             [file = file](const File& other)
+                             [file = file, this](const File& other)
                              {
-                               return file.source.string() == other.source.string() &&
-                                      file.destination.string() == other.destination.string();
+                               if(this->paths_are_case_invariant_)
+                               {
+                                 return pu::toLowerCase(file.source.string()) ==
+                                          pu::toLowerCase(other.source.string()) &&
+                                        pu::toLowerCase(file.destination.string()) ==
+                                          pu::toLowerCase(other.destination.string());
+                               }
+                               else
+                                 return file.source.string() == other.source.string() &&
+                                        file.destination.string() == other.destination.string();
                              });
 
       if(duplicate_iter == files_.end())
@@ -340,10 +350,18 @@ void FomodInstaller::updateState(const std::vector<std::vector<bool>>& selection
       {
         auto duplicate_iter =
           std::ranges::find_if(files_,
-                               [file = file](const File& other)
+                               [file = file, this](const File& other)
                                {
-                                 return file.source.string() == other.source.string() &&
-                                        file.destination.string() == other.destination.string();
+                                 if(this->paths_are_case_invariant_)
+                                 {
+                                   return pu::toLowerCase(file.source.string()) ==
+                                            pu::toLowerCase(other.source.string()) &&
+                                          pu::toLowerCase(file.destination.string()) ==
+                                            pu::toLowerCase(other.destination.string());
+                                 }
+                                 else
+                                   return file.source.string() == other.source.string() &&
+                                          file.destination.string() == other.destination.string();
                                });
         if(duplicate_iter == files_.end())
           files_.push_back(file);

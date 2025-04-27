@@ -367,6 +367,25 @@ public:
    * \param mod_id Target mod.
    */
   virtual void applyModAction(int action, int mod_id);
+  /*!
+   * \brief Returns whether or not this deployer type is case invariant.
+   * \return False.
+   */
+  virtual bool isCaseInvariant() const;
+  /*!
+   * \brief Returns whether sorting mods is allowed affect overwrite behavior.
+   *
+   * If this is set to false, sorting will always be safe and only affect how mods are displayed.
+   * \return The safe sorting state.
+   */
+  bool getEnableUnsafeSorting() const;
+  /*!
+   * \brief Sets whether sorting mods is allowed affect overwrite behavior.
+   *
+   * If this is set to false, sorting will always be safe and only affect how mods are displayed.
+   * \param The new safe sorting state.
+   */
+  void setEnableUnsafeSorting(bool enable);
 
 protected:
   /*! \brief Type of this deployer, e.g. Simple Deployer. */
@@ -398,6 +417,8 @@ protected:
   bool is_autonomous_ = false;
   /*! \brief If true: Automatically update conflict groups when necessary. */
   bool auto_update_conflict_groups_ = false;
+  /*! \brief Determines whether sorting mods can affect overwrite behavior. */
+  bool enable_unsafe_sorting_ = false;
 
   /*!
    * \brief Creates a pair of maps. One maps relative file paths to the mod id from which that

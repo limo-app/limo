@@ -5,14 +5,14 @@
 
 #pragma once
 
-#include "plugindeployer.h"
+#include "lootdeployer.h"
 #include <set>
 
 
 /*!
  * \brief Autonomous deployer which handles plugin files for OpenMW using LOOT.
  */
-class OpenMwPluginDeployer : public PluginDeployer
+class OpenMwPluginDeployer : public LootDeployer
 {
 public:
   /*!
@@ -53,11 +53,6 @@ public:
    */
   virtual void sortModsByConflicts(std::optional<ProgressNode*> progress_node = {}) override;
   /*!
-   * \brief Returns whether or not this deployer type supports showing mod conflicts.
-   * \return False.
-   */
-  virtual bool supportsModConflicts() const override;
-  /*!
    * \brief Returns names and icon names for additional actions which can be applied to a mod.
    * \return The actions.
    */
@@ -73,6 +68,23 @@ public:
    * \param mod_id Target mod.
    */
   virtual void applyModAction(int action, int mod_id) override;
+  /*!
+   * \brief Adds a new profile and optionally copies it's load order from an existing profile.
+   * Profiles are stored in the target directory.
+   * \param source The profile to be copied. A value of -1 indicates no copy.
+   */
+  virtual void addProfile(int source = -1) override;
+  /*!
+   * \brief Removes a profile.
+   * \param profile The profile to be removed.
+   */
+  virtual void removeProfile(int profile) override;
+  /*!
+   * \brief Setter for the active profile. Changes the currently active plugin files
+   * to the ones saved in the new profile.
+   * \param profile The new profile.
+   */
+  virtual void setProfile(int profile) override;
 
 private:
   /*! \brief Name of the OpenMW config file. */

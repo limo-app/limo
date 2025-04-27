@@ -77,6 +77,7 @@ void AddDeployerDialog::setAddMode(int app_id)
   ui->rev_depl_ignore_cb->setCheckState(Qt::Unchecked);
   ui->rev_depl_separate_cb->setCheckState(Qt::Unchecked);
   disable_confirmation_boxes_ = false;
+  ui->unsafe_sorting_box->setCheckState(Qt::Checked);
 }
 
 void AddDeployerDialog::setEditMode(const QString& type,
@@ -86,6 +87,7 @@ void AddDeployerDialog::setEditMode(const QString& type,
                                     Deployer::DeployMode deploy_mode,
                                     int app_id,
                                     int deployer_id,
+                                    bool uses_unsafe_sorting,
                                     bool has_separate_dirs,
                                     bool has_ignored_files)
 {
@@ -95,6 +97,7 @@ void AddDeployerDialog::setEditMode(const QString& type,
   type_ = type;
   app_id_ = app_id;
   deployer_id_ = deployer_id;
+  ui->unsafe_sorting_box->setCheckState(uses_unsafe_sorting ? Qt::Checked : Qt::Unchecked);
   has_separate_dirs_ = has_separate_dirs;
   has_ignored_files_ = has_ignored_files;
   ui->deploy_mode_box->setCurrentIndex(deploy_mode);
@@ -132,6 +135,7 @@ void AddDeployerDialog::updateSourceFields()
   if(cur_text.empty())
     return;
   const bool is_reverse_deployer = cur_text == DeployerFactory::REVERSEDEPLOYER;
+  const bool is_openmw_plugin_deployer = cur_text == DeployerFactory::OPENMWPLUGINDEPLOYER;
   const bool hide_source =
     !DeployerFactory::AUTONOMOUS_DEPLOYERS.at(cur_text) || is_reverse_deployer;
   const bool hide_mode = !hide_source && !is_reverse_deployer;
@@ -149,6 +153,7 @@ void AddDeployerDialog::updateSourceFields()
   ui->rev_depl_ignore_button->setHidden(!is_reverse_deployer || !edit_mode_ ||
                                         type_.toStdString() != DeployerFactory::REVERSEDEPLOYER ||
                                         !has_ignored_files_);
+  ui->unsafe_sorting_box->setHidden(!is_openmw_plugin_deployer);
   updateOkButton();
 }
 
@@ -194,9 +199,20 @@ void AddDeployerDialog::on_buttonBox_accepted()
   info.separate_profile_dirs = ui->rev_depl_separate_cb->checkState() == Qt::Checked;
   info.update_ignore_list = ui->rev_depl_ignore_cb->checkState() == Qt::Checked;
   if(edit_mode_)
+  {
+    info.enable_unsafe_sorting = ui->unsafe_sorting_box->checkState() == Qt::Checked;
     emit deployerEdited(info, app_id_, deployer_id_);
+  }
   else
+  {
+    if(ui->type_box->currentText().toStdString() == DeployerFactory::LOOTDEPLOYER)
+      info.enable_unsafe_sorting = true;
+    else if(ui->type_box->currentText().toStdString() == DeployerFactory::OPENMWPLUGINDEPLOYER)
+      info.enable_unsafe_sorting = ui->unsafe_sorting_box->checkState() == Qt::Checked;
+    else
+      info.enable_unsafe_sorting = false;
     emit deployerAdded(info, app_id_);
+  }
 }
 
 void AddDeployerDialog::onFileDialogAccepted(const QString& path)

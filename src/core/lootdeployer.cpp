@@ -22,6 +22,7 @@ LootDeployer::LootDeployer(const sfs::path& source_path,
   LIST_URLS = DEFAULT_LIST_URLS;
   // make sure no hard link related checks are performed
   deploy_mode_ = copy;
+  enable_unsafe_sorting_ = true;
   if(!perform_init)
     return;
   type_ = "Loot Deployer";
@@ -169,6 +170,7 @@ void LootDeployer::sortModsByConflicts(std::optional<ProgressNode*> progress_nod
   updateMasterList();
   if(progress_node)
     (*progress_node)->child(0).advance();
+
   sfs::path master_list_path = dest_path_ / "masterlist.yaml";
   if(!sfs::exists(master_list_path))
     throw std::runtime_error("Could not find masterlist.yaml at '" + master_list_path.string() +
@@ -187,14 +189,23 @@ void LootDeployer::sortModsByConflicts(std::optional<ProgressNode*> progress_nod
   loot_handle->GetDatabase().LoadLists(master_list_path, user_list_path, prelude_path);
   if(progress_node)
     (*progress_node)->child(1).advance();
+
   std::vector<sfs::path> plugin_paths;
+  std::vector<std::string> plugin_file_names;
   plugin_paths.reserve(plugins_.size());
+  plugin_file_names.reserve(plugins_.size());
   for(const auto& [path, s] : plugins_)
+  {
     plugin_paths.emplace_back(source_path_ / path);
-  auto sorted_plugins = loot_handle->SortPlugins(plugin_paths);
+    plugin_file_names.emplace_back(path);
+  }
+  loot_handle->LoadPlugins(plugin_paths, false);
+  auto sorted_plugins = loot_handle->SortPlugins(plugin_file_names);
   if(progress_node)
     (*progress_node)->child(2).advance();
+
   std::vector<std::pair<std::string, bool>> new_plugins;
+  new_plugins.reserve(plugins_.size());
   std::set<std::string> conflicting;
   int num_light_plugins = 0;
   int num_master_plugins = 0;
@@ -247,7 +258,8 @@ void LootDeployer::sortModsByConflicts(std::optional<ProgressNode*> progress_nod
                    num_master_plugins,
                    num_standard_plugins,
                    num_light_plugins));
-  plugins_ = new_plugins;
+  if(enable_unsafe_sorting_)
+    plugins_ = new_plugins;
   writePluginTags();
   writePlugins();
   if(progress_node)

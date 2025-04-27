@@ -1,5 +1,6 @@
 #include "api.h"
 #include "../parseerror.h"
+#include <iostream>
 #include <json/json.h>
 #include <ranges>
 #include <regex>
@@ -150,11 +151,10 @@ std::string Api::getDownloadUrl(const std::string& mod_url, long file_id)
 
 std::string Api::getDownloadUrl(const std::string& nxm_url)
 {
-  const std::regex regex(
-    R"(nxm:\/\/(.+)\/mods\/(\d+)\/files\/(\d+)\?key=(.+)&expires=(\d+)&user_id=(\d+))");
-  std::smatch match;
-  if(!std::regex_match(nxm_url, match, regex))
+  const auto match_opt = nxmUrlIsValid(nxm_url);
+  if(!match_opt)
     throw std::runtime_error(std::format("Invalid NXM URL: \"{}\"", nxm_url));
+  std::smatch match = *match_opt;
   const std::string domain_name = match[1];
   const std::string mod_id = match[2];
   const std::string file_id = match[3];
@@ -331,4 +331,53 @@ std::optional<std::pair<std::string, int>> Api::extractDomainAndModId(const std:
   if(std::regex_match(mod_url, match, regex))
     return { { match[1], std::stoi(match[2]) } };
   return {};
+}
+
+bool Api::initModInfo(ImportModInfo& info)
+{
+  std::vector<File> files;
+  auto match = nxmUrlIsValid(info.remote_request_url);
+  if(!match)
+    return false;
+
+  if(modUrlIsValid(info.remote_source))
+    files = getModFiles(info.remote_source);
+  else
+  {
+    info.remote_source = getNexusPageUrl(info.remote_request_url);
+    files = getModFiles(info.remote_source);
+  }
+
+  const std::string file_id_str = (*match)[3];
+  if(file_id_str.find_first_not_of("0123456789") != std::string::npos)
+    return false;
+
+  const std::string mod_id_str = (*match)[2];
+  if(mod_id_str.find_first_not_of("0123456789") != std::string::npos)
+    return false;
+
+  long file_id = std::stol(file_id_str);
+  long mod_id = std::stol(mod_id_str);
+  auto iter = str::find_if(files, [file_id](File& f){return f.file_id == file_id;});
+  if(iter == files.end())
+    return false;
+
+  info.remote_mod_id = mod_id;
+  info.remote_file_id = iter->file_id;
+  info.remote_file_name = iter->name;
+  info.remote_file_version = iter->version;
+  info.remote_type = ImportModInfo::RemoteType::nexus;
+
+  return true;
+}
+
+std::optional<std::smatch> Api::nxmUrlIsValid(const std::string& nxm_url)
+{
+  const std::regex regex(
+    R"(nxm:\/\/(.+)\/mods\/(\d+)\/files\/(\d+)\?key=(.+)&expires=(\d+)&user_id=(\d+))");
+  std::smatch match;
+  std::regex_match(nxm_url, match, regex);
+  if(match.empty())
+    return {};
+  return match;
 }

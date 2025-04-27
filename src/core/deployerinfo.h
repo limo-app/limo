@@ -56,4 +56,6 @@ struct DeployerInfo
   std::vector<std::pair<std::string, std::string>> mod_actions = {};
   /*! \brief For every mod: IDs of every valid mod_action which is valid for that mod. */
   std::vector<std::vector<int>> valid_mod_actions = {};
+  /*! \brief Determines whether sorting mods can affect overwrite behavior. */
+  bool uses_unsafe_sorting = false;
 };

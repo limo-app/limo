@@ -92,6 +92,13 @@ public:
    * \return True if at least one file is ignored.
    */
   bool hasIgnoredFiles() const;
+  /*!
+   * \brief Returns whether sorting mods is allowed affect overwrite behavior.
+   *
+   * If this is set to false, sorting will always be safe and only affect how mods are displayed.
+   * \return The safe sorting state.
+   */
+  bool usesUnsafeSorting() const;
 
 private:
   /*! \brief Contains all mods managed by this model. */

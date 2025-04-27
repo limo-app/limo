@@ -3,7 +3,6 @@
 #include "pathutils.h"
 #include <algorithm>
 #include <chrono>
-#include <iostream>
 #include <ranges>
 
 namespace sfs = std::filesystem;
@@ -107,7 +106,6 @@ bool Bg3PakFile::pluginConflictsWith(const std::string& plugin_uuid,
 
   for(const auto& file : plugin_files)
   {
-    std::cout << file << std::endl;
     if(file != "meta.lsx" && file != "meta.lsf" &&
        str::find(other_plugin_files, file) != other_plugin_files.end())
       return true;

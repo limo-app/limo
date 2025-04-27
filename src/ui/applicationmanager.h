@@ -72,6 +72,11 @@ public:
    * \param enabled New status.
    */
   void enableExceptions(bool enabled);
+  /*!
+   * \brief Informs about the progress in the current task by emitting \ref updateProgress.
+   * \param progress The progress.
+   */
+  void sendUpdateProgress(float progress);
 
 private:
   /*!
@@ -240,6 +245,91 @@ private:
     return ret_value;
   }
 
+  /*!
+   * \brief Wrapper for generic functions. Catches specific exception types and sends an error
+   * message to the gui if an exception was thrown.
+   * \param f Function to run.
+   * \param args Arguments for the function.
+   * \return If no exception was thrown: The return value of the function,
+   * else: An empty optional.
+   */
+  template<typename Func, typename... Args>
+  auto handleExceptionsForFunction(Func&& f, Args&&... args)
+    -> std::optional<decltype((f)(std::forward<Args>(args)...))>
+  {
+    decltype((f)(std::forward<Args>(args)...)) ret_value;
+    std::string message;
+    bool has_thrown = false;
+    try
+    {
+      ret_value = (f)(std::forward<Args>(args)...);
+    }
+    catch(Json::RuntimeError& error)
+    {
+      has_thrown = true;
+      message = error.what();
+      if(throw_exceptions_)
+        throw error;
+    }
+    catch(Json::LogicError& error)
+    {
+      has_thrown = true;
+
+      message = error.what();
+      if(throw_exceptions_)
+        throw error;
+    }
+    catch(ParseError& error)
+    {
+      has_thrown = true;
+      message = error.what();
+      if(throw_exceptions_)
+        throw error;
+    }
+    catch(std::ios_base::failure& error)
+    {
+      has_thrown = true;
+      message = error.what();
+      if(throw_exceptions_)
+        throw error;
+    }
+    catch(CompressionError& error)
+    {
+      has_thrown = true;
+      message = error.what();
+      if(throw_exceptions_)
+        throw error;
+    }
+    catch(std::runtime_error& error)
+    {
+      has_thrown = true;
+      message = error.what();
+      if(throw_exceptions_)
+        throw error;
+    }
+    catch(std::invalid_argument& error)
+    {
+      has_thrown = true;
+      message = error.what();
+      if(throw_exceptions_)
+        throw error;
+    }
+    catch(...)
+    {
+      has_thrown = true;
+      message = "An unexpected error occured!";
+      if(throw_exceptions_)
+        throw std::runtime_error("An unexpected error occured!");
+    }
+
+    if(has_thrown)
+    {
+      emit sendError("Error", message.c_str());
+      return {};
+    }
+    return ret_value;
+  }
+
   /*! \brief Contains every ModdedApplication handled by this object. */
   std::vector<ModdedApplication> apps_;
   /*! \brief If true: Do not catch exceptions. */
@@ -296,11 +386,6 @@ private:
    * \param message Message of the exception thrown during parsing.
    */
   void handleParseError(std::string path, std::string message);
-  /*!
-   * \brief Informs about the progress in the current task by emitting \ref updateProgress.
-   * \param progress The progress.
-   */
-  void sendUpdateProgress(float progress);
 
   /*! \brief Counter for the number of instances of this class. */
   inline static int number_of_instances_ = 0;
@@ -379,23 +464,9 @@ signals:
   void sendError(QString title, QString message);
   /*!
    * \brief Emitted after archive extraction is complete.
-   * \param app_id \ref ModdedApplication "application" for which the mod has been extracted.
-   * \param mod_id Id of the mod for which the file was to be extracted or -1 if this is a new mod.
-   * \param success False if exception has been thrown.
-   * \param extracted_path Path to which the mod was extracted.
-   * \param local_source Source archive for the mod.
-   * \param remote_source URL from where the mod was downloaded.
-   * \param version If not empty: Use this to overwrite the default version.
-   * \param name If not empty: Use this to overwrite the default name.
+   * \param info Contains extraction directory as ImportModInfo::current_path.
    */
-  void extractionComplete(int app_id,
-                          int mod_id,
-                          bool success,
-                          QString extracted_path,
-                          QString local_source,
-                          QString remote_source,
-                          QString version,
-                          QString name);
+  void extractionComplete(ImportModInfo info);
   /*!
    * \brief Sends a log message to the logging window.
    * \param log_level Type of message.
@@ -424,13 +495,9 @@ signals:
   void sendNexusPage(int app_id, int mod_id, nexus::Page page);
   /*!
    * \brief Signals successful completion of a mod download.
-   * \param app_id App for which the mod has been downloaded.
-   * \param mod_id Id of the mod for which the file is to be downloaded.
-   * This is the limo internal mod id, NOT the NexusMods id.
-   * \param file_path Path to the downloaded file.
-   * \param mod_url Url from which the mod was downloaded.
+   * \param info ImportModInfo::local_source contains the download directory.
    */
-  void downloadComplete(int app_id, int mod_id, QString file_path, QString mod_url);
+  void downloadComplete(ImportModInfo info);
   /*! \brief Signals a failed download. */
   void downloadFailed();
   /*!
@@ -500,7 +567,7 @@ public slots:
    * \param app_id The target \ref ModdedApplication "application".
    * \param info Contains all data needed to install the mod.
    */
-  void installMod(int app_id, AddModInfo info);
+  void installMod(int app_id, ImportModInfo info);
   /*!
    * \brief Uninstalls the given mods for one \ref ModdedApplication "application", this includes
    * deleting all installed files.
@@ -728,21 +795,10 @@ public slots:
   void sortModsByConflicts(int app_id, int deployer);
   /*!
    * \brief Extracts the given archive to the given location.
-   * \param app_id \ref ModdedApplication "application" for which the mod is to be extracted.
-   * \param mod_id Id of the mod for which the file is to be extracted or -1 if this is a new mod.
-   * \param source Source path.
-   * \param target Extraction target path.
-   * \param remote_source URL from where the mod was downloaded.
-   * \param version If not empty: Use this to overwrite the default version.
-   * \param name If not empty: Use this to overwrite the default name.
+   * \param info Contains archive source path in ImportModInfo::local_source
+   * and extraction target path in ImportModInfo::target_path.
    */
-  void extractArchive(int app_id,
-                      int mod_id,
-                      QString source,
-                      QString target,
-                      QString remote_source,
-                      QString version,
-                      QString name);
+  void extractArchive(ImportModInfo info);
   /*!
    * \brief Adds a new target file or directory to be managed by the BackupManager of given
    * ModdedApplication.
@@ -912,22 +968,14 @@ public slots:
    */
   void getNexusPage(int app_id, int mod_id);
   /*!
-   * \brief Downloads a mod from nexusmods using the given nxm_url.
-   * \param app_id App for which the mod is to be downloaded. The mod is downloaded to the apps
-   * staging directory.
-   * \param nxm_url Url containing all information needed for the download.
+   * \brief Downloads a mod from nexusmods
+   *
+   * The mod is downloaded to the target apps staging directory. Uses either the given nxm URL
+   * or the mod and file id for the download.
+   *
+   * \param info Contains either a nxm URL or nexus mod and file ids.
    */
-  void downloadMod(int app_id, QString nxm_url);
-  /*!
-   * \brief Downloads the file with the given id for the given mod url from nexusmods.
-   * \param app_id App for which the mod is to be downloaded. The mod is downloaded to the apps
-   * staging directory.
-   * \param mod_id Id of the mod for which the file is to be downloaded.
-   * This is the Limo internal mod id, NOT the NexusMods id.
-   * \param nexus_file_id File id of the mod.
-   * \param mod_url Url to the mod page on NexusMods.
-   */
-  void downloadModFile(int app_id, int mod_id, int nexus_file_id, QString mod_url);
+  void downloadMod(ImportModInfo info);
   /*!
    * \brief Checks for available mod updates on NexusMods.
    * \param app_id App for which mod updates are to be checked.

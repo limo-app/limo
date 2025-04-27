@@ -98,7 +98,7 @@ TEST_CASE("Expressions of depth 1 are parsed", "[tags]")
   REQUIRE(node2.evaluate(files.at(1)));
 }
 
-TEST_CASE("Complex expressions are parsed", "[tags][!shouldfail]")
+TEST_CASE("Complex expressions are parsed", "[tags]")
 {
   std::vector<TagCondition> conditions{
     { false, TagCondition::Type::file_name, false, "*.txt" },

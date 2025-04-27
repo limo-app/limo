@@ -13,10 +13,13 @@ namespace pu = path_utils;
 OpenMwPluginDeployer::OpenMwPluginDeployer(const sfs::path& source_path,
                                            const sfs::path& dest_path,
                                            const std::string& name) :
-  PluginDeployer(source_path, dest_path, name)
+  LootDeployer(source_path, dest_path, name, false, false)
 {
+  // make sure no hard link related checks are performed
+  deploy_mode_ = copy;
   type_ = "OpenMW Plugin Deployer";
   is_autonomous_ = true;
+  app_type_ = loot::GameType::openmw;
   plugin_regex_ =
     std::regex(R"(.*\.(?:es[pm]|omwscripts|omwaddon|omwgame)$)", std::regex_constants::icase);
   plugin_file_line_regex_ = std::regex(
@@ -80,8 +83,9 @@ std::map<std::string, int> OpenMwPluginDeployer::getAutoTagMap()
 
 void OpenMwPluginDeployer::sortModsByConflicts(std::optional<ProgressNode*> progress_node)
 {
+  LootDeployer::sortModsByConflicts(progress_node);
+
   auto groups = getConflictGroups();
-  ;
   std::vector<std::pair<std::string, bool>> new_plugins;
   new_plugins.reserve(plugins_.size());
   for(const auto& group : groups)
@@ -92,11 +96,6 @@ void OpenMwPluginDeployer::sortModsByConflicts(std::optional<ProgressNode*> prog
   plugins_ = new_plugins;
   updatePluginTags();
   writePlugins();
-}
-
-bool OpenMwPluginDeployer::supportsModConflicts() const
-{
-  return false;
 }
 
 std::vector<std::pair<std::string, std::string>> OpenMwPluginDeployer::getModActions() const
@@ -138,6 +137,24 @@ void OpenMwPluginDeployer::applyModAction(int action, int mod_id)
   updateTagVector();
   writePluginTags();
   writePlugins();
+}
+
+void OpenMwPluginDeployer::addProfile(int source)
+{
+  // we don't want the changes made to profiles by LootDeployer
+  PluginDeployer::addProfile(source);
+}
+
+void OpenMwPluginDeployer::removeProfile(int profile)
+{
+  // we don't want the changes made to profiles by LootDeployer
+  PluginDeployer::removeProfile(profile);
+}
+
+void OpenMwPluginDeployer::setProfile(int profile)
+{
+  // we don't want the changes made to profiles by LootDeployer
+  PluginDeployer::setProfile(profile);
 }
 
 void OpenMwPluginDeployer::writePlugins() const

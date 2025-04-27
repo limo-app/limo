@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include "addmodinfo.h"
 #include "appinfo.h"
 #include "autotag.h"
 #include "backupmanager.h"
@@ -74,7 +73,7 @@ public:
    * \brief Installs a new mod using the given Installer type.
    * \param info Contains all data needed to install the mod.
    */
-  void installMod(const AddModInfo& info);
+  void installMod(const ImportModInfo& info);
   /*!
    * \brief Uninstalls the given mods, this includes deleting all installed files.
    * \param mod_id Ids of the mods to be uninstalled.
@@ -376,12 +375,6 @@ public:
    */
   static int verifyStagingDir(std::filesystem::path staging_dir);
   /*!
-   * \brief Extracts the given archive to the given location.
-   * \param source Source path.
-   * \param target Extraction target path.
-   */
-  void extractArchive(const std::filesystem::path& source, const std::filesystem::path& target);
-  /*!
    * \brief Creates DeployerInfo for one Deployer.
    * \param deployer Target deployer.
    */
@@ -605,31 +598,6 @@ public:
    */
   void suppressUpdateNotification(const std::vector<int>& mod_ids);
   /*!
-   * \brief Generates a download URL from the given NexusMods nxm Url.
-   * \param nxm_url The nxm URL used.
-   * \return The download URL.
-   */
-  std::string getDownloadUrl(const std::string& nxm_url);
-  /*!
-   * \brief Generates a download URL from the given NexusMods mod id and file id.
-   * \param nexus_file_id File id of the mod.
-   * \param mod_url Url to the mod page on NexusMods.
-   * \return The download URL.
-   */
-  std::string getDownloadUrlForFile(int nexus_file_id, const std::string& mod_url);
-  /*!
-   * \brief Generates a NexusMods mod page URL from the given nxm URL.
-   * \param nxm_url The nxm Url used. This is usually generated through the NexusMods website.
-   * \return The NexusMods mod page URL.
-   */
-  std::string getNexusPageUrl(const std::string& nxm_url);
-  /*!
-   * \brief Downloads the file from the given url to staging_dir_ / _download.
-   * \param url Url from which to download the file.
-   * \return The path to the downloaded file.
-   */
-  std::string downloadMod(const std::string& url, std::function<void(float)> progress_callback);
-  /*!
    * \brief Checks if files deployed by the given deployer have been externally overwritten.
    * \param deployer Deployer to check.
    * \return Contains data about overwritten files.
@@ -674,8 +642,16 @@ public:
    * \param mod_id Target mod.
    */
   void applyModAction(int deployer, int action, int mod_id);
+  /*!
+   * \brief Returns the path used to store downloaded mods.
+   * \return The download path.
+   */
+  std::filesystem::path getDownloadDir() const;
 
 private:
+  /*! \brief The subdirectory used to store downloads. */
+  static inline constexpr std::string DOWNLOAD_DIR = "_download";
+
   /*! \brief The name of this application. */
   std::string name_;
   /*! \brief Contains the internal state of this object. */
@@ -728,8 +704,6 @@ private:
   std::vector<std::string> app_versions_;
   /*! \brief Callback used to inform about the current task's progress. */
   std::function<void(float)> progress_callback_ = [](float f) {};
-  /*! \brief The subdirectory used to store downloads. */
-  std::string download_dir_ = "_download";
   /*! \brief File name used to store exported deployers and auto tags. */
   std::string export_file_name = "exported_config";
 
@@ -778,7 +752,7 @@ private:
    * \brief Replaces an existing mod with the mod specified by the given argument.
    * \param info Contains all data needed to install the mod.
    */
-  void replaceMod(const AddModInfo& info);
+  void replaceMod(const ImportModInfo& info);
   /*! \brief Updates manual_tag_map_ with the information contained in manual_tags_. */
   void updateManualTagMap();
   /*! \brief Updates auto_tag_map_ with the information contained in auto_tags_. */

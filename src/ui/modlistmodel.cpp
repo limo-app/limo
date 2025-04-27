@@ -171,6 +171,11 @@ QVariant ModListModel::data(const QModelIndex& index, int role) const
   return QVariant();
 }
 
+QVariant ModListModel::data(int role, int row, int col) const
+{
+  return data(index(row, col), role);
+}
+
 Qt::ItemFlags ModListModel::flags(const QModelIndex& index) const
 {
   if(!index.isValid())

@@ -116,17 +116,17 @@ void ModdedApplication::unDeployModsFor(std::vector<int> deployers)
   updateSettings(true);
 }
 
-void ModdedApplication::installMod(const AddModInfo& info)
+void ModdedApplication::installMod(const ImportModInfo& info)
 {
-  if(info.replace_mod && info.group != -1)
+  if(info.replace_mod && info.target_group_id != -1)
   {
     replaceMod(info);
     return;
   }
   ProgressNode progress_node(progress_callback_);
-  if(info.group >= 0 && !info.deployers.empty())
+  if(info.target_group_id >= 0 && !info.deployers.empty())
     progress_node.addChildren({ 1.0f, 10.0f, info.deployers.size() > 1 ? 10.0f : 1.0f });
-  else if(info.group >= 0 || !info.deployers.empty())
+  else if(info.target_group_id >= 0 || !info.deployers.empty())
     progress_node.addChildren({ 1, 10 });
   else
     progress_node.addChildren({ 1 });
@@ -140,7 +140,7 @@ void ModdedApplication::installMod(const AddModInfo& info)
   if(mod_id == std::numeric_limits<int>().max())
     throw std::runtime_error("Error: Could not generate new mod id.");
   last_mod_id_ = mod_id;
-  const auto mod_size = Installer::install(info.source_path,
+  const auto mod_size = Installer::install(info.current_path,
                                            staging_dir_ / std::to_string(mod_id),
                                            info.installer_flags,
                                            info.installer,
@@ -155,19 +155,22 @@ void ModdedApplication::installMod(const AddModInfo& info)
                                info.remote_source,
                                time_now,
                                mod_size,
-                               time_now);
+                               time_now,
+                               info.remote_mod_id,
+                               info.remote_file_id,
+                               info.remote_type);
   installer_map_[mod_id] = info.installer;
   progress_node.child(0).advance();
-  if(info.group >= 0)
+  if(info.target_group_id >= 0)
   {
-    if(modHasGroup(info.group))
-      addModToGroup(mod_id, group_map_[info.group], &progress_node.child(1));
+    if(modHasGroup(info.target_group_id))
+      addModToGroup(mod_id, group_map_[info.target_group_id], &progress_node.child(1));
     else
-      createGroup(mod_id, info.group, &progress_node.child(1));
+      createGroup(mod_id, info.target_group_id, &progress_node.child(1));
   }
 
   for(int deployer : info.deployers)
-    addModToDeployer(deployer, mod_id, true, &progress_node.child(info.group >= 0 ? 2 : 1));
+    addModToDeployer(deployer, mod_id, true, &progress_node.child(info.target_group_id >= 0 ? 2 : 1));
 
   for(auto& tag : auto_tags_)
     tag.updateMods(staging_dir_, std::vector<int>{ mod_id });
@@ -307,6 +310,7 @@ void ModdedApplication::addDeployer(const EditDeployerInfo& info)
                                                      info.deploy_mode,
                                                      info.separate_profile_dirs,
                                                      info.update_ignore_list));
+  deployers_.back()->setEnableUnsafeSorting(info.enable_unsafe_sorting);
   for(int i = 0; i < profile_names_.size(); i++)
     deployers_.back()->addProfile();
   deployers_.back()->setProfile(current_profile_);
@@ -371,15 +375,7 @@ std::vector<ModInfo> ModdedApplication::getModInfo() const
     }
 
     mod_info.emplace_back(
-      mod.id,
-      mod.name,
-      mod.version,
-      mod.install_time,
-      mod.local_source,
-      mod.remote_source,
-      mod.remote_update_time,
-      mod.size_on_disk,
-      mod.suppress_update_time,
+      mod,
       deployer_names,
       deployer_ids,
       statuses,
@@ -481,6 +477,7 @@ AppInfo ModdedApplication::getAppInfo() const
     info.deployer_source_dirs.push_back(deployer->getSourcePath());
     info.deployer_mods.push_back(deployer->getNumMods());
     info.deploy_modes.push_back(deployer->getDeployMode());
+    info.deployer_is_case_invariant.push_back(deployer->isCaseInvariant());
   }
   info.tools = tools_;
   for(const auto& tag : manual_tags_)
@@ -531,6 +528,7 @@ void ModdedApplication::editDeployer(int deployer, const EditDeployerInfo& info)
     deployers_[deployer]->setName(info.name);
     deployers_[deployer]->setDestPath(info.target_dir);
     deployers_[deployer]->setDeployMode(info.deploy_mode);
+    deployers_[deployer]->setEnableUnsafeSorting(info.enable_unsafe_sorting);
   }
   else
   {
@@ -549,6 +547,7 @@ void ModdedApplication::editDeployer(int deployer, const EditDeployerInfo& info)
     json_settings_["deployers"][deployer]["dest_path"] = info.target_dir;
     json_settings_["deployers"][deployer]["type"] = info.type;
     json_settings_["deployers"][deployer]["deploy_mode"] = info.deploy_mode;
+    json_settings_["deployers"][deployer]["enable_unsafe_sorting"] = info.enable_unsafe_sorting;
     updateState();
   }
   if(deployers_[deployer]->isAutonomous() && info.type != DeployerFactory::REVERSEDEPLOYER)
@@ -853,12 +852,6 @@ int ModdedApplication::verifyStagingDir(sfs::path staging_dir)
   return 0;
 }
 
-void ModdedApplication::extractArchive(const sfs::path& source, const sfs::path& target)
-{
-  ProgressNode node(progress_callback_);
-  Installer::extract(source, target, &node);
-}
-
 DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
 {
   if(!(deployers_[deployer]->isAutonomous()))
@@ -913,7 +906,8 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->idsAreSourceReferences(),
              {},
              deployers_[deployer]->getModActions(),
-             deployers_[deployer]->getValidModActions() };
+             deployers_[deployer]->getValidModActions(),
+             deployers_[deployer]->getEnableUnsafeSorting() };
   }
   else
   {
@@ -963,7 +957,8 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->idsAreSourceReferences(),
              mod_names,
              deployers_[deployer]->getModActions(),
-             deployers_[deployer]->getValidModActions() };
+             deployers_[deployer]->getValidModActions(),
+             deployers_[deployer]->getEnableUnsafeSorting() };
   }
 }
 
@@ -1387,7 +1382,7 @@ void ModdedApplication::deleteAllData()
   for(const auto& mod : installed_mods_)
     sfs::remove_all(staging_dir_ / std::to_string(mod.id));
   sfs::remove(staging_dir_ / CONFIG_FILE_NAME);
-  sfs::remove_all(staging_dir_ / download_dir_);
+  sfs::remove_all(getDownloadDir());
 }
 
 void ModdedApplication::setAppVersion(const std::string& app_version)
@@ -1453,106 +1448,6 @@ void ModdedApplication::suppressUpdateNotification(const std::vector<int>& mod_i
         std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   }
   updateSettings(true);
-}
-
-std::string ModdedApplication::getDownloadUrl(const std::string& nxm_url)
-{
-  return nexus::Api::getDownloadUrl(nxm_url);
-}
-
-std::string ModdedApplication::getDownloadUrlForFile(int nexus_file_id, const std::string& mod_url)
-{
-  return nexus::Api::getDownloadUrl(mod_url, nexus_file_id);
-}
-
-std::string ModdedApplication::getNexusPageUrl(const std::string& nxm_url)
-{
-  return nexus::Api::getNexusPageUrl(nxm_url);
-}
-
-std::string ModdedApplication::downloadMod(const std::string& url,
-                                           std::function<void(float)> progress_callback)
-{
-  log_(Log::LOG_DEBUG, "Download URL: " + url);
-  std::regex url_regex(R"(.*/(.*)\?.*)");
-  std::smatch match;
-  if(!std::regex_match(url, match, url_regex))
-    throw std::runtime_error(std::format("Invalid download URL \"{}\"", url));
-  sfs::path download_path = staging_dir_ / download_dir_;
-  if(!sfs::exists(download_path))
-    sfs::create_directories(download_path);
-  sfs::path file_name = match[1].str();
-  const std::string file_name_prefix = file_name.stem();
-  const std::string extension = file_name.extension();
-  int suffix = 1;
-  while(pu::exists(download_path / file_name))
-  {
-    file_name = file_name_prefix + "(" + std::to_string(suffix) + ")" + extension;
-    suffix++;
-  }
-  std::string file_name_str = file_name.string();
-  auto pos = file_name_str.find("%20");
-  while(pos != std::string::npos)
-  {
-    file_name_str.replace(pos, 3, " ");
-    pos = file_name_str.find("%20");
-  }
-  file_name = file_name_str;
-
-  std::ofstream fstream(download_path / file_name, std::ios::binary);
-  if(!fstream.is_open())
-    throw std::runtime_error("Failed to write to disk.");
-  bool message_sent = false;
-  cpr::Response response = cpr::Download(
-    fstream,
-    cpr::Url(url),
-    cpr::ProgressCallback(
-      [app = this, &message_sent, &file_name, progress_callback](auto download_total,
-                                                                 auto download_now,
-                                                                 auto upload_total,
-                                                                 auto upload_now,
-                                                                 intptr_t user_data)
-      {
-        if(!message_sent && download_total > 0)
-        {
-          std::string size_string;
-          long last_size = 0;
-          long size = download_total;
-          int exp = 0;
-          const std::vector<std::string> units{ "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB" };
-          while(size > 1024 && exp < units.size())
-          {
-            last_size = size;
-            size /= 1024;
-            exp++;
-          }
-          last_size /= 1.024;
-          size_string = std::to_string(size);
-          const int first_digit = (last_size / 100) % 10;
-          const int second_digit = (last_size / 10) % 10;
-          if(first_digit != 0 || second_digit != 0)
-            size_string += "." + std::to_string(first_digit);
-          if(second_digit != 0)
-            size_string += std::to_string(second_digit);
-          size_string += units[exp];
-
-          app->log_(Log::LOG_INFO,
-                    ("Downloading \"" + file_name.string() + "\" with size: ").c_str() +
-                      size_string + "...");
-          message_sent = true;
-        }
-        if(download_total != 0)
-          progress_callback((float)download_now / (float)download_total);
-        return true;
-      }));
-  if(response.status_code != 200)
-  {
-    sfs::remove(download_path / file_name);
-    throw std::runtime_error("Download failed with response: \"" + response.status_line +
-                             "\" (code " + std::to_string(response.status_code) + ").");
-  }
-  fstream.close();
-  return (download_path / file_name).string();
 }
 
 ExternalChangesInfo ModdedApplication::getExternalChanges(int deployer)
@@ -1662,6 +1557,11 @@ void ModdedApplication::applyModAction(int deployer, int action, int mod_id)
   updateSettings(true);
 }
 
+std::filesystem::path ModdedApplication::getDownloadDir() const
+{
+  return staging_dir_ / DOWNLOAD_DIR;
+}
+
 sfs::path ModdedApplication::iconPath() const
 {
   return icon_path_;
@@ -1696,27 +1596,22 @@ void ModdedApplication::updateSettings(bool write)
 
   for(int i = 0; i < installed_mods_.size(); i++)
   {
-    json_settings_["installed_mods"][i]["id"] = installed_mods_[i].id;
-    json_settings_["installed_mods"][i]["name"] = installed_mods_[i].name;
-    json_settings_["installed_mods"][i]["version"] = installed_mods_[i].version;
+    json_settings_["installed_mods"][i] = installed_mods_[i].toJson();
     json_settings_["installed_mods"][i]["installer"] = installer_map_[installed_mods_[i].id];
-    json_settings_["installed_mods"][i]["install_time"] = installed_mods_[i].install_time;
-    json_settings_["installed_mods"][i]["local_source"] = installed_mods_[i].local_source.string();
-    json_settings_["installed_mods"][i]["remote_source"] = installed_mods_[i].remote_source;
-    json_settings_["installed_mods"][i]["remote_update_time"] =
-      installed_mods_[i].remote_update_time;
-    json_settings_["installed_mods"][i]["size_on_disk"] = installed_mods_[i].size_on_disk;
-    json_settings_["installed_mods"][i]["suppress_update_time"] =
-      installed_mods_[i].suppress_update_time;
   }
 
   for(int depl = 0; depl < deployers_.size(); depl++)
   {
     json_settings_["deployers"][depl]["dest_path"] = deployers_[depl]->getDestPath();
-    json_settings_["deployers"][depl]["source_path"] = deployers_[depl]->sourcePath().string();
+    if(deployers_[depl]->isAutonomous())
+      json_settings_["deployers"][depl]["source_path"] = deployers_[depl]->sourcePath().string();
+    else
+      json_settings_["deployers"][depl]["source_path"] = staging_dir_.string();
     json_settings_["deployers"][depl]["name"] = deployers_[depl]->getName();
     json_settings_["deployers"][depl]["type"] = deployers_[depl]->getType();
     json_settings_["deployers"][depl]["deploy_mode"] = deployers_[depl]->getDeployMode();
+    json_settings_["deployers"][depl]["enable_unsafe_sorting"] =
+      deployers_[depl]->getEnableUnsafeSorting();
 
     if(!deployers_[depl]->isAutonomous())
     {
@@ -1839,15 +1734,7 @@ void ModdedApplication::updateState(bool read)
   Json::Value installed_mods = json_settings_["installed_mods"];
   for(int i = 0; i < installed_mods.size(); i++)
   {
-    installed_mods_.emplace_back(installed_mods[i]["id"].asInt(),
-                                 installed_mods[i]["name"].asString(),
-                                 installed_mods[i]["version"].asString(),
-                                 installed_mods[i]["install_time"].asInt64(),
-                                 installed_mods[i]["local_source"].asString(),
-                                 installed_mods[i]["remote_source"].asString(),
-                                 installed_mods[i]["remote_update_time"].asInt64(),
-                                 installed_mods[i]["size_on_disk"].asInt64(),
-                                 installed_mods[i]["suppress_update_time"].asInt64());
+    installed_mods_.emplace_back(installed_mods[i]);
     std::string installer = installed_mods[i]["installer"].asString();
     std::vector<std::string> types = Installer::INSTALLER_TYPES;
     if(std::find(types.begin(), types.end(), installer) == types.end())
@@ -1904,6 +1791,8 @@ void ModdedApplication::updateState(bool read)
                                     sfs::path(deployers[depl]["dest_path"].asString()),
                                     deployers[depl]["name"].asString(),
                                     deploy_mode));
+    if(deployers[depl].isMember("enable_unsafe_sorting"))
+      deployers_.back()->setEnableUnsafeSorting(deployers[depl]["enable_unsafe_sorting"].asBool());
 
     if(!deployers_[depl]->isAutonomous())
     {
@@ -2103,9 +1992,9 @@ void ModdedApplication::splitMod(int mod_id, int deployer)
       continue;
     const auto mod_dir = staging_dir_ / std::to_string(mod_id) / mod_dir_optional->string();
 
-    AddModInfo info;
+    ImportModInfo info;
     info.deployers = { depl };
-    info.group = -1;
+    info.target_group_id = -1;
     auto iter =
       str::find_if(installed_mods_, [mod_id](const auto& mod) { return mod.id == mod_id; });
     if(iter == installed_mods_.end())
@@ -2116,7 +2005,13 @@ void ModdedApplication::splitMod(int mod_id, int deployer)
     info.installer_flags = Installer::Flag::preserve_case | Installer::Flag::preserve_directories;
     info.files = {};
     info.root_level = 0;
-    info.source_path = mod_dir;
+    info.current_path = mod_dir;
+    info.local_source = iter->local_source;
+    info.remote_source = iter->remote_source;
+    info.remote_mod_id = iter->remote_mod_id;
+    info.remote_file_id = iter->remote_file_id;
+    info.remote_type = iter->remote_type;
+
     log_(
       Log::LOG_WARNING,
       std::format(
@@ -2128,17 +2023,17 @@ void ModdedApplication::splitMod(int mod_id, int deployer)
   }
 }
 
-void ModdedApplication::replaceMod(const AddModInfo& info)
+void ModdedApplication::replaceMod(const ImportModInfo& info)
 {
-  if(!info.replace_mod || info.group == -1)
+  if(!info.replace_mod || info.target_group_id == -1)
   {
     installMod(info);
     return;
   }
   auto index =
-    str::find_if(installed_mods_, [group = info.group](const Mod& m) { return m.id == group; });
+    str::find_if(installed_mods_, [group = info.target_group_id](const Mod& m) { return m.id == group; });
   if(index == installed_mods_.end())
-    throw std::runtime_error(std::format("Invalid group '{}' for mod '{}'", info.group, info.name));
+    throw std::runtime_error(std::format("Invalid group '{}' for mod '{}'", info.target_group_id, info.name));
 
   int mod_id = 0;
   if(!installed_mods_.empty())
@@ -2151,13 +2046,13 @@ void ModdedApplication::replaceMod(const AddModInfo& info)
   const sfs::path tmp_replace_dir =
     staging_dir_ / (std::string("tmp_replace_") + std::to_string(mod_id));
 
-  const auto mod_size = Installer::install(info.source_path,
+  const auto mod_size = Installer::install(info.current_path,
                                            tmp_replace_dir,
                                            info.installer_flags,
                                            info.installer,
                                            info.root_level,
                                            info.files);
-  const sfs::path old_mod_path = staging_dir_ / std::to_string(info.group);
+  const sfs::path old_mod_path = staging_dir_ / std::to_string(info.target_group_id);
   sfs::remove_all(old_mod_path);
   sfs::rename(tmp_replace_dir, old_mod_path);
 
@@ -2168,6 +2063,9 @@ void ModdedApplication::replaceMod(const AddModInfo& info)
   index->install_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
   index->remote_update_time = index->install_time;
   index->size_on_disk = mod_size;
+  index->remote_mod_id = info.remote_mod_id;
+  index->remote_file_id = info.remote_file_id;
+  index->remote_type = info.remote_type;
 
   std::vector<float> weights_profiles;
   std::vector<float> weights_mods;
@@ -2176,7 +2074,7 @@ void ModdedApplication::replaceMod(const AddModInfo& info)
   {
     bool was_split = false;
     update_targets.push_back({});
-    if(deployers_[depl]->hasMod(info.group))
+    if(deployers_[depl]->hasMod(info.target_group_id))
       weights_mods.push_back(deployers_[depl]->getNumMods());
     else
       weights_mods.push_back(0);
@@ -2185,14 +2083,14 @@ void ModdedApplication::replaceMod(const AddModInfo& info)
     for(int prof = 0; prof < profile_names_.size(); prof++)
     {
       deployers_[depl]->setProfile(prof);
-      if(deployers_[depl]->hasMod(info.group))
+      if(deployers_[depl]->hasMod(info.target_group_id))
       {
         update_targets[depl].push_back(prof);
         weights_profiles.push_back(deployers_[depl]->getNumMods());
         if(!was_split)
         {
           was_split = true;
-          splitMod(info.group, depl);
+          splitMod(info.target_group_id, depl);
         }
       }
     }
@@ -2205,7 +2103,7 @@ void ModdedApplication::replaceMod(const AddModInfo& info)
   int i = 0;
   for(int depl = 0; depl < update_targets.size(); depl++)
   {
-    deployers_[depl]->updateDeployedFilesForMod(info.group, &node.child(0).child(depl));
+    deployers_[depl]->updateDeployedFilesForMod(info.target_group_id, &node.child(0).child(depl));
     for(int prof : update_targets[depl])
     {
       deployers_[depl]->setProfile(prof);
@@ -2216,7 +2114,7 @@ void ModdedApplication::replaceMod(const AddModInfo& info)
   }
 
   for(auto& tag : auto_tags_)
-    tag.updateMods(staging_dir_, std::vector<int>{ info.group });
+    tag.updateMods(staging_dir_, std::vector<int>{ info.target_group_id });
   updateAutoTagMap();
 
   updateSettings(true);

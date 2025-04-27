@@ -14,24 +14,26 @@ TEST_CASE("Mods are installed", "[app]")
 {
   resetStagingDir();
   ModdedApplication app(DATA_DIR / "staging", "test");
-  AddModInfo info{
-    "mod 0",         "1.0", Installer::SIMPLEINSTALLER, DATA_DIR / "source" / "mod0.tar.gz", {}, -1,
-    INSTALLER_FLAGS, 0
-  };
+  ImportModInfo info;
+  info.name = "mod 0";
+  info.version = "1.0";
+  info.installer = Installer::SIMPLEINSTALLER;
+  info.current_path = DATA_DIR / "source" / "mod0.tar.gz";
+  info.installer_flags = INSTALLER_FLAGS;
   app.installMod(info);
   verifyDirsAreEqual(DATA_DIR / "staging" / "0", DATA_DIR / "source" / "0");
   info.name = "mod 2";
-  info.source_path = DATA_DIR / "source" / "mod2.tar.gz";
+  info.current_path = DATA_DIR / "source" / "mod2.tar.gz";
   app.installMod(info);
   verifyDirsAreEqual(DATA_DIR / "staging" / "1", DATA_DIR / "source" / "2");
   info.name = "mod 1";
-  info.source_path = DATA_DIR / "source" / "mod1.zip";
+  info.current_path = DATA_DIR / "source" / "mod1.zip";
   app.installMod(info);
   verifyDirsAreEqual(DATA_DIR / "staging" / "2", DATA_DIR / "source" / "1");
 
   info.name = "mod 0->2";
-  info.source_path = DATA_DIR / "source" / "mod2.tar.gz";
-  info.group = 0;
+  info.current_path = DATA_DIR / "source" / "mod2.tar.gz";
+  info.target_group_id = 0;
   info.replace_mod = true;
   app.installMod(info);
   verifyDirsAreEqual(DATA_DIR / "staging" / "0", DATA_DIR / "source" / "2");
@@ -46,20 +48,20 @@ TEST_CASE("Deployers are added", "[app]")
   resetAppDir();
   ModdedApplication app(DATA_DIR / "staging", "test");
   app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "app", Deployer::hard_link });
-  AddModInfo info{ "mod 0",
-                   "1.0",
-                   Installer::SIMPLEINSTALLER,
-                   DATA_DIR / "source" / "mod0.tar.gz",
-                   { 0 },
-                   -1,
-                   INSTALLER_FLAGS,
-                   0 };
+  ImportModInfo info;
+  info.name = "mod 0";
+  info.version = "1.0";
+  info.installer = Installer::SIMPLEINSTALLER;
+  info.current_path = DATA_DIR / "source" / "mod0.tar.gz";
+  info.deployers = {0};
+  info.installer_flags = INSTALLER_FLAGS;
+  info.root_level = 0;
   app.installMod(info);
   info.name = "mod 1";
-  info.source_path = DATA_DIR / "source" / "mod1.zip";
+  info.current_path = DATA_DIR / "source" / "mod1.zip";
   app.installMod(info);
   info.name = "mod 2";
-  info.source_path = DATA_DIR / "source" / "mod2.tar.gz";
+  info.current_path = DATA_DIR / "source" / "mod2.tar.gz";
   app.installMod(info);
   app.deployMods();
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "mod012", true);
@@ -75,20 +77,20 @@ TEST_CASE("State is saved", "[app]")
   app.addProfile(EditProfileInfo{ "test profile", "", -1 });
   app.addTool({"t1", "", "command string"});
   app.addTool({"t4", "", "/bin/prog.exe", true, 220, "/tmp", {{"VAR_1", "VAL_1"}}, "-arg", "-parg"});
-  AddModInfo info{ "mod 0",
-                   "1.0",
-                   Installer::SIMPLEINSTALLER,
-                   DATA_DIR / "source" / "mod0.tar.gz",
-                   { 0 },
-                   -1,
-                   INSTALLER_FLAGS,
-                   0 };
+  ImportModInfo info;
+  info.name = "mod 0";
+  info.version = "1.0";
+  info.installer = Installer::SIMPLEINSTALLER;
+  info.current_path = DATA_DIR / "source" / "mod0.tar.gz";
+  info.deployers = {0};
+  info.installer_flags = INSTALLER_FLAGS;
+  info.root_level = 0;
   app.installMod(info);
   info.name = "mod 1";
-  info.source_path = DATA_DIR / "source" / "mod1.zip";
+  info.current_path = DATA_DIR / "source" / "mod1.zip";
   app.installMod(info);
   info.name = "mod 2";
-  info.source_path = DATA_DIR / "source" / "mod2.tar.gz";
+  info.current_path = DATA_DIR / "source" / "mod2.tar.gz";
   info.deployers = { 0, 1 };
   app.installMod(info);
 
@@ -117,18 +119,18 @@ TEST_CASE("Groups update loadorders", "[app]")
   ModdedApplication app(DATA_DIR / "staging", "test");
   app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "app", Deployer::hard_link });
   app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl1", DATA_DIR / "app_2", Deployer::hard_link });
-  AddModInfo info{ "mod 0",
-                   "1.0",
-                   Installer::SIMPLEINSTALLER,
-                   DATA_DIR / "source" / "mod0.tar.gz",
-                   { 0 },
-                   -1,
-                   INSTALLER_FLAGS,
-                   0 };
+  ImportModInfo info;
+  info.name = "mod 0";
+  info.version = "1.0";
+  info.installer = Installer::SIMPLEINSTALLER;
+  info.current_path = DATA_DIR / "source" / "mod0.tar.gz";
+  info.deployers = {0};
+  info.installer_flags = INSTALLER_FLAGS;
+  info.root_level = 0;
   app.installMod(info);
   info.name = "mod 1";
   info.deployers = { 0, 1 };
-  info.source_path = DATA_DIR / "source" / "mod1.zip";
+  info.current_path = DATA_DIR / "source" / "mod1.zip";
   app.installMod(info);
   app.createGroup(1, 0);
   REQUIRE_THAT(app.getLoadorder(0), Catch::Matchers::Equals(app.getLoadorder(1)));
@@ -138,7 +140,7 @@ TEST_CASE("Groups update loadorders", "[app]")
   REQUIRE_THAT(app.getLoadorder(0),
                Catch::Matchers::Equals(std::vector<std::tuple<int, bool>>{ { 0, true } }));
   info.name = "mod 2";
-  info.source_path = DATA_DIR / "source" / "mod2.tar.gz";
+  info.current_path = DATA_DIR / "source" / "mod2.tar.gz";
   app.installMod(info);
   REQUIRE_THAT(
     app.getLoadorder(0),
@@ -174,14 +176,14 @@ TEST_CASE("Mods are split", "[app]")
                     "depl2",
                     DATA_DIR / "source" / "split" / "targets" / "d",
                     Deployer::hard_link });
-  AddModInfo info{ "mod 0",
-                   "1.0",
-                   Installer::SIMPLEINSTALLER,
-                   DATA_DIR / "source" / "split" / "mod",
-                   { 0 },
-                   -1,
-                   INSTALLER_FLAGS,
-                   0 };
+  ImportModInfo info;
+  info.name = "mod 0";
+  info.version = "1.0";
+  info.installer = Installer::SIMPLEINSTALLER;
+  info.current_path = DATA_DIR / "source" / "split" / "mod";
+  info.deployers = {0};
+  info.installer_flags = INSTALLER_FLAGS;
+  info.root_level = 0;
   app.installMod(info);
   sfs::remove(DATA_DIR / "staging" / "lmm_mods.json");
   sfs::remove(DATA_DIR / "staging" / ".lmm_mods.json.bak");
@@ -194,22 +196,22 @@ TEST_CASE("Mods are uninstalled", "[app]")
   ModdedApplication app(DATA_DIR / "staging", "test");
   app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl0", DATA_DIR / "app", Deployer::hard_link });
   app.addDeployer({ DeployerFactory::SIMPLEDEPLOYER, "depl1", DATA_DIR / "app_2", Deployer::hard_link });
-  AddModInfo info{ "mod 0",
-                   "1.0",
-                   Installer::SIMPLEINSTALLER,
-                   DATA_DIR / "source" / "mod0.tar.gz",
-                   { 0 },
-                   -1,
-                   INSTALLER_FLAGS,
-                   0 };
+  ImportModInfo info;
+  info.name = "mod 0";
+  info.version = "1.0";
+  info.installer = Installer::SIMPLEINSTALLER;
+  info.current_path = DATA_DIR / "source" / "mod0.tar.gz";
+  info.deployers = {0};
+  info.installer_flags = INSTALLER_FLAGS;
+  info.root_level = 0;
   app.installMod(info);
   info.name = "mod 1";
-  info.source_path = DATA_DIR / "source" / "mod1.zip";
+  info.current_path = DATA_DIR / "source" / "mod1.zip";
   app.installMod(info);
   info.name = "mod 2";
-  info.source_path = DATA_DIR / "source" / "mod2.tar.gz";
+  info.current_path = DATA_DIR / "source" / "mod2.tar.gz";
   info.deployers = { 0, 1 };
-  info.group = 1;
+  info.target_group_id = 1;
   app.installMod(info);
   app.uninstallMods({ 0, 2 });
   auto mod_info = app.getModInfo();
@@ -224,13 +226,13 @@ TEST_CASE("Mods are uninstalled", "[app]")
   verifyDirsAreEqual(DATA_DIR / "staging", DATA_DIR / "target" / "remove" / "simple");
 
   info.deployers = { 0 };
-  info.group = -1;
+  info.target_group_id = -1;
   info.name = "mod 0";
-  info.source_path = DATA_DIR / "source" / "mod0.tar.gz";
+  info.current_path = DATA_DIR / "source" / "mod0.tar.gz";
   app.installMod(info);
   info.name = "mod 2";
-  info.source_path = DATA_DIR / "source" / "mod2.tar.gz";
-  info.group = 1;
+  info.current_path = DATA_DIR / "source" / "mod2.tar.gz";
+  info.target_group_id = 1;
   app.installMod(info);
   app.uninstallGroupMembers({ 1 });
   mod_info = app.getModInfo();

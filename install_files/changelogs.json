@@ -2,6 +2,57 @@
   "versions":
   [
     {
+      "version" : "1.2",
+      "date" : 1744471606,
+      "title" : "Installation Improvements",
+      "changes" :
+      [
+        {
+          "type" : 0,
+          "short_description" : "Added root level auto detection"
+        },
+        {
+          "type" : 2,
+          "short_description" : "Fixed includes for GCC-15",
+          "pull_request" : 137
+        },
+        {
+          "type" : 0,
+          "short_description" : "Added more auto tags for Skyrim and Fallout New Vegas",
+          "pull_request" : 127
+        },
+        {
+          "type": 0,
+          "short_description" : "Added ctest support",
+          "pull_request" : 126
+        },
+        {
+          "type" : 0,
+          "short_description" : "Added LOOT support for OpenMW Plugin Deployer",
+          "issue" : 123
+        },
+        {
+          "type" : 2,
+          "short_description" : "Fixed compiler error when using libloot >= 0.25",
+          "issue" : 140
+        },
+        {
+          "type" : 1,
+          "short_description" : "Improved matching between downloaded mods and installed mods"
+        },
+        {
+          "type" : 1,
+          "short_description" : "Improved auto detection for mod name and version when downloading from NexusMods",
+          "issue" : 165
+        },
+        {
+          "type" : 2,
+          "short_description" : "Fixed OpenMW Archive Deployer using the wrong deploy mode for Flatpak installations of OpenMW",
+          "issue" : 169
+        }
+      ]
+    },
+    {
       "version" : "1.1",
       "date" : 1737597600,
       "title" : "Baldur's Gate 3 support",

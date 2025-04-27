@@ -35,4 +35,6 @@ struct EditDeployerInfo
    * deployer to the ignore list.
    */
   bool update_ignore_list = false;
+  /*! \brief Determines whether sorting mods can affect overwrite behavior. */
+  bool enable_unsafe_sorting = true;
 };

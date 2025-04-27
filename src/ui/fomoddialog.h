@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "../core/addmodinfo.h"
+#include "../core/importmodinfo.h"
 #include "../core/fomod/fomodinstaller.h"
 #include <QButtonGroup>
 #include <QDialog>
@@ -43,12 +43,14 @@ public:
    * checks evaluate to true if this is left empty.
    * \param info Contains necessary data to install the mod upon dialog completion.
    * \param app_id Application for which the new mod is to be installed.
+   * \param paths_are_case_invariant Indicates whether paths are treated as case invariant.
    */
   void setupDialog(const std::filesystem::path& config_file,
                    const std::filesystem::path& target_path,
                    const QString& app_version,
-                   const AddModInfo& info,
-                   int app_id);
+                   const ImportModInfo& info,
+                   int app_id,
+                   bool paths_are_case_invariant);
   /*!
    * \brief Returns pairs of source and destinations for every selected file during
    * the installation process.
@@ -84,11 +86,13 @@ private:
   /*! \brief If true: This dialog is non interactive. */
   bool has_no_steps_;
   /*! \brief Contains necessary data to install the mod upon dialog completion. */
-  AddModInfo add_mod_info_;
+  ImportModInfo import_mod_info_;
   /*! \brief Application for which the new mod is to be installed. */
   int app_id_;
   /*! \brief Indicates whether the dialog has been completed. */
   bool dialog_completed_ = false;
+  /*! \brief Indicates whether or not paths should be treated as case invariant. */
+  bool paths_are_case_invariant_ = false;
 
   /*!
    * \brief Creates a new FomodCheckBox or FomodRatioButton for selection of a plugin.
@@ -149,7 +153,7 @@ signals:
    * \param app_id Application for which the new mod is to be installed.
    * \param info Contains all data needed to install the mod.
    */
-  void addModAccepted(int app_id, AddModInfo info);
+  void addModAccepted(int app_id, ImportModInfo info);
   /*! \brief Signals mod installation has been aborted. */
   void addModAborted();
 };

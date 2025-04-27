@@ -23,7 +23,7 @@ void resetOpenMwFiles()
   sfs::copy(target_source, target_target);
 }
 
-TEST_CASE("State is read", "[openmw][!shouldfail]")
+TEST_CASE("State is read", "[openmw]")
 {
   resetOpenMwFiles();
   
@@ -58,7 +58,7 @@ TEST_CASE("State is read", "[openmw][!shouldfail]")
   verifyFilesAreEqual(DATA_DIR / "target" / "openmw" / "target" / "openmw.cfg", DATA_DIR / "target" / "openmw" / "0" / "openmw.cfg");
 }
 
-TEST_CASE("Load order can be edited", "[openmw][!shouldfail]")
+TEST_CASE("Load order can be edited", "[openmw]")
 {
   resetOpenMwFiles();
   
@@ -99,7 +99,7 @@ TEST_CASE("Load order can be edited", "[openmw][!shouldfail]")
   REQUIRE_THAT(p_depl.getLoadorder(), Catch::Matchers::Equals(p_depl_2.getLoadorder()));
 }
 
-TEST_CASE("Profiles are managed", "[openmw][!shouldfail]")
+TEST_CASE("Profiles are managed", "[openmw]")
 {
   resetOpenMwFiles();
   

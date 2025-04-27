@@ -107,6 +107,7 @@ int main(int argc, char* argv[])
     if(pos_args.empty())
     {
       client.sendString("Started");
+      std::cout << "Another instance is already running. Sending arguments..." << std::endl;
       return 2;
     }
     std::regex nxm_regex(R"(nxm:\/\/.*\mods\/\d+\/files\/\d+\?.*)");

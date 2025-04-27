@@ -18,6 +18,8 @@ PluginDeployer::PluginDeployer(const sfs::path& source_path,
                                const sfs::path& dest_path,
                                const std::string& name) : Deployer(source_path, dest_path, name)
 {
+  // make sure no hard link related checks are performed
+  deploy_mode_ = copy;
   type_ = "Plugin Deployer";
   is_autonomous_ = true;
 }

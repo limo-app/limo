@@ -1,6 +1,7 @@
 #include "applicationmanager.h"
 #include "../core/deployerfactory.h"
 #include "../core/installer.h"
+#include "../core/pathutils.h"
 #include <QCoreApplication>
 #include <QDebug>
 #include <QMessageBox>
@@ -9,7 +10,107 @@
 #include <regex>
 
 namespace sfs = std::filesystem;
+namespace pu = path_utils;
 
+bool performDownload(ImportModInfo& info, ApplicationManager* app_mgr)
+{
+  app_mgr->sendLogMessage(Log::LOG_DEBUG,
+                          std::format("Downloading from : '{}'", info.remote_download_url));
+  std::regex url_regex(R"(.*/(.*)\?.*)");
+  std::smatch match;
+  if(!std::regex_match(info.remote_download_url, match, url_regex))
+    throw std::runtime_error(std::format("Invalid download URL \"{}\"", info.remote_download_url));
+  sfs::path download_path = info.target_path;
+  if(!sfs::exists(download_path))
+    sfs::create_directories(download_path);
+  sfs::path file_name = match[1].str();
+  const std::string file_name_prefix = file_name.stem();
+  const std::string extension = file_name.extension();
+  int suffix = 1;
+  while(pu::exists(download_path / file_name))
+  {
+    file_name = file_name_prefix + "(" + std::to_string(suffix) + ")" + extension;
+    suffix++;
+  }
+  std::string file_name_str = file_name.string();
+  auto pos = file_name_str.find("%20");
+  while(pos != std::string::npos)
+  {
+    file_name_str.replace(pos, 3, " ");
+    pos = file_name_str.find("%20");
+  }
+  file_name = file_name_str;
+
+  auto progress_callback = [app_mgr](float progress) { app_mgr->sendUpdateProgress(progress); };
+  std::ofstream fstream(download_path / file_name, std::ios::binary);
+  if(!fstream.is_open())
+    throw std::runtime_error("Failed to write to disk.");
+  bool message_sent = false;
+  cpr::Response response = cpr::Download(
+    fstream,
+    cpr::Url(info.remote_download_url),
+    cpr::ProgressCallback(
+      [app_mgr, &message_sent, &file_name, progress_callback](auto download_total,
+                                                              auto download_now,
+                                                              auto upload_total,
+                                                              auto upload_now,
+                                                              intptr_t user_data)
+      {
+        if(!message_sent && download_total > 0)
+        {
+          std::string size_string;
+          long last_size = 0;
+          long size = download_total;
+          int exp = 0;
+          const std::vector<std::string> units{ "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB" };
+          while(size > 1024 && exp < units.size())
+          {
+            last_size = size;
+            size /= 1024;
+            exp++;
+          }
+          last_size /= 1.024;
+          size_string = std::to_string(size);
+          const int first_digit = (last_size / 100) % 10;
+          const int second_digit = (last_size / 10) % 10;
+          if(first_digit != 0 || second_digit != 0)
+            size_string += "." + std::to_string(first_digit);
+          if(second_digit != 0)
+            size_string += std::to_string(second_digit);
+          size_string += units[exp];
+
+          app_mgr->sendLogMessage(
+            Log::LOG_INFO,
+            ("Downloading \"" + file_name.string() + "\" with size: ").c_str() + size_string +
+              "...");
+          message_sent = true;
+        }
+        if(download_total != 0)
+          progress_callback((float)download_now / (float)download_total);
+        return true;
+      }));
+  if(response.status_code != 200)
+  {
+    sfs::remove(download_path / file_name);
+    throw std::runtime_error("Download failed with response: \"" + response.status_line +
+                             "\" (code " + std::to_string(response.status_code) + ").");
+  }
+  fstream.close();
+  info.local_source = download_path / file_name;
+  info.current_path = info.local_source;
+  return true;
+}
+
+bool performExtraction(ImportModInfo& info, ApplicationManager* app_mgr)
+{
+  info.last_action_was_successful = false;
+  auto progress_callback = [app_mgr](float progress) { app_mgr->sendUpdateProgress(progress); };
+  ProgressNode node(progress_callback);
+  Installer::extract(info.local_source, info.target_path, &node);
+  info.current_path = info.target_path;
+  info.last_action_was_successful = true;
+  return true;
+}
 
 ApplicationManager::ApplicationManager(QObject* parent) : QObject{ parent }
 {
@@ -193,11 +294,11 @@ void ApplicationManager::handleAddDeployerError(int code,
     emit sendError("Error",
                    "Could not write to staging dir " + QString(staging_dir.string().c_str()) + "!");
   else if(code == 2)
-    emit sendError("Error",
-                   "Could not create hard link from\n\"" + QString(staging_dir.string().c_str()) +
-                     "\"\nto\n\"" + QString(dest_dir.string().c_str()) + "\".\n" +
-                     "Ensure that both directories are on the same partition!\n"
-                     "Alternatively: Switch to sym link deployment.");
+    emit sendError(
+      "Error",
+      "Could not create hard link from\n\"" + QString(staging_dir.string().c_str()) + "\"\nto\n\"" +
+        QString(dest_dir.string().c_str()) + "\".\n" +
+        "Ensure that both directories are on the same partition!\n" "Alternatively: " "Switch to " "sym " "link deployment.");
   else if(code == 3)
     emit sendError("Error",
                    "Could no copy files\n\"" + QString(staging_dir.string().c_str()) +
@@ -350,7 +451,7 @@ void ApplicationManager::unDeployModsFor(int app_id, std::vector<int> deployer_i
   emit completedOperations("Mods undeployed");
 }
 
-void ApplicationManager::installMod(int app_id, AddModInfo info)
+void ApplicationManager::installMod(int app_id, ImportModInfo info)
 {
   bool has_thrown = false;
   if(appIndexIsValid(app_id))
@@ -625,19 +726,10 @@ void ApplicationManager::sortModsByConflicts(int app_id, int deployer)
   emit completedOperations("Mods sorted");
 }
 
-void ApplicationManager::extractArchive(int app_id,
-                                        int mod_id,
-                                        QString source,
-                                        QString target,
-                                        QString remote_source,
-                                        QString version,
-                                        QString name)
+void ApplicationManager::extractArchive(ImportModInfo info)
 {
-  bool has_thrown = true;
-  if(appIndexIsValid(0))
-    has_thrown = handleExceptions<&ModdedApplication::extractArchive>(
-      0, source.toStdString(), target.toStdString());
-  emit extractionComplete(app_id, mod_id, !has_thrown, target, source, remote_source, version, name);
+  handleExceptionsForFunction(performExtraction, info, this);
+  emit extractionComplete(info);
 }
 
 void ApplicationManager::addBackupTarget(int app_id,
@@ -834,71 +926,59 @@ void ApplicationManager::getNexusPage(int app_id, int mod_id)
   emit completedOperations();
 }
 
-void ApplicationManager::downloadMod(int app_id, QString nxm_url)
+void ApplicationManager::downloadMod(ImportModInfo info)
 {
-  if(!appIndexIsValid(app_id))
+  info.last_action_was_successful = false;
+  if(!appIndexIsValid(info.app_id))
   {
     emit downloadFailed();
     return;
   }
 
-  auto download_url =
-    handleExceptions(&ModdedApplication::getDownloadUrl, apps_[app_id], nxm_url.toStdString());
-  if(!download_url)
+  if(info.remote_request_url.empty())
+  {
+    auto download_url = handleExceptionsForFunction(
+      static_cast<std::string (*)(const std::string&, long)>(nexus::Api::getDownloadUrl),
+      info.remote_source,
+      info.remote_file_id);
+    if(!download_url)
+    {
+      emit downloadFailed();
+      return;
+    }
+    info.remote_download_url = *download_url;
+  }
+  else
+  {
+    auto download_url = handleExceptionsForFunction(
+      static_cast<std::string (*)(const std::string&)>(nexus::Api::getDownloadUrl),
+      info.remote_request_url);
+    if(!download_url)
+    {
+      emit downloadFailed();
+      return;
+    }
+    info.remote_download_url = *download_url;
+  }
+  info.remote_download_url = QUrl(info.remote_download_url.c_str()).toEncoded().toStdString();
+
+  auto init_successful = handleExceptionsForFunction(nexus::Api::initModInfo, info);
+  if(!init_successful || !(*init_successful))
   {
     emit downloadFailed();
     return;
   }
 
-  auto mod_url =
-    handleExceptions(&ModdedApplication::getNexusPageUrl, apps_[app_id], nxm_url.toStdString());
-  if(!mod_url)
-  {
-    emit downloadFailed();
-    return;
-  }
-  auto file_path =
-    handleExceptions(&ModdedApplication::downloadMod,
-                     apps_[app_id],
-                     QUrl(download_url->c_str()).toEncoded().toStdString(),
-                     [app_mgr = this](float progress) { app_mgr->sendUpdateProgress(progress); });
-  if(!file_path)
+  info.target_path = apps_[info.app_id].getDownloadDir();
+  auto download_successful = handleExceptionsForFunction(performDownload, info, this);
+  if(!download_successful)
   {
     emit downloadFailed();
     return;
   }
 
-  emit downloadComplete(app_id, -1, file_path->c_str(), mod_url->c_str());
-}
-
-void ApplicationManager::downloadModFile(int app_id, int mod_id, int nexus_file_id, QString mod_url)
-{
-  if(!appIndexIsValid(app_id))
-  {
-    emit downloadFailed();
-    return;
-  }
-
-  auto download_url = handleExceptions(
-    &ModdedApplication::getDownloadUrlForFile, apps_[app_id], nexus_file_id, mod_url.toStdString());
-  if(!download_url)
-  {
-    emit downloadFailed();
-    return;
-  }
-
-  auto file_path =
-    handleExceptions(&ModdedApplication::downloadMod,
-                     apps_[app_id],
-                     QUrl(download_url->c_str()).toEncoded().toStdString(),
-                     [app_mgr = this](float progress) { app_mgr->sendUpdateProgress(progress); });
-  if(!file_path)
-  {
-    emit downloadFailed();
-    return;
-  }
-
-  emit downloadComplete(app_id, mod_id, file_path->c_str(), mod_url);
+  info.last_action_was_successful = true;
+  emit downloadComplete(info);
 }
 
 void ApplicationManager::checkForModUpdates(int app_id)

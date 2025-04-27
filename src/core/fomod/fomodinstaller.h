@@ -34,6 +34,7 @@ public:
    * \param target_path Installation target, this is only used to check file dependencies.
    */
   void init(const std::filesystem::path& config_file,
+            bool paths_are_case_invariant = true,
             const std::filesystem::path& target_path = "",
             const std::string& app_version = "");
   /*!
@@ -101,6 +102,8 @@ private:
   std::function<bool(std::string)> version_eval_fun_ = [](auto s) { return true; };
   /*! \brief Used to evaluate fomm version conditions. */
   std::function<bool(std::string)> fomm_eval_fun_ = [](auto s) { return true; };
+  /*! \brief Indicates whether or not paths should be treated as case invariant. */
+  bool paths_are_case_invariant_;
 
   /*!
    * \brief Extracts all files from given file list node and appends them to given vector.

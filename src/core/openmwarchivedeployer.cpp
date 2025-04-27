@@ -14,6 +14,8 @@ OpenMwArchiveDeployer::OpenMwArchiveDeployer(const std::filesystem::path& source
                                              const std::string& name) :
   PluginDeployer(source_path, dest_path, name)
 {
+  // make sure no hard link related checks are performed
+  deploy_mode_ = copy;
   type_ = "OpenMW Archive Deployer";
   is_autonomous_ = true;
   plugin_regex_ = R"(.*\.[bB][sS][aA]$)";

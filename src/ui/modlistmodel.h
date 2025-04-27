@@ -113,6 +113,14 @@ public:
    */
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
   /*!
+   * \brief Returns the data at the given row and column.
+   * \param role Describes type of data to return.
+   * \param row Row to access.
+   * \param col Column to access.
+   * \return The requested data.
+   */
+  QVariant data(int role, int row, int col = 0) const;
+  /*!
    * \brief Returns the flags for the given index. Adds editing flags for editable columns.
    * \param index Target index.
    * \return The flags.
