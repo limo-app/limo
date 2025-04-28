@@ -41,7 +41,16 @@
   
   
   <releases>
-      <release version="1.2" date="2025-04-12">
+    <release version="1.2.1" date="2025-04-28">
+      <description>
+        <p>Root level detection improvements</p>
+        <ul>
+          <li>Added file pattern based root level auto detection</li>
+          <li>Fixed BG3 Deployer for patch 8</li>
+        </ul>
+      </description>
+    </release>
+    <release version="1.2" date="2025-04-12">
       <description>
         <p>Installation Improvements</p>
         <ul>
