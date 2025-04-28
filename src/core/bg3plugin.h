@@ -99,8 +99,11 @@ public:
    */
   static bool isValidPlugin(const std::string& xml_string);
 
-  /*! \brief UUID of the GustavDev plugin. */
-  static constexpr char BG3_VANILLA_MOD_UUID[] = "28ac9ce2-2aba-8cda-b3b5-6e922f71b6b8";
+  /*! \brief UUIDS of the Gustav plugins for different game versions. */
+  static inline const std::set<std::string> BG3_VANILLA_UUIDS{
+    "28ac9ce2-2aba-8cda-b3b5-6e922f71b6b8",
+    "cb555efe-2d9e-131f-8195-a89329d218ea"
+  };
 
 private:
   /*! \brief Xml representation of this plugin. */

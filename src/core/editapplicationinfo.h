@@ -36,4 +36,6 @@ struct EditApplicationInfo
   std::string icon_path;
   /*! \brief Version of the app. This is used for FOMOD conditions. */
   std::string app_version;
+  /*! \brief Steam app id of the added application. */
+  long steam_app_id;
 };

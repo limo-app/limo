@@ -469,6 +469,7 @@ AppInfo ModdedApplication::getAppInfo() const
   info.command = command_;
   info.num_mods = installed_mods_.size();
   info.app_version = app_versions_[current_profile_];
+  info.steam_app_id = steam_app_id_;
   for(const auto& deployer : deployers_)
   {
     info.deployers.push_back(deployer->getName());
@@ -1655,6 +1656,8 @@ void ModdedApplication::updateSettings(bool write)
       json_settings_["auto_tags"][i] = auto_tags_[i].toJson();
   }
 
+  json_settings_["steam_app_id"] = steam_app_id_;
+
   if(write)
     writeSettings();
 }
@@ -1883,6 +1886,12 @@ void ModdedApplication::updateState(bool read)
     }
     updateAutoTagMap();
   }
+
+  steam_app_id_ = -1;
+  if(json_settings_.isMember("steam_app_id"))
+    steam_app_id_ = json_settings_["steam_app_id"].asInt64();
+  else
+    updateSteamAppId();
 
   updateSteamIconPath();
 }
@@ -2215,6 +2224,40 @@ void ModdedApplication::updateSteamIconPath()
     {
       icon_path_ = steam_path / file_name;
       updateSettings(true);
+      return;
+    }
+  }
+}
+
+void ModdedApplication::updateSteamAppId()
+{
+  if(steam_app_id_ != -1)
+    return;
+
+  std::regex old_path_regex(R"(.*?/steam/appcache/librarycache/(\d+)_icon\.jpg)");
+  std::smatch match;
+  std::string path_str = icon_path_.string();
+  if(std::regex_match(path_str, match, old_path_regex))
+  {
+    steam_app_id_ = std::stol(match[1]);
+    return;
+  }
+
+  std::regex new_path_regex(R"(.*?/steam/appcache/librarycache/(\d+)/.*)");
+  if(std::regex_match(path_str, match, new_path_regex))
+  {
+    steam_app_id_ = std::stol(match[1]);
+    return;
+  }
+
+  std::regex steam_regex(R"(/steamapps/compatdata/(\d+))");
+  for(const auto& depl : deployers_)
+  {
+    std::smatch match;
+    std::string path = depl->getDestPath();
+    if(std::regex_search(path, match, steam_regex))
+    {
+      steam_app_id_ = std::stol(match[1]);
       return;
     }
   }

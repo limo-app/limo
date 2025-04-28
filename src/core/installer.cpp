@@ -209,13 +209,14 @@ void Installer::uninstall(const sfs::path& mod_path, const std::string& type)
   sfs::remove_all(mod_path);
 }
 
-std::vector<sfs::path> Installer::getArchiveFileNames(const sfs::path& path)
+std::vector<std::pair<sfs::path, bool>> Installer::getArchiveFileNames(const sfs::path& path)
 {
-  std::vector<sfs::path> file_names;
+
+  std::vector<std::pair<sfs::path, bool>> file_names;
   if(sfs::is_directory(path))
   {
     for(const auto& dir_entry : sfs::recursive_directory_iterator(path))
-      file_names.push_back(pu::getRelativePath(dir_entry.path(), path));
+      file_names.emplace_back(pu::getRelativePath(dir_entry.path(), path), sfs::is_directory(path));
     return file_names;
   }
   struct archive* source;
@@ -226,7 +227,7 @@ std::vector<sfs::path> Installer::getArchiveFileNames(const sfs::path& path)
   if(archive_read_open_filename(source, path.string().c_str(), 10240) != ARCHIVE_OK)
     throw CompressionError("Could not open archive file.");
   while(archive_read_next_header(source, &entry) == ARCHIVE_OK)
-    file_names.push_back(archive_entry_pathname(entry));
+    file_names.emplace_back(archive_entry_pathname(entry), archive_entry_filetype(entry) == AE_IFDIR);
   if(archive_read_free(source) != ARCHIVE_OK)
     throw CompressionError("Parsing of archive failed.");
   return file_names;
@@ -246,11 +247,11 @@ std::tuple<int, std::string, std::string> Installer::detectInstallerSignature(
   };
   const auto files = getArchiveFileNames(source);
   int max_length = 0;
-  for(const auto& file : files)
+  for(const auto& [file, _] : files)
     max_length = std::max(max_length, pu::getPathLength(file));
   for(int root_level = 0; root_level < max_length; root_level++)
   {
-    for(const auto& file : files)
+    for(const auto& [file, _] : files)
     {
       const auto [head, tail] = pu::removePathComponents(file, root_level);
       if(str_equals(path, tail))

@@ -101,9 +101,11 @@ public:
   /*!
    * \brief Recursively reads all file and directory names from given archive.
    * \param path Path to given archive.
-   * \return Vector of paths within the archive.
+   * \return Vector of paths within the archive and bools indicating whether that path points to
+   * a directory.
    */
-  static std::vector<std::filesystem::path> getArchiveFileNames(const std::filesystem::path& path);
+  static std::vector<std::pair<std::filesystem::path, bool>> getArchiveFileNames(
+    const std::filesystem::path& path);
   /*!
    * \brief Identifies the appropriate installer type from given source archive or
    * directory.

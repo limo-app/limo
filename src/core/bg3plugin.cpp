@@ -38,7 +38,7 @@ Bg3Plugin::Bg3Plugin(const std::string& xml_string) : xml_string_(xml_string)
       dependency.find_child_by_attribute("id", "UUID").attribute("value").value();
     const std::string name =
       dependency.find_child_by_attribute("id", "Name").attribute("value").value();
-    if(!uuid.empty() && uuid != BG3_VANILLA_MOD_UUID)
+    if(!uuid.empty() && !BG3_VANILLA_UUIDS.contains(uuid))
       dependencies_.emplace_back(uuid, name);
   }
 }
@@ -166,5 +166,5 @@ bool Bg3Plugin::isValidPlugin(const std::string& xml_string)
   if(uuid_node.empty())
     return false;
   const std::string uuid = uuid_node.attribute("value").value();
-  return !uuid.empty() && uuid != BG3_VANILLA_MOD_UUID;
+  return !uuid.empty() && !BG3_VANILLA_UUIDS.contains(uuid);
 }

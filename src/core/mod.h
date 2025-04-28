@@ -39,7 +39,7 @@ struct Mod
   /*! \brief If this was retreived from a remote source: The file id on the remote. */
   long remote_file_id = -1;
   /*! \brief Type of remote this mod was retreived from. */
-  ImportModInfo::RemoteType remote_type;
+  ImportModInfo::RemoteType remote_type = ImportModInfo::RemoteType::local;
 
   /*!
    * \brief Constructor. Simply initializes members.

@@ -79,6 +79,8 @@ private:
   QString command_;
   /*! \brief Id of the edited \ref ModdedApplication "application". */
   int app_id_;
+  /*! \brief Steam app id of the new application, or -1 if not a steam app. */
+  long steam_app_id_;
   /*! \brief Path to imported steam applications installation directory. */
   QString steam_install_path_ = "";
   /*! \brief Path to imported steam applications prefix directory. */
@@ -127,13 +129,15 @@ public:
    * \ref ModdedApplication "application".
    * \param command Current command to run the edited \ref ModdedApplication "application".
    * \param app_id Id of the edited \ref ModdedApplication "application".
+   * \param steam_app_id Steam app id. Or -1 if not a Steam app.
    */
   void setEditMode(const QString& name,
                    const QString& app_version,
                    const QString& path,
                    const QString& command,
                    const QString& icon_path,
-                   int app_id);
+                   int app_id,
+                   long steam_app_id);
   /*!
    *  \brief Initializes this dialog to allow creating a new
    *  \ref ModdedApplication "application".

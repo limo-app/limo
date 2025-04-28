@@ -706,6 +706,8 @@ private:
   std::function<void(float)> progress_callback_ = [](float f) {};
   /*! \brief File name used to store exported deployers and auto tags. */
   std::string export_file_name = "exported_config";
+  /*! \brief Steam app id. Or -1 if not a Steam app. */
+  long steam_app_id_;
 
   /*!
    * \brief Updates json_settings_ with the current state of this object.
@@ -771,4 +773,6 @@ private:
   std::string generalizeSteamPath(const std::string& path);
   /*! \brief If the icon path is a steam path: Update it to the new format. */
   void updateSteamIconPath();
+  /*! \brief If steam_app_id_ == -1: Try to determine the app id. */
+  void updateSteamAppId();
 };

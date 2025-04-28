@@ -3,7 +3,6 @@
 #include "../core/log.h"
 #include "../core/pathutils.h"
 #include "fomoddialog.h"
-#include "qdebug.h"
 #include "ui_addmoddialog.h"
 #include <QGroupBox>
 #include <QMessageBox>
@@ -78,7 +77,6 @@ void AddModDialog::updateOkButton()
 
 void AddModDialog::colorTreeNodes(QTreeWidgetItem* node, int cur_depth, int root_level)
 {
-  qDebug() << node->text(0);
   if(cur_depth < root_level)
   {
     node->setForeground(0, COLOR_REMOVE_);
@@ -103,7 +101,6 @@ int AddModDialog::detectRootLevel(int deployer) const
 {
   bool is_case_invariant = case_invariant_deployers_[deployer];
   sfs::path deployer_path = deployer_paths_[deployer].toStdString();
-
   auto cur_item = ui->content_tree->invisibleRootItem();
   if(cur_item->childCount() != 1)
     return 0;
@@ -145,13 +142,38 @@ int AddModDialog::detectRootLevel(int deployer) const
   return 0;
 }
 
+int AddModDialog::computeFomodBoxIndexFromDeployer(int index) const
+{
+  int fomod_index = -1;
+  for(int i = 0; i < index; i++)
+  {
+    if(!autonomous_deployers_[i])
+      fomod_index++;
+  }
+  return fomod_index;
+}
+
+int AddModDialog::computeDeployerFromFomodBoxIndex(int index) const
+{
+  int deployer = -1;
+  int fomod_index = -1;
+  for(bool is_autonomous : autonomous_deployers_)
+  {
+    deployer++;
+    if(!is_autonomous && ++fomod_index == index)
+      break;
+  }
+  return deployer;
+}
+
 bool AddModDialog::setupDialog(const QStringList& deployers,
                                int cur_deployer,
                                const QStringList& deployer_paths,
                                const std::vector<bool>& autonomous_deployers,
                                const std::vector<bool>& case_invariant_deployers,
                                const QString& app_version,
-                               const ImportModInfo& info)
+                               const ImportModInfo& info,
+                               const std::vector<RootLevelCondition>& root_level_conditions)
 {
   groups_.clear();
   const auto& mod_infos = mod_list_model_->getModInfo();
@@ -181,6 +203,8 @@ bool AddModDialog::setupDialog(const QStringList& deployers,
   ui->group_field->setCompleter(completer_.get());
   ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
   ui->group_check->setCheckState(Qt::Unchecked);
+  autonomous_deployers_ = autonomous_deployers;
+
   int mod_index = -1;
   if(info.target_group_id != -1)
   {
@@ -246,8 +270,7 @@ bool AddModDialog::setupDialog(const QStringList& deployers,
   }
   if(detected_type == Installer::FOMODINSTALLER)
   {
-    auto [name, version] =
-      fomod::FomodInstaller::getMetaData(info.current_path / prefix);
+    auto [name, version] = fomod::FomodInstaller::getMetaData(info.current_path / prefix);
     if(!name.empty() && info.name_overwrite.empty())
       ui->name_text->setText(name.c_str());
     if(!version.empty() && info.version_overwrite.empty())
@@ -324,11 +347,12 @@ bool AddModDialog::setupDialog(const QStringList& deployers,
   try
   {
     auto mod_file_paths = Installer::getArchiveFileNames(info.current_path);
-    int max_depth = 0;
-    for(const auto& path : mod_file_paths)
-      max_depth = std::max(addTreeNode(ui->content_tree, path), max_depth);
-    ui->root_level_box->setMaximum(std::max(max_depth - 1, 0));
-    ui->root_level_box->setValue(root_level);
+    directory_tree_depth_ = 0;
+    for(const auto& [path, is_directory] : mod_file_paths)
+      directory_tree_depth_ =
+        std::max(addTreeNode(ui->content_tree, path, is_directory), directory_tree_depth_);
+    ui->root_level_box->setMaximum(std::max(directory_tree_depth_ - 1, 0));
+    ui->root_level_box->setValue(std::min(std::max(0, root_level), directory_tree_depth_ - 1));
   }
   catch(std::runtime_error& error)
   {
@@ -337,8 +361,19 @@ bool AddModDialog::setupDialog(const QStringList& deployers,
     return false;
   }
 
-  ui->fomod_deployer_box->clear();
   bool root_level_checked = false;
+  for(const auto& condition : root_level_conditions)
+  {
+    if(auto level = condition.detectRootLevel(ui->content_tree->invisibleRootItem());
+       level && *level >= 0)
+    {
+      root_level_checked = true;
+      ui->root_level_box->setValue(std::min(std::max(0, *level), directory_tree_depth_ - 1));
+      break;
+    }
+  }
+
+  ui->fomod_deployer_box->clear();
   for(int i = 0; i < deployers.size(); i++)
   {
     const bool is_target = selected_deployers.contains(i) | (i == cur_deployer);
@@ -349,19 +384,19 @@ bool AddModDialog::setupDialog(const QStringList& deployers,
       {
         root_level_checked = true;
         root_level = detectRootLevel(i);
-        ui->root_level_box->setValue(root_level);
+        ui->root_level_box->setValue(std::min(std::max(0, root_level), directory_tree_depth_ - 1));
       }
     }
     auto item = new QListWidgetItem(deployers[i], ui->deployer_list);
     item->setCheckState(is_target ? Qt::Checked : Qt::Unchecked);
     item->setHidden(autonomous_deployers[i]);
   }
-
   int fomod_target_deployer = settings.value("fomod_target_deployer", -1).toInt();
   if(fomod_target_deployer >= 0 && fomod_target_deployer < ui->fomod_deployer_box->count())
     ui->fomod_deployer_box->setCurrentIndex(fomod_target_deployer);
-  else if(cur_deployer >= 0 && cur_deployer < ui->fomod_deployer_box->count())
-    ui->fomod_deployer_box->setCurrentIndex(cur_deployer);
+  else if(int depl_index = computeFomodBoxIndexFromDeployer(cur_deployer);
+          depl_index >= 0 && depl_index < ui->fomod_deployer_box->count())
+    ui->fomod_deployer_box->setCurrentIndex(depl_index);
   settings.endGroup();
 
   dialog_completed_ = false;
@@ -416,7 +451,7 @@ int AddModDialog::addTreeNode(QTreeWidgetItem* parent, const sfs::path& cur_path
   return addTreeNode(child, removeRoot(cur_path)) + 1;
 }
 
-int AddModDialog::addTreeNode(QTreeWidget* tree, const sfs::path& cur_path)
+int AddModDialog::addTreeNode(QTreeWidget* tree, const sfs::path& cur_path, bool is_directory)
 {
   if(cur_path.empty())
     return 0;
@@ -430,6 +465,7 @@ int AddModDialog::addTreeNode(QTreeWidget* tree, const sfs::path& cur_path)
   auto item = new QTreeWidgetItem(tree);
   item->setText(0, cur_text);
   item->setForeground(0, COLOR_KEEP_);
+  item->setData(0, Qt::UserRole, is_directory);
   return addTreeNode(item, removeRoot(cur_path)) + 1;
 }
 
@@ -486,7 +522,8 @@ void AddModDialog::on_buttonBox_accepted()
     }
     fomod_dialog_->setupDialog(
       import_mod_info_.current_path / path_prefix_.toStdString(),
-      deployer_paths_[ui->fomod_deployer_box->currentIndex()].toStdString(),
+      deployer_paths_[computeDeployerFromFomodBoxIndex(ui->fomod_deployer_box->currentIndex())]
+        .toStdString(),
       app_version_,
       import_mod_info_,
       import_mod_info_.app_id,

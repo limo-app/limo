@@ -12,6 +12,7 @@ IpcClient::~IpcClient()
 bool IpcClient::connect()
 {
   socket_->connectToServer(IpcServer::server_name);
+  socket_->waitForConnected(50);
   return socket_->state() == QLocalSocket::ConnectedState;
 }
 

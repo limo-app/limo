@@ -163,7 +163,7 @@ bool Bg3Deployer::initPluginFile()
   {
     pugi::xml_node attr = node.find_child_by_attribute("id", "UUID");
     const std::string uuid = attr.attribute("value").value();
-    if(uuid != Bg3Plugin::BG3_VANILLA_MOD_UUID)
+    if(!Bg3Plugin::BG3_VANILLA_UUIDS.contains(uuid))
       plugins_.emplace_back(uuid, true);
   }
 
@@ -413,7 +413,7 @@ void Bg3Deployer::writePluginsPrivate() const
   {
     pugi::xml_node attr = mod.find_child_by_attribute("id", "UUID");
     const std::string uuid = attr.attribute("value").value();
-    if(uuid != Bg3Plugin::BG3_VANILLA_MOD_UUID)
+    if(!Bg3Plugin::BG3_VANILLA_UUIDS.contains(uuid))
       nodes_to_remove.push_back(mod);
   }
   for(const auto& node : nodes_to_remove)

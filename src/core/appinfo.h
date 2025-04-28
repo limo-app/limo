@@ -78,4 +78,6 @@ struct AppInfo
    * \brief For every deployer: Whether or not it is case invariant.
    */
   std::vector<bool> deployer_is_case_invariant{};
+  /*! \brief Steam app id. Or -1 if not a Steam app. */
+  long steam_app_id;
 };

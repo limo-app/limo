@@ -129,19 +129,6 @@ private:
    */
   void removeWhitespaces(std::string& expression) const;
   /*!
-   * \brief Checks if the given string matches this nodes condition_ string.
-   * Uses * as a wildcard.
-   * \param target String to compare to.
-   * \return True if both match.
-   */
-  bool wildcardMatch(const std::string& target) const;
-  /*!
-   * \brief Splits the given string into substrings seperated by the * wildcard.
-   * \param input String to split.
-   * \return All substrings without the * wildcard.
-   */
-  std::vector<std::string> splitString(const std::string& input) const;
-  /*!
    * \brief Checks if the order of operators in the given boolean expression is valid.
    * \param expression Expression to check.
    * \return True if the order is valid.

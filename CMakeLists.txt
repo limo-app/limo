@@ -174,6 +174,8 @@ set(CORE_SOURCES
         src/core/tool.h
         src/core/versionchangelog.cpp
         src/core/versionchangelog.h
+        src/core/wildcardmatching.cpp
+        src/core/wildcardmatching.h
 )
 
 add_library(core OBJECT ${CORE_SOURCES})
@@ -318,6 +320,8 @@ set(PROJECT_SOURCES
         src/ui/overwritebackupdialog.ui
         src/ui/passwordfield.cpp
         src/ui/passwordfield.h
+        src/ui/rootlevelcondition.cpp
+        src/ui/rootlevelcondition.h
         src/ui/settingsdialog.cpp
         src/ui/settingsdialog.h
         src/ui/settingsdialog.ui

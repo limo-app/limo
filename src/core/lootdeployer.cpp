@@ -252,6 +252,7 @@ void LootDeployer::sortModsByConflicts(std::optional<ProgressNode*> progress_nod
         log_(Log::LOG_WARNING, "LOOT: Requirement '" + file + "' not met for '" + plugin + "'");
     }
   }
+  log_(Log::LOG_DEBUG, std::format("LOOT: App type {}", static_cast<int>(app_type_)));
   log_(Log::LOG_INFO,
        std::format("LOOT: Total Plugins: {}, Master: {}, Standard: {}, Light: {}",
                    new_plugins.size(),

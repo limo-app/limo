@@ -1,4 +1,5 @@
 #include "tagconditionnode.h"
+#include "wildcardmatching.h"
 #include <algorithm>
 #include <format>
 #include <ranges>
@@ -113,7 +114,7 @@ bool TagConditionNode::evaluateWithoutInversion(
                        target.end(),
                        target.begin(),
                        [](unsigned char c) { return std::tolower(c); });
-        result = wildcardMatch(target);
+        result = wildcardMatch(target, condition_);
       }
       if(result)
         break;
@@ -271,51 +272,6 @@ void TagConditionNode::removeWhitespaces(std::string& expression) const
     expression.erase(pos, 1);
     pos = expression.find(" ");
   }
-}
-
-bool TagConditionNode::wildcardMatch(const std::string& target) const
-{
-  if(condition_.empty())
-    return false;
-  if(condition_.find_first_not_of("*") == std::string::npos)
-    return true;
-
-  auto condition_strings_ = splitString(condition_);
-  if(condition_.front() != '*' && !target.starts_with(condition_strings_[0]) ||
-     condition_.back() != '*' && !target.ends_with(condition_strings_.back()))
-    return false;
-
-  size_t target_pos = 0;
-  for(const auto& search_string : condition_strings_)
-  {
-    if(target_pos >= target.size())
-      return false;
-    target_pos = target.find(search_string, target_pos);
-    if(target_pos == std::string::npos)
-      return false;
-    target_pos += search_string.size();
-  }
-  return true;
-}
-
-std::vector<std::string> TagConditionNode::splitString(const std::string& input) const
-{
-  std::vector<std::string> splits;
-  size_t pos = 0;
-  size_t old_pos = 0;
-  while(old_pos != input.size())
-  {
-    pos = input.find('*', old_pos);
-    if(pos == std::string::npos)
-    {
-      splits.push_back(input.substr(old_pos));
-      break;
-    }
-    if(pos - old_pos > 0)
-      splits.push_back(input.substr(old_pos, pos - old_pos));
-    old_pos = pos + 1;
-  }
-  return splits;
 }
 
 bool TagConditionNode::operatorOrderIsValid(std::string expression)

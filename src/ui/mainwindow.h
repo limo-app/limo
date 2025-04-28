@@ -37,6 +37,7 @@
 #include "ui/externalchangesdialog.h"
 #include "ui/ipcserver.h"
 #include "ui/listaction.h"
+#include "ui/rootlevelcondition.h"
 #include "ui/tagcheckbox.h"
 #include "versionboxdelegate.h"
 #include <QCloseEvent>
@@ -126,6 +127,8 @@ private:
   static inline const QString deploy_mode_sym_link = "Sym Link";
   /*! \brief Display string for copy deployment. */
   static inline const QString deploy_mode_copy = "Copy";
+  /*! \brief JSON key for the root level conditions in the per steam app config file. */
+  static inline constexpr char JSON_ROOT_LEVEL_KEY[] = "root_level_conditions";
   /*! \brief True if the button used to reorder load orders is being pressed. */
   bool move_button_pressed_ = false;
   /*! \brief Stores the row containing the currently held down move button for load orders. */
@@ -319,6 +322,8 @@ private:
   QString previous_app_version_;
   /*! \brief Contains data about the currently active application. */
   AppInfo app_info_;
+  /*! \brief Used to detect root levels during mod installation for the current app. */
+  std::vector<RootLevelCondition> root_level_conditions_;
 
   /*! \brief Creates signal/ slot connections between this and the ApplicationManager. */
   void setupConnections();
@@ -472,6 +477,8 @@ private:
    * is invalid, true if current_version is invalid.
    */
   bool versionIsLessOrEqual(QString current_version, QString target_version);
+  /*! \brief Initializes the root level conditions for the current app. */
+  void initRootLevelConditions();
 
 public slots:
   /*!

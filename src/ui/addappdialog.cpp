@@ -120,7 +120,7 @@ void AddAppDialog::initConfigForApp()
     return;
   }
 
-  config_path /= (std::to_string(app_id_) + ".json");
+  config_path /= (std::to_string(steam_app_id_) + ".json");
   if(!sfs::exists(config_path))
   {
     initDefaultAppConfig();
@@ -153,7 +153,7 @@ void AddAppDialog::initConfigForApp()
     return;
   }
 
-  Log::debug(std::format("Reading app config for id {}", app_id_));
+  Log::debug(std::format("Reading app config for id {}", steam_app_id_));
   try
   {
     for(int i = 0; i < json["deployers"].size(); i++)
@@ -166,7 +166,7 @@ void AddAppDialog::initConfigForApp()
         if(deployer[key].isNull())
         {
           Log::debug(std::format(
-            "App config for deployer {} for app {} does not contain key {}", i, app_id_, key));
+            "App config for deployer {} for app {} does not contain key {}", i, steam_app_id_, key));
           continue;
         }
       }
@@ -175,7 +175,7 @@ void AddAppDialog::initConfigForApp()
       if(str::find(DeployerFactory::DEPLOYER_TYPES, type) == DeployerFactory::DEPLOYER_TYPES.end())
       {
         Log::debug(std::format(
-          "App config for deployer {} for app {} contains unknown type {}", i, app_id_, type));
+          "App config for deployer {} for app {} contains unknown type {}", i, steam_app_id_, type));
         continue;
       }
       info.type = type;
@@ -190,7 +190,7 @@ void AddAppDialog::initConfigForApp()
       {
         Log::debug(std::format("App config for deployer {} for app {} contains invalid target {}",
                                i,
-                               app_id_,
+                               steam_app_id_,
                                target_dir));
         continue;
       }
@@ -208,7 +208,7 @@ void AddAppDialog::initConfigForApp()
       {
         Log::debug(std::format("App config for deployer {} for app {} contains invalid mode {}",
                                i,
-                               app_id_,
+                               steam_app_id_,
                                deploy_mode.toStdString()));
         continue;
       }
@@ -225,7 +225,7 @@ void AddAppDialog::initConfigForApp()
         {
           Log::debug(std::format("App config for deployer {} for app {} contains invalid source {}",
                                  i,
-                                 app_id_,
+                                 steam_app_id_,
                                  source_dir));
           continue;
         }
@@ -248,12 +248,12 @@ void AddAppDialog::initConfigForApp()
       catch(const ParseError& e)
       {
         Log::debug(std::format(
-          "Failed to read auto tag {} for app with id {}.\nError: {}", i, app_id_, e.what()));
+          "Failed to read auto tag {} for app with id {}.\nError: {}", i, steam_app_id_, e.what()));
         continue;
       }
       catch(...)
       {
-        Log::debug(std::format("Failed to read auto tag {} for app with id {}", i, app_id_));
+        Log::debug(std::format("Failed to read auto tag {} for app with id {}", i, steam_app_id_));
         continue;
       }
       auto_tags_.push_back(json[JSON_AUTO_TAGS_GROUP][i]);
@@ -285,7 +285,7 @@ void AddAppDialog::initDefaultAppConfig()
   deployers_.clear();
   auto_tags_.clear();
 
-  Log::debug(std::format("Using default config for app {}", app_id_));
+  Log::debug(std::format("Using default config for app {}", steam_app_id_));
   deployers_.emplace_back(DeployerFactory::CASEMATCHINGDEPLOYER,
                           "Install",
                           steam_install_path_.toStdString(),
@@ -303,7 +303,8 @@ void AddAppDialog::setEditMode(const QString& name,
                                const QString& path,
                                const QString& command,
                                const QString& icon_path,
-                               int app_id)
+                               int app_id,
+                               long steam_app_id)
 {
   deployers_.clear();
   auto_tags_.clear();
@@ -318,6 +319,7 @@ void AddAppDialog::setEditMode(const QString& name,
   path_ = path;
   command_ = command;
   app_id_ = app_id;
+  steam_app_id_ = steam_app_id;
   enableOkButton(true);
   edit_mode_ = true;
   ui->move_dir_box->setVisible(true);
@@ -368,6 +370,7 @@ void AddAppDialog::on_buttonBox_accepted()
   info.staging_dir = ui->path_field->text().toStdString();
   info.command = ui->command_field->text().toStdString();
   info.icon_path = ui->icon_field->text().toStdString();
+  info.steam_app_id = steam_app_id_;
   if(edit_mode_)
   {
     info.move_staging_dir = ui->move_dir_box->checkState() == Qt::Checked;
@@ -397,7 +400,7 @@ void AddAppDialog::onApplicationImported(QString name,
 {
   ui->name_field->setText(name);
   ui->command_field->setText("xdg-open steam://rungameid/" + app_id);
-  app_id_ = app_id.toInt();
+  steam_app_id_ = app_id.toLong();
   steam_install_path_ = install_dir;
   steam_prefix_path_ = prefix_path;
   ui->icon_field->setText(icon_path);

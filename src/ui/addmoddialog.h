@@ -8,6 +8,7 @@
 #include "../core/importmodinfo.h"
 #include "deployerlistmodel.h"
 #include "modlistmodel.h"
+#include "rootlevelcondition.h"
 #include "ui/fomoddialog.h"
 #include <QButtonGroup>
 #include <QCompleter>
@@ -47,12 +48,13 @@ public:
    * \brief Initializes this dialog with data needed for mod installation.
    * \param deployers Contains all available \ref Deployer "deployers".
    * \param cur_deployer The currently active Deployer.
-   * \param deployer_paths Contains target paths for all non autonomous deployers.
+   * \param deployer_paths Contains target paths for all deployers.
    * \param autonomous_deployers Vector of bools indicating for each deployer
    * if that deployer is autonomous.
    * \param case_invariant_deployers Vector of bools indicating for each deployer
    * if that deployer is case invariant.
    * \param info Contains data relating to the current status of the mod import.
+   * \param root_level_conditions Contains all root level conditions for the current app.
    * \return True if dialog creation was successful.
    */
   bool setupDialog(const QStringList& deployers,
@@ -61,7 +63,8 @@ public:
                    const std::vector<bool>& autonomous_deployers,
                    const std::vector<bool>& case_invariant_deployers,
                    const QString& app_version,
-                   const ImportModInfo& info);
+                   const ImportModInfo& info,
+                   const std::vector<RootLevelCondition>& root_level_conditions);
   /*!
    * \brief Closes the dialog and emits a signal indicating installation has been canceled.
    * \param event The close even sent upon closing the dialog.
@@ -105,6 +108,10 @@ private:
   std::vector<bool> case_invariant_deployers_;
   /*! \brief Contains all data related to the current state of the mod installation. */
   ImportModInfo import_mod_info_;
+  /*! \brief Depth of the current directory tree. */
+  int directory_tree_depth_;
+  /*! \brief Contains bools for every deployer indicating whether that deployer is autonomous. */
+  std::vector<bool> autonomous_deployers_;
 
   /*!
    * \brief Updates the enabled state of this dialog's OK button to only be enabled when
@@ -117,8 +124,9 @@ private:
    * Then adds all subsequent path components as children to the new node.
    * \param tree Target QTreeWidget.
    * \param cur_path Source path.
+   * \param is_directory If True: Given path points to a directory.
    */
-  int addTreeNode(QTreeWidget* tree, const std::filesystem::path& cur_path);
+  int addTreeNode(QTreeWidget* tree, const std::filesystem::path& cur_path, bool is_directory);
   /*!
    * \brief Adds the root path element of given path as a root node to the given parent node.
    * Then adds all subsequent path components as children to the new node.
@@ -154,6 +162,18 @@ private:
    * \return The detected root level.
    */
   int detectRootLevel(int deployer) const;
+  /*!
+   * \brief Computes the index in the fomod deployer combo box from the given deployer index.
+   * \param index Deployer index.
+   * \return Fomod deployer box index.
+   */
+  int computeFomodBoxIndexFromDeployer(int index) const;
+  /*!
+   * \brief Computes the deployer index from the given index in the fomod deployer combo box.
+   * \param index Fomod deployer box index.
+   * \return Deployer index.
+   */
+  int computeDeployerFromFomodBoxIndex(int index) const;
 
 private slots:
   /*! \brief Closes the dialog and emits a signal for completion. */

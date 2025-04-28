@@ -38,6 +38,7 @@
 
 namespace str = std::ranges;
 namespace stv = std::views;
+namespace sfs = std::filesystem;
 
 
 Q_DECLARE_METATYPE(std::vector<ModInfo>);
@@ -856,6 +857,7 @@ void MainWindow::importMod()
   {
     if(!initNexusApiKey())
     {
+      mod_import_queue_.pop();
       setBusyStatus(false);
       if(!mod_import_queue_.empty())
         importMod();
@@ -1351,6 +1353,82 @@ bool MainWindow::versionIsLessOrEqual(QString current_version, QString target_ve
   return true;
 }
 
+void MainWindow::initRootLevelConditions()
+{
+  root_level_conditions_.clear();
+  if(app_info_.steam_app_id == -1)
+    return;
+
+  sfs::path config_path =
+    sfs::path(is_a_flatpak_ ? "/app" : APP_INSTALL_PREFIX) / "share/limo/steam_app_configs";
+  // Overwrite for local build
+  if(!is_a_flatpak_ && sfs::exists("steam_app_configs"))
+    config_path = "steam_app_configs";
+  Log::debug("Config path: " + config_path.string());
+  if(!sfs::exists(config_path))
+  {
+    Log::debug(
+      "Could not find \"steam_app_configs\" directory. " "Make sure Limo is installed correctly");
+    return;
+  }
+
+  config_path /= (std::to_string(app_info_.steam_app_id) + ".json");
+  if(!sfs::exists(config_path))
+  {
+    return;
+  }
+
+  Json::Value json;
+  std::ifstream file(config_path, std::fstream::binary);
+  if(!file.is_open())
+  {
+    Log::debug("Failed to open app settings file at: " + config_path.string());
+    return;
+  }
+  try
+  {
+    file >> json;
+  }
+  catch(Json::Exception& e)
+  {
+    Log::debug("Failed to read from app settings file at: " + config_path.string() +
+               ". Error was: " + e.what());
+    return;
+  }
+  catch(...)
+  {
+    Log::debug("Failed to read from app settings file at: " + config_path.string());
+    return;
+  }
+
+  if(!json.isMember(JSON_ROOT_LEVEL_KEY))
+    return;
+  for(int i = 0; i < json[JSON_ROOT_LEVEL_KEY].size(); i++)
+  {
+    try
+    {
+      root_level_conditions_.emplace_back(json[JSON_ROOT_LEVEL_KEY][i]);
+    }
+    catch(std::runtime_error& e)
+    {
+      Log::debug(std::format("Failed to parse root level config for app {}. \nError: {}",
+                             app_info_.steam_app_id,
+                             e.what()));
+    }
+    catch(Json::Exception& e)
+    {
+      Log::debug(std::format("Failed to parse root level config for app {}. \nError: {}",
+                             app_info_.steam_app_id,
+                             e.what()));
+    }
+    catch(...)
+    {
+      Log::debug(std::format("Unknown error while parsing root level config for app {}.",
+                             app_info_.steam_app_id));
+    }
+  }
+}
+
 void MainWindow::onModAdded(QList<QUrl> paths)
 {
   const bool was_empty = mod_import_queue_.empty();
@@ -1518,10 +1596,7 @@ void MainWindow::onGetApplicationNames(QStringList names, QStringList icon_paths
     if(icon_paths[i] == "")
       ui->app_selection_box->addItem(names[i]);
     else
-    {
       ui->app_selection_box->addItem(QIcon(icon_paths[i]), names[i]);
-      qDebug() << icon_paths[i];
-    }
     ui->app_selection_box->setItemData(
       ui->app_selection_box->count() - 1, icon_paths[i], Qt::UserRole);
   }
@@ -1825,6 +1900,8 @@ void MainWindow::onGetAppInfo(AppInfo app_info)
   connect(button, &QPushButton::clicked, this, &MainWindow::onAddToolClicked);
   ui->info_tool_list->setCellWidget(ui->info_tool_list->rowCount() - 1, 0, button);
   ignore_tool_changes_ = false;
+
+  initRootLevelConditions();
 }
 
 void MainWindow::onApplicationEdited(EditApplicationInfo info, int app_id)
@@ -2002,12 +2079,8 @@ void MainWindow::onExtractionComplete(ImportModInfo info)
     ui->app_tab_widget->currentIndex() == 2 ? ui->deployer_selection_box->currentIndex() : -1;
   const std::vector<bool> auto_deployers = getAutonomousDeployers();
   QStringList deployer_paths;
-  for(int i = 0; i < ui->info_deployer_list->rowCount(); i++)
-  {
-    if(!auto_deployers[i])
-      deployer_paths.append(
-        ui->info_deployer_list->item(i, getColumnIndex(ui->info_deployer_list, "Target"))->text());
-  }
+  for(const auto& path : app_info_.target_dirs)
+    deployer_paths.append(path.c_str());
   info.action_type = ImportModInfo::ActionType::install_dialog;
   bool was_successful = add_mod_dialog_->setupDialog(deployers,
                                                      deployer,
@@ -2015,7 +2088,8 @@ void MainWindow::onExtractionComplete(ImportModInfo info)
                                                      auto_deployers,
                                                      app_info_.deployer_is_case_invariant,
                                                      ui->info_version_label->text(),
-                                                     info);
+                                                     info,
+                                                     root_level_conditions_);
   if(was_successful)
   {
     setBusyStatus(true, false);
@@ -2404,7 +2478,8 @@ void MainWindow::on_edit_app_button_clicked()
                                ui->info_sdir_label->text(),
                                ui->info_command_label->text(),
                                ui->app_selection_box->currentData(Qt::UserRole).toString(),
-                               currentApp());
+                               currentApp(),
+                               app_info_.steam_app_id);
   setBusyStatus(true, false);
   add_app_dialog_->show();
 }

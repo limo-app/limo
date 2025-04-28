@@ -157,5 +157,16 @@
 			"type" : "Loot Deployer"
 		}
 	],
-	"name" : "Skyrim SE"
+	"name" : "Skyrim SE",
+	"root_level_conditions" :
+	[
+		{
+			"case_invariant" : true,
+			"expression" : ".*\\.es[plm]",
+			"level_offset" : 0,
+			"matcher_type" : "regex",
+			"stop_on_branch" : false,
+			"target_type" : "file"
+		}
+	]
 }
