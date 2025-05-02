@@ -17,7 +17,8 @@
         },
         {
           "type" : 2,
-          "short_description" : "Fixed crash on mod import during root level detection"
+          "short_description" : "Fixed crash on mod import during root level detection",
+          "issue" : 176
         }
       ]
     },

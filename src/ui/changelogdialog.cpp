@@ -21,6 +21,7 @@ ChangelogDialog::ChangelogDialog(bool is_flatpak, QWidget* parent) :
   if(!is_flatpak && sfs::exists("install_files"))
     path = "install_files";
   path /= "changelogs.json";
+  Log::debug(std::format("Changelog path: '{}'", path.string()));
   if(!sfs::exists(path))
   {
     Log::error(std::format("Could not find changelog file at '{}'.", path.string()));
