@@ -314,7 +314,7 @@ bool AddModDialog::setupDialog(const QStringList& deployers,
         group_index = i;
       }
     }
-    if(group_index != -1)
+    if(group_index != -1 && group_index < groups_.size())
       ui->group_field->setText(groups_[group_index]);
   }
 

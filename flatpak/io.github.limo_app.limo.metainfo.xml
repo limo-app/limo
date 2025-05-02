@@ -41,12 +41,13 @@
   
   
   <releases>
-    <release version="1.2.1" date="2025-04-28">
+    <release version="1.2.1" date="2025-05-02">
       <description>
         <p>Root level detection improvements</p>
         <ul>
           <li>Added file pattern based root level auto detection</li>
           <li>Fixed BG3 Deployer for patch 8</li>
+          <li>Fixed crash on mod import during root level detection</li>
         </ul>
       </description>
     </release>

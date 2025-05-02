@@ -3,7 +3,7 @@
   [
     {
       "version" : "1.2.1",
-      "date" : 1745868119,
+      "date" : 1746216782,
       "title" : "Root level detection improvements",
       "changes" : 
       [
@@ -14,6 +14,10 @@
         {
           "type" : 2,
           "short_description" : "Fixed BG3 Deployer for patch 8"
+        },
+        {
+          "type" : 2,
+          "short_description" : "Fixed crash on mod import during root level detection"
         }
       ]
     },
