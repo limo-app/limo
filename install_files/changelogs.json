@@ -2,6 +2,18 @@
   "versions":
   [
     {
+      "version" : "1.2.2",
+      "date" : 1746262543,
+      "title" : "Minor FOMOD fix",
+      "changes" :
+      [
+        {
+          "type" : 2,
+          "short_description" : "Fixed root level detection for FOMOD"
+        }
+      ]
+    },
+    {
       "version" : "1.2.1",
       "date" : 1746216782,
       "title" : "Root level detection improvements",

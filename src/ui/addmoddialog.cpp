@@ -253,6 +253,7 @@ bool AddModDialog::setupDialog(const QStringList& deployers,
   if(!info.version_overwrite.empty())
     ui->version_text->setText(info.version_overwrite.c_str());
 
+  bool root_level_checked = false;
   ui->installer_box->clear();
   int root_level = 0;
   std::string prefix;
@@ -270,6 +271,7 @@ bool AddModDialog::setupDialog(const QStringList& deployers,
   }
   if(detected_type == Installer::FOMODINSTALLER)
   {
+    root_level_checked = true;
     auto [name, version] = fomod::FomodInstaller::getMetaData(info.current_path / prefix);
     if(!name.empty() && info.name_overwrite.empty())
       ui->name_text->setText(name.c_str());
@@ -361,15 +363,17 @@ bool AddModDialog::setupDialog(const QStringList& deployers,
     return false;
   }
 
-  bool root_level_checked = false;
-  for(const auto& condition : root_level_conditions)
+  if(!root_level_checked)
   {
-    if(auto level = condition.detectRootLevel(ui->content_tree->invisibleRootItem());
-       level && *level >= 0)
+    for(const auto& condition : root_level_conditions)
     {
-      root_level_checked = true;
-      ui->root_level_box->setValue(std::min(std::max(0, *level), directory_tree_depth_ - 1));
-      break;
+      if(auto level = condition.detectRootLevel(ui->content_tree->invisibleRootItem());
+         level && *level >= 0)
+      {
+        root_level_checked = true;
+        ui->root_level_box->setValue(std::min(std::max(0, *level), directory_tree_depth_ - 1));
+        break;
+      }
     }
   }
 

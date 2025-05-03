@@ -41,6 +41,14 @@
   
   
   <releases>
+    <release version="1.2.2" date="2025-05-03">
+      <description>
+        <p>Minor FOMOD fix</p>
+        <ul>
+          <li>Fixed root level detection for FOMOD</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.2.1" date="2025-05-02">
       <description>
         <p>Root level detection improvements</p>

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(Limo VERSION 1.2.1 LANGUAGES CXX)
+project(Limo VERSION 1.2.2 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
