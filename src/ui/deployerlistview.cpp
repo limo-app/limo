@@ -82,8 +82,8 @@ void DeployerListView::mouseMoveEvent(QMouseEvent* event)
     is_in_drag_drop_ = true;
   }
   bool mouse_in_upper_half = true;
-  if(event->pos().y() > rowViewportPosition(row) + rowHeight(row) / 2)
-    mouse_in_upper_half = false;
+  // if(event->pos().y() > rowViewportPosition(row) + rowHeight(row) / 2)
+  //   mouse_in_upper_half = false;
   if(mouse_in_upper_half != mouse_in_upper_half_of_row_)
   {
     mouse_in_upper_half_of_row_ = mouse_in_upper_half;

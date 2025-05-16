@@ -8,7 +8,7 @@
 #include <QDragEnterEvent>
 #include <QDragLeaveEvent>
 #include <QDropEvent>
-#include <QTableView>
+#include <QTreeView>
 #include <QWidget>
 #include <QtCore>
 #include <set>
@@ -17,7 +17,7 @@
 /*!
  * \brief Displays mod data in the form of a mod list using a ModListModel.
  */
-class ModListView : public QTableView
+class ModListView : public QTreeView
 {
   Q_OBJECT
 public:

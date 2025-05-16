@@ -8,7 +8,6 @@
 #include "../core/editapplicationinfo.h"
 #include "../core/editdeployerinfo.h"
 #include "importfromsteamdialog.h"
-#include <QDialog>
 #include <json/json.h>
 
 

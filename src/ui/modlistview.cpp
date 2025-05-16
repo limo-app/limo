@@ -3,12 +3,13 @@
 #include <QDebug>
 #include <QGuiApplication>
 #include <QMimeData>
+#include <qtreeview.h>
 #include <ranges>
 
 namespace str = std::ranges;
 
 
-ModListView::ModListView(QWidget* parent) : QTableView(parent)
+ModListView::ModListView(QWidget* parent) : QTreeView(parent)
 {
   setMouseTracking(true);
 }
@@ -204,7 +205,7 @@ void ModListView::leaveEvent(QEvent* event)
      mouse_hover_row_ == currentIndex().row())
     return;
   updateMouseHoverRow(-1);
-  QTableView::leaveEvent(event);
+  QTreeView::leaveEvent(event);
 }
 
 void ModListView::focusOutEvent(QFocusEvent* event)
@@ -212,12 +213,12 @@ void ModListView::focusOutEvent(QFocusEvent* event)
   if(QGuiApplication::mouseButtons().testFlag(Qt::RightButton) &&
      rect().contains(mapFromGlobal(QCursor::pos())))
     return;
-  QTableView::focusOutEvent(event);
+  QTreeView::focusOutEvent(event);
 }
 
 void ModListView::focusInEvent(QFocusEvent* event)
 {
-  QTableView::focusInEvent(event);
+  QTreeView::focusInEvent(event);
 }
 
 QModelIndex ModListView::moveCursor(CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
