@@ -8,7 +8,7 @@
 
 
 ModListModel::ModListModel(ModListProxyModel* proxy, QObject* parent) :
-  QAbstractTableModel(parent), proxy_model_(proxy)
+  QStandardItemModel(parent), proxy_model_(proxy)
 {}
 
 QVariant ModListModel::headerData(int section, Qt::Orientation orientation, int role) const

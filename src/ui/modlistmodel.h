@@ -7,14 +7,14 @@
 
 #include "../core/modinfo.h"
 #include "modlistproxymodel.h"
-#include <QAbstractTableModel>
+#include <QStandardItemModel>
 #include <QComboBox>
 
 
 /*!
  * \brief Manages and provides access to the data displayed in the mod list.
  */
-class ModListModel : public QAbstractTableModel
+class ModListModel : public QStandardItemModel
 {
   Q_OBJECT
 

@@ -4,12 +4,15 @@
 #include <QApplication>
 #include <QBrush>
 #include <QDebug>
+#include <QStandardItemModel>
 #include <ranges>
 
 namespace str = std::ranges;
 
 
-DeployerListModel::DeployerListModel(QObject* parent) : QAbstractTableModel(parent) {}
+DeployerListModel::DeployerListModel(QObject* parent) : QStandardItemModel(parent) {
+  rootItem = this->invisibleRootItem();
+}
 
 QVariant DeployerListModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
@@ -173,4 +176,28 @@ bool DeployerListModel::hasIgnoredFiles() const
 bool DeployerListModel::usesUnsafeSorting() const
 {
   return deployer_info_.uses_unsafe_sorting;
+}
+
+QModelIndex DeployerListModel::index(int row, int column, const QModelIndex &parent) const
+{
+    if (!hasIndex(row, column, parent))
+        return QModelIndex();
+
+    QStandardItem *parentItem;
+
+    if (!parent.isValid())
+        parentItem = rootItem;
+    else
+        parentItem = static_cast<QStandardItem*>(parent.internalPointer());
+
+    QStandardItem *childItem = parentItem->child(row);
+    if (childItem)
+        return createIndex(row, column, childItem);
+    else
+        return QModelIndex();
+}
+
+void DeployerListModel::appendRow(QStandardItem *item) {
+  rootItem->appendRow(item);
+  emit layoutChanged();
 }
