@@ -3,7 +3,6 @@
 #include <QDebug>
 #include <QGuiApplication>
 #include <QMimeData>
-#include <qtreeview.h>
 #include <ranges>
 
 namespace str = std::ranges;

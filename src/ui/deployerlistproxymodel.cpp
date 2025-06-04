@@ -3,9 +3,6 @@
 #include "deployerlistmodel.h"
 #include "modlistmodel.h"
 #include <QApplication>
-#include <QDebug>
-#include <iostream>
-#include <qstandarditemmodel.h>
 #include <ranges>
 
 namespace str = std::ranges;
@@ -171,21 +168,6 @@ void DeployerListProxyModel::setConflictGroups(const std::vector<std::vector<int
 void DeployerListProxyModel::updateRowCountLabel()
 {
   row_count_label_->setText("Mods displayed: " + QString::number(rowCount()));
-}
-
-void dumpModel(QAbstractItemModel* model, const QModelIndex& parent = QModelIndex(), int indent = 0) {
-    for (int r = 0; r < model->rowCount(parent); ++r) {
-        QModelIndex index = model->index(r, 0, parent);
-        qDebug().noquote() << QString(indent * 2, ' ') 
-                          << "Row:" << r 
-                          << "Data:" << index.data().toString()
-                          << "InternalId:" << index.internalId()
-                          << "InternalPointer:" << index.internalPointer();
-        
-        if (model->hasChildren(index)) {
-            dumpModel(model, index, indent + 1);
-        }
-    }
 }
 
 void DeployerListProxyModel::updateFilter(bool invalidate)
