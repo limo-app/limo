@@ -6,15 +6,14 @@
 #pragma once
 
 #include "../core/deployerinfo.h"
-#include <QStandardItemModel>
+#include <QAbstractItemModel>
 #include <QColor>
-#include <qstandarditemmodel.h>
 
 
 /*!
  * \brief Manages and provides access to the data displayed in the deployer list.
  */
-class DeployerListModel : public QStandardItemModel
+class DeployerListModel : public QAbstractItemModel
 {
   Q_OBJECT
 
@@ -44,8 +43,6 @@ public:
   static constexpr int source_mod_name_role = 303;
   /*! \brief Role representing a list of valid mod actions. */
   static constexpr int valid_mod_actions_role = 304;
-
-  QStandardItem *rootItem;
 
   /*!
    * \brief Returns the horizontal header section names and vertical header section indices.
@@ -104,7 +101,7 @@ public:
   bool usesUnsafeSorting() const;
 
   QModelIndex index(int row, int column, const QModelIndex &parent) const override;
-  void appendRow(QStandardItem *item);
+  QModelIndex parent(const QModelIndex &index) const override;
 
 private:
   /*! \brief Contains all mods managed by this model. */

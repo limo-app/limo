@@ -200,23 +200,9 @@ void DeployerListProxyModel::updateFilter(bool invalidate)
   const auto default_color = QApplication::palette().text();
   for(int row = 0; row < rowCount(); row++)
   {
-    QModelIndex idx = index(row, 0);
-    qDebug() << "Proxy Index data:" << idx.data();
-    QModelIndex map = mapToSource(idx);
-    if (!map.isValid()) {
-      QStandardItemModel *sourceModel = static_cast<QStandardItemModel *>(this->sourceModel());
-      qDebug() << "Invalid mapped index - Proxy Row:" << row;
-      qDebug() << "Proxy Index:" << idx;
-      qDebug() << "Source model:" << sourceModel;
-      dumpModel(sourceModel);
-      throw std::runtime_error("Invalid map in DeployerListProxyModel::updateFilter");
-    }
-
-    std::cout << "Passed the QModelIndex check" << std::endl;
-
     const int mod_id =
       sourceModel()->data(
-        map,
+        mapToSource(index(row, 0)),
         ModListModel::mod_id_role
       ).toInt();
     const int group = conflict_groups_[mod_id];

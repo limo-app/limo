@@ -4,14 +4,12 @@
 #include <QApplication>
 #include <QBrush>
 #include <QDebug>
-#include <QStandardItemModel>
 #include <ranges>
 
 namespace str = std::ranges;
 
 
-DeployerListModel::DeployerListModel(QObject* parent) : QStandardItemModel(parent) {
-  rootItem = this->invisibleRootItem();
+DeployerListModel::DeployerListModel(QObject* parent) : QAbstractItemModel(parent) {
 }
 
 QVariant DeployerListModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -183,21 +181,10 @@ QModelIndex DeployerListModel::index(int row, int column, const QModelIndex &par
     if (!hasIndex(row, column, parent))
         return QModelIndex();
 
-    QStandardItem *parentItem;
-
-    if (!parent.isValid())
-        parentItem = rootItem;
-    else
-        parentItem = static_cast<QStandardItem*>(parent.internalPointer());
-
-    QStandardItem *childItem = parentItem->child(row);
-    if (childItem)
-        return createIndex(row, column, childItem);
-    else
-        return QModelIndex();
+    return this->createIndex(row, column);
 }
 
-void DeployerListModel::appendRow(QStandardItem *item) {
-  rootItem->appendRow(item);
-  emit layoutChanged();
+QModelIndex DeployerListModel::parent(const QModelIndex &index) const
+{
+    return this->createIndex(0, 0);
 }
