@@ -178,13 +178,26 @@ bool DeployerListModel::usesUnsafeSorting() const
 
 QModelIndex DeployerListModel::index(int row, int column, const QModelIndex &parent) const
 {
-    if (!hasIndex(row, column, parent))
-        return QModelIndex();
+  if (!hasIndex(row, column, parent))
+    return QModelIndex();
 
-    return this->createIndex(row, column);
+  return this->createIndex(row, column);
 }
 
 QModelIndex DeployerListModel::parent(const QModelIndex &index) const
 {
-    return this->createIndex(0, 0);
+  return this->createIndex(0, 0);
+}
+
+bool DeployerListModel::hasChildren(const QModelIndex &parent = QModelIndex()) const
+{
+  if (deployer_info_.supports_expandable) {
+    return true;
+  } else {
+    if (!parent.isValid()) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

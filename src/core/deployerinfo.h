@@ -46,6 +46,8 @@ struct DeployerInfo
   bool supports_file_conflicts = true;
   /*! \brief Whether or not this deployer type supports browsing mod files. */
   bool supports_file_browsing = true;
+  /*! \brief Whether or not this deployer type supports expandable items. */
+  bool supports_expandable = true;
   /*! \brief The type of this deployer. */
   std::string type = "";
   /*! \brief Whether or not this deployer type uses mod ids as references to source mods. */

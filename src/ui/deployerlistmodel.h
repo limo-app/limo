@@ -102,6 +102,7 @@ public:
 
   QModelIndex index(int row, int column, const QModelIndex &parent) const override;
   QModelIndex parent(const QModelIndex &index) const override;
+  bool hasChildren(const QModelIndex &parent) const override;
 
 private:
   /*! \brief Contains all mods managed by this model. */
