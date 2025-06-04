@@ -312,11 +312,6 @@ bool PluginDeployer::supportsFileBrowsing() const
   return false;
 }
 
-bool PluginDeployer::supportsExpandableItems() const
-{
-  return true;
-}
-
 bool PluginDeployer::idsAreSourceReferences() const
 {
   return true;

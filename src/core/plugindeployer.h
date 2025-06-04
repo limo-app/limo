@@ -205,11 +205,6 @@ public:
    */
   virtual bool supportsFileBrowsing() const override;
   /*!
-   * \brief Returns whether or not this deployer type supports expandable items.
-   * \return True if supported.
-   */
-  virtual bool supportsExpandableItems() const override;
-  /*!
    * \brief Returns whether or not this deployer type uses mod ids as references to
    * source mods. This is usually done by autonomous deployers.
    * \return True
