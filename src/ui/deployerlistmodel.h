@@ -6,14 +6,14 @@
 #pragma once
 
 #include "../core/deployerinfo.h"
-#include <QAbstractTableModel>
+#include <QAbstractItemModel>
 #include <QColor>
 
 
 /*!
  * \brief Manages and provides access to the data displayed in the deployer list.
  */
-class DeployerListModel : public QAbstractTableModel
+class DeployerListModel : public QAbstractItemModel
 {
   Q_OBJECT
 
@@ -99,6 +99,10 @@ public:
    * \return The safe sorting state.
    */
   bool usesUnsafeSorting() const;
+
+  QModelIndex index(int row, int column, const QModelIndex &parent) const override;
+  QModelIndex parent(const QModelIndex &index) const override;
+  bool hasChildren(const QModelIndex &parent) const override;
 
 private:
   /*! \brief Contains all mods managed by this model. */

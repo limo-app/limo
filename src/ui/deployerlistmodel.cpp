@@ -9,7 +9,8 @@
 namespace str = std::ranges;
 
 
-DeployerListModel::DeployerListModel(QObject* parent) : QAbstractTableModel(parent) {}
+DeployerListModel::DeployerListModel(QObject* parent) : QAbstractItemModel(parent) {
+}
 
 QVariant DeployerListModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
@@ -173,4 +174,30 @@ bool DeployerListModel::hasIgnoredFiles() const
 bool DeployerListModel::usesUnsafeSorting() const
 {
   return deployer_info_.uses_unsafe_sorting;
+}
+
+QModelIndex DeployerListModel::index(int row, int column, const QModelIndex &parent) const
+{
+  if (!hasIndex(row, column, parent))
+    return QModelIndex();
+
+  return this->createIndex(row, column);
+}
+
+QModelIndex DeployerListModel::parent(const QModelIndex &index) const
+{
+  return this->createIndex(0, 0);
+}
+
+bool DeployerListModel::hasChildren(const QModelIndex &parent = QModelIndex()) const
+{
+  if (deployer_info_.supports_expandable) {
+    return true;
+  } else {
+    if (!parent.isValid()) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
