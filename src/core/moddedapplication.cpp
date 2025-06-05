@@ -861,6 +861,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
     for(const auto& tag : manual_tags_)
       mods_per_tag[tag.getName()] = tag.getNumMods();
 
+    TreeItem<std::string> *root = new TreeItem<std::string>(std::vector<std::string>({"", ""}), nullptr);
     const auto loadorder = deployers_[deployer]->getLoadorder();
     std::vector<std::string> mod_names;
     mod_names.reserve(loadorder.size());
@@ -870,8 +871,10 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
     manual_tags.reserve(loadorder.size());
     for(const auto& [id, e] : loadorder)
     {
-      mod_names.push_back(
-        std::ranges::find_if(installed_mods_, [id = id](auto& mod) { return mod.id == id; })->name);
+      auto mod_name = std::ranges::find_if(installed_mods_, [id = id](auto& mod) { return mod.id == id; })->name;
+      auto item = std::vector<std::string>({ "", mod_name });
+      root->appendChild(item);
+      mod_names.push_back(mod_name);
       if(manual_tag_map_.contains(id))
         manual_tags.push_back(manual_tag_map_.at(id));
       else
@@ -896,6 +899,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              manual_tags,
              auto_tags,
              mods_per_tag,
+             root,
              false,
              false,
              deployers_[deployer]->supportsSorting(),
@@ -913,6 +917,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
   }
   else
   {
+    TreeItem<std::string> *root = new TreeItem<std::string>(std::vector<std::string>({"", ""}));
     const auto loadorder = deployers_[deployer]->getLoadorder();
     std::vector<std::string> mod_names;
     if(deployers_[deployer]->idsAreSourceReferences())
@@ -920,17 +925,24 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       mod_names.reserve(loadorder.size());
       for(const auto& [id, _] : loadorder)
       {
+        std::string mod_name;
         if(id == -1)
         {
-          mod_names.push_back("Vanilla");
+          mod_name = "Vanilla";
+          mod_names.push_back(mod_name);
+          auto item = std::vector<std::string>({ "", mod_name });
+          root->appendChild(item);
           continue;
         }
         auto iter =
           std::ranges::find_if(installed_mods_, [id = id](auto& mod) { return mod.id == id; });
         if(iter == installed_mods_.end())
-          mod_names.push_back("Vanilla");
+          mod_name = "Vanilla";
         else
-          mod_names.push_back(iter->name);
+          mod_name = iter->name;
+        mod_names.push_back(mod_name);
+        auto item = std::vector<std::string>({ "", mod_name });
+        root->appendChild(item);
       }
     }
     bool separate_dirs = false;
@@ -948,6 +960,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              {},
              deployers_[deployer]->getAutoTags(),
              deployers_[deployer]->getAutoTagMap(),
+             root,
              separate_dirs,
              has_ignored_files,
              deployers_[deployer]->supportsSorting(),

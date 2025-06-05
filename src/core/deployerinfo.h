@@ -8,6 +8,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "treeitem.h"
 
 
 /*!
@@ -29,6 +30,10 @@ struct DeployerInfo
   std::vector<std::vector<std::string>> auto_tags;
   /*! \brief Maps tag names to the number of mods for that tag. */
   std::map<std::string, int> mods_per_tag;
+
+  /*! \brief Root of mod tree */
+  TreeItem<std::string> *root;
+
   /*!
    * \brief Used by ReverseDeployers: If true: Store files on a per profile basis.
    * Else: All profiles use the same files.

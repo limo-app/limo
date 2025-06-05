@@ -72,7 +72,7 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
       return QString(std::get<1>(deployer_info_.loadorder[row]) ? "Enabled" : "Disabled");
     if(col == name_col)
     {
-      return QString::fromStdString(deployer_info_.mod_names[row]);
+      return QString::fromStdString(deployer_info_.root->child(row)->data(name_col));
     }
     if(col == id_col)
     {
@@ -103,7 +103,7 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
     return row;
   }
   if(role == ModListModel::mod_name_role)
-    return deployer_info_.mod_names[row].c_str();
+    return deployer_info_.root->child(row)->data(name_col).c_str();
   if(role == mod_tags_role)
   {
     QStringList tags;
@@ -118,7 +118,7 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
     if(deployer_info_.ids_are_source_references)
       return deployer_info_.source_mod_names_[row].c_str();
     else
-      return deployer_info_.mod_names[row].c_str();
+      return deployer_info_.root->child(row)->data(name_col).c_str();
   }
   if(role == valid_mod_actions_role)
   {
