@@ -1,5 +1,6 @@
 #include "deployerlistmodel.h"
 #include "colors.h"
+#include "core/treeitem.h"
 #include "modlistmodel.h"
 #include <QApplication>
 #include <QBrush>
@@ -200,4 +201,26 @@ bool DeployerListModel::hasChildren(const QModelIndex &parent = QModelIndex()) c
       return false;
     }
   }
+}
+
+bool DeployerListModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (role != Qt::EditRole)
+        return false;
+
+    TreeItem<std::string> *item = getItem(index);
+    bool result = item->setData(index.column(), value.toString().toStdString());
+
+    if (result)
+        emit dataChanged(index, index, {Qt::DisplayRole, Qt::EditRole});
+
+    return result;
+}
+
+TreeItem<std::string> *DeployerListModel::getItem(const QModelIndex &index) const
+{
+    if (index.isValid()) {
+      return deployer_info_.root->child(index.row());
+    }
+    return deployer_info_.root;
 }

@@ -6,6 +6,7 @@
 #include "reversedeployer.h"
 #include <algorithm>
 #include <fstream>
+#include <memory>
 #include <ranges>
 #include <regex>
 
@@ -855,13 +856,13 @@ int ModdedApplication::verifyStagingDir(sfs::path staging_dir)
 
 DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
 {
+  TreeItem<std::string> *root = new TreeItem<std::string>(std::vector<std::string>({"", ""}), nullptr);
   if(!(deployers_[deployer]->isAutonomous()))
   {
     std::map<std::string, int> mods_per_tag;
     for(const auto& tag : manual_tags_)
       mods_per_tag[tag.getName()] = tag.getNumMods();
 
-    TreeItem<std::string> *root = new TreeItem<std::string>(std::vector<std::string>({"", ""}), nullptr);
     const auto loadorder = deployers_[deployer]->getLoadorder();
     std::vector<std::string> mod_names;
     mod_names.reserve(loadorder.size());
@@ -892,8 +893,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       else
         mods_per_tag[tag.getName()] = tag.getNumMods();
     }
-    return { mod_names,
-             loadorder,
+    return { loadorder,
              deployers_[deployer]->getConflictGroups(),
              false,
              manual_tags,
@@ -917,7 +917,6 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
   }
   else
   {
-    TreeItem<std::string> *root = new TreeItem<std::string>(std::vector<std::string>({"", ""}));
     const auto loadorder = deployers_[deployer]->getLoadorder();
     std::vector<std::string> mod_names;
     if(deployers_[deployer]->idsAreSourceReferences())
@@ -930,8 +929,8 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
         {
           mod_name = "Vanilla";
           mod_names.push_back(mod_name);
-          auto item = std::vector<std::string>({ "", mod_name });
-          root->appendChild(item);
+          // auto item = std::vector<std::string>({ "", mod_name });
+          // root->appendChild(item);
           continue;
         }
         auto iter =
@@ -941,8 +940,8 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
         else
           mod_name = iter->name;
         mod_names.push_back(mod_name);
-        auto item = std::vector<std::string>({ "", mod_name });
-        root->appendChild(item);
+        // auto item = std::vector<std::string>({ "", mod_name });
+        // root->appendChild(item);
       }
     }
     bool separate_dirs = false;
@@ -953,8 +952,11 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       separate_dirs = depl->usesSeparateDirs();
       has_ignored_files = depl->getNumIgnoredFiles() != 0;
     }
-    return { deployers_[deployer]->getModNames(),
-             deployers_[deployer]->getLoadorder(),
+    for (auto name  : deployers_[deployer]->getModNames()) {
+      auto item = std::vector<std::string>({ "", name });
+      root->appendChild(item);
+    }
+    return { deployers_[deployer]->getLoadorder(),
              deployers_[deployer]->getConflictGroups(),
              true,
              {},

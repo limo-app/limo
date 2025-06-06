@@ -8,7 +8,6 @@
 */
 
 #include "treeitem.h"
-#include <memory>
 #include <utility>
 
 //! [0]
@@ -23,7 +22,7 @@ template <typename T>
 TreeItem<T> *TreeItem<T>::child(int number)
 {
     return (number >= 0 && number < childCount())
-        ? m_childItems.at(number).get() : nullptr;
+        ? m_childItems.at(number) : nullptr;
 }
 //! [1]
 
@@ -42,8 +41,8 @@ int TreeItem<T>::row() const
     if (!m_parentItem)
         return 0;
     const auto it = std::ranges::find_if(m_parentItem->m_childItems.cbegin(), m_parentItem->m_childItems.cend(),
-                                 [this](const std::shared_ptr<TreeItem> &treeItem) {
-        return treeItem.get() == this;
+                                 [this](const TreeItem *treeItem) {
+        return treeItem == this;
     });
 
     if (it != m_parentItem->m_childItems.cend())
@@ -69,56 +68,56 @@ T TreeItem<T>::data(int column) const
 //! [5]
 
 //! [6]
-template <typename T>
-bool TreeItem<T>::insertChildren(int position, int count, int columns)
-{
-    if (position < 0 || position > m_childItems.size())
-        return false;
-
-    for (int row = 0; row < count; ++row) {
-        std::vector<T> data(columns);
-        m_childItems.insert(m_childItems.cbegin() + position,
-                std::make_unique<TreeItem>(data, this));
-    }
-
-    return true;
-}
+// template <typename T>
+// bool TreeItem<T>::insertChildren(int position, int count, int columns)
+// {
+//     if (position < 0 || position > m_childItems.size())
+//         return false;
+//
+//     for (int row = 0; row < count; ++row) {
+//         std::vector<T> data(columns);
+//         m_childItems.insert(m_childItems.cbegin() + position,
+//                 std::make_unique<TreeItem>(data, this));
+//     }
+//
+//     return true;
+// }
 //! [6]
 
 //! [7]
-template <typename T>
-bool TreeItem<T>::insertColumns(int position, int columns)
-{
-    if (position < 0 || position > itemData.size())
-        return false;
-
-    for (int column = 0; column < columns; ++column)
-        itemData.insert(itemData.begin() + position, T());
-
-    for (auto &child : std::as_const(m_childItems))
-        child->insertColumns(position, columns);
-
-    return true;
-}
+// template <typename T>
+// bool TreeItem<T>::insertColumns(int position, int columns)
+// {
+//     if (position < 0 || position > itemData.size())
+//         return false;
+//
+//     for (int column = 0; column < columns; ++column)
+//         itemData.insert(itemData.begin() + position, T());
+//
+//     for (auto &child : std::as_const(m_childItems))
+//         child->insertColumns(position, columns);
+//
+//     return true;
+// }
 //! [7]
 
 template <typename T>
-bool TreeItem<T>::appendChild(std::shared_ptr<TreeItem> child)
+bool TreeItem<T>::appendChild(TreeItem *child)
 {
-  m_childItems.push_back(std::move(child));
+  m_childItems.push_back(child);
   return true;
 }
 
 template <typename T>
 bool TreeItem<T>::appendChild(std::vector<T> data)
 {
-  m_childItems.push_back(std::make_shared<TreeItem<T>>(std::move(data), this));
+  m_childItems.push_back(new TreeItem<T>(data, this));
   return true;
 }
 
 //! [8]
 template <typename T>
-std::shared_ptr<TreeItem<T>> TreeItem<T>::parent()
+TreeItem<T> *TreeItem<T>::parent()
 {
     return m_parentItem;
 }
@@ -165,4 +164,4 @@ bool TreeItem<T>::setData(int column, const T &value)
 }
 //! [10]
 
-template class TreeItem<std::vector<std::string>>;
+template class TreeItem<std::string>;

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 #include "treeitem.h"
@@ -16,8 +17,6 @@
  */
 struct DeployerInfo
 {
-  /*! \brief Names of the mods managed by this deployer, in their load order. */
-  std::vector<std::string> mod_names;
   /*! \brief The \ref Deployer "deployer's" load order. */
   std::vector<std::tuple<int, bool>> loadorder;
   /*! \brief Contains groups of mods which conflict with each other. */

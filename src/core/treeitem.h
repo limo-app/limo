@@ -18,20 +18,20 @@ public:
     int childCount() const;
     int columnCount() const;
     T data(int column) const;
-    bool insertChildren(int position, int count, int columns);
-    bool insertColumns(int position, int columns);
-    bool appendChild(std::shared_ptr<TreeItem> child);
+    // bool insertChildren(int position, int count, int columns);
+    // bool insertColumns(int position, int columns);
+    bool appendChild(TreeItem *child);
     bool appendChild(std::vector<T> data);
-    std::shared_ptr<TreeItem> parent();
+    TreeItem *parent();
     bool removeChildren(int position, int count);
     bool removeColumns(int position, int columns);
     int row() const;
     bool setData(int column, const T &value);
 
 private:
-    std::vector<std::shared_ptr<TreeItem>> m_childItems;
+    std::vector<TreeItem *> m_childItems;
     std::vector<T> itemData;
-    std::shared_ptr<TreeItem> m_parentItem;
+    TreeItem *m_parentItem;
 };
 //! [0]
 
