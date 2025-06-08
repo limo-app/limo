@@ -7,14 +7,17 @@
     A container for items of data supplied by the simple tree model.
 */
 
+#include "core/DeployerEntry.hpp"
 #include "treeitem.h"
 #include <utility>
 
 //! [0]
 template <typename T>
-TreeItem<T>::TreeItem(std::vector<T> data, TreeItem *parent)
+TreeItem<T>::TreeItem(T *data, TreeItem *parent)
     : itemData(std::move(data)), m_parentItem(parent)
-{}
+{
+  m_childItems = std::vector<TreeItem *>();
+}
 //! [0]
 
 //! [1]
@@ -51,19 +54,11 @@ int TreeItem<T>::row() const
 }
 //! [3]
 
-//! [4]
-template <typename T>
-int TreeItem<T>::columnCount() const
-{
-    return itemData.size();
-}
-//! [4]
-
 //! [5]
 template <typename T>
-T TreeItem<T>::data(int column) const
+T *TreeItem<T>::data() const
 {
-    return itemData[column];
+    return itemData;
 }
 //! [5]
 
@@ -84,23 +79,6 @@ T TreeItem<T>::data(int column) const
 // }
 //! [6]
 
-//! [7]
-// template <typename T>
-// bool TreeItem<T>::insertColumns(int position, int columns)
-// {
-//     if (position < 0 || position > itemData.size())
-//         return false;
-//
-//     for (int column = 0; column < columns; ++column)
-//         itemData.insert(itemData.begin() + position, T());
-//
-//     for (auto &child : std::as_const(m_childItems))
-//         child->insertColumns(position, columns);
-//
-//     return true;
-// }
-//! [7]
-
 template <typename T>
 bool TreeItem<T>::appendChild(TreeItem *child)
 {
@@ -109,7 +87,7 @@ bool TreeItem<T>::appendChild(TreeItem *child)
 }
 
 template <typename T>
-bool TreeItem<T>::appendChild(std::vector<T> data)
+bool TreeItem<T>::appendChild(T *data)
 {
   m_childItems.push_back(new TreeItem<T>(data, this));
   return true;
@@ -137,31 +115,13 @@ bool TreeItem<T>::removeChildren(int position, int count)
 }
 //! [9]
 
-template <typename T>
-bool TreeItem<T>::removeColumns(int position, int columns)
-{
-    if (position < 0 || position + columns > itemData.size())
-        return false;
-
-    for (int column = 0; column < columns; ++column)
-        itemData.erase(itemData.begin() + position);
-
-    for (auto &child : std::as_const(m_childItems))
-        child->removeColumns(position, columns);
-
-    return true;
-}
-
 //! [10]
 template <typename T>
-bool TreeItem<T>::setData(int column, const T &value)
+bool TreeItem<T>::setData(T *value)
 {
-    if (column < 0 || column >= itemData.size())
-        return false;
-
-    itemData[column] = value;
+    itemData = value;
     return true;
 }
 //! [10]
 
-template class TreeItem<std::string>;
+template class TreeItem<DeployerEntry>;

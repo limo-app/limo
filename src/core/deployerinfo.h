@@ -6,11 +6,10 @@
 #pragma once
 
 #include <map>
-#include <memory>
 #include <string>
 #include <vector>
 #include "treeitem.h"
-
+#include "DeployerEntry.hpp"
 
 /*!
  * \brief Stores a \ref Deployer "deployer's" installed mods and load order.
@@ -18,20 +17,20 @@
 struct DeployerInfo
 {
   /*! \brief The \ref Deployer "deployer's" load order. */
-  std::vector<std::tuple<int, bool>> loadorder;
+  // std::vector<std::tuple<int, bool>> loadorder;
   /*! \brief Contains groups of mods which conflict with each other. */
   std::vector<std::vector<int>> conflict_groups;
   /*! \brief If true: Deployer manages its own mods and does not rely on ModdedApplication. */
   bool is_autonomous = false;
   /*! \brief For every mod: A vector of manual tags added to that mod. */
-  std::vector<std::vector<std::string>> manual_tags;
+  // std::vector<std::vector<std::string>> manual_tags;
   /*! \brief For every mod: A vector of auto tags added to that mod. */
-  std::vector<std::vector<std::string>> auto_tags;
+  // std::vector<std::vector<std::string>> auto_tags;
   /*! \brief Maps tag names to the number of mods for that tag. */
   std::map<std::string, int> mods_per_tag;
 
   /*! \brief Root of mod tree */
-  TreeItem<std::string> *root;
+  TreeItem<DeployerEntry> *root = nullptr;
 
   /*!
    * \brief Used by ReverseDeployers: If true: Store files on a per profile basis.

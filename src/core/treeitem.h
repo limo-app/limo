@@ -5,33 +5,29 @@
 #define TREEITEM_H
 
 #include <vector>
-#include <memory>
 
 //! [0]
 template <typename T>
 class TreeItem
 {
 public:
-    explicit TreeItem(std::vector<T> data, TreeItem *parent = nullptr);
+    explicit TreeItem(T *data, TreeItem *parent = nullptr);
 
-    TreeItem *child(int number);
-    int childCount() const;
-    int columnCount() const;
-    T data(int column) const;
-    // bool insertChildren(int position, int count, int columns);
-    // bool insertColumns(int position, int columns);
+    TreeItem *child(int number); int childCount() const; T *data() const;
     bool appendChild(TreeItem *child);
-    bool appendChild(std::vector<T> data);
+    bool appendChild(T *data);
     TreeItem *parent();
     bool removeChildren(int position, int count);
-    bool removeColumns(int position, int columns);
     int row() const;
-    bool setData(int column, const T &value);
+    bool setData(T *value);
 
 private:
-    std::vector<TreeItem *> m_childItems;
-    std::vector<T> itemData;
+    std::vector<TreeItem<T> *> m_childItems;
+    T *itemData;
     TreeItem *m_parentItem;
+
+    std::vector<T *> leaves;
+    int rows = -1;
 };
 //! [0]
 

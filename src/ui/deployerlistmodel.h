@@ -8,8 +8,6 @@
 #include "../core/deployerinfo.h"
 #include <QAbstractItemModel>
 #include <QColor>
-#include <memory>
-
 
 /*!
  * \brief Manages and provides access to the data displayed in the deployer list.
@@ -105,6 +103,7 @@ public:
   QModelIndex parent(const QModelIndex &index) const override;
   bool hasChildren(const QModelIndex &parent) const override;
   bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+  void addSeparator();
 
 private:
   /*! \brief Contains all mods managed by this model. */
@@ -113,5 +112,8 @@ private:
   std::map<int, QBrush> text_colors_;
   /*! \brief For every mod: A vector containing every tag added to that mod. */
   std::vector<std::vector<std::string>> tags_;
-  TreeItem<std::string> *getItem(const QModelIndex &index) const;
+  TreeItem<DeployerEntry> *getItem(const QModelIndex &index) const;
 };
+
+Q_DECLARE_METATYPE(DeployerEntry *);
+

@@ -867,6 +867,16 @@
                  </property>
                 </widget>
                </item>
+               <item row="0" column="3">
+                <widget class="QPushButton" name="deployer_add_separator_button">
+                 <property name="toolTip">
+                  <string>Add a category or separator to this deployer</string>
+                 </property>
+                 <property name="text">
+                  <string>Add separator</string>
+                 </property>
+                </widget>
+               </item>
                <item row="0" column="6">
                 <widget class="QPushButton" name="deploy_button">
                  <property name="toolTip">
@@ -1468,6 +1478,11 @@
   <action name="actionmove_mod">
    <property name="text">
     <string>Change Position</string>
+   </property>
+  </action>
+  <action name="actionadd_separator">
+   <property name="text">
+    <string>Add Separator</string>
    </property>
   </action>
   <action name="actionAdd_to_Group">

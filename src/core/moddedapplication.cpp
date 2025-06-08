@@ -1,4 +1,5 @@
 #include "moddedapplication.h"
+#include "core/deployerinfo.h"
 #include "deployerfactory.h"
 #include "installer.h"
 #include "parseerror.h"
@@ -856,7 +857,7 @@ int ModdedApplication::verifyStagingDir(sfs::path staging_dir)
 
 DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
 {
-  TreeItem<std::string> *root = new TreeItem<std::string>(std::vector<std::string>({"", ""}), nullptr);
+  auto *root = new TreeItem<DeployerEntry>(new DeployerEntry(true, "Root"), nullptr);
   if(!(deployers_[deployer]->isAutonomous()))
   {
     std::map<std::string, int> mods_per_tag;
@@ -873,7 +874,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
     for(const auto& [id, e] : loadorder)
     {
       auto mod_name = std::ranges::find_if(installed_mods_, [id = id](auto& mod) { return mod.id == id; })->name;
-      auto item = std::vector<std::string>({ "", mod_name });
+      auto item = new DeployerModInfo(false, mod_name);
       root->appendChild(item);
       mod_names.push_back(mod_name);
       if(manual_tag_map_.contains(id))
@@ -893,11 +894,12 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       else
         mods_per_tag[tag.getName()] = tag.getNumMods();
     }
-    return { loadorder,
+    return {
+             // loadorder,
              deployers_[deployer]->getConflictGroups(),
              false,
-             manual_tags,
-             auto_tags,
+             // manual_tags,
+             // auto_tags,
              mods_per_tag,
              root,
              false,
@@ -929,8 +931,8 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
         {
           mod_name = "Vanilla";
           mod_names.push_back(mod_name);
-          // auto item = std::vector<std::string>({ "", mod_name });
-          // root->appendChild(item);
+          auto item = new DeployerModInfo(false, mod_name, mod_name);
+          root->appendChild(item);
           continue;
         }
         auto iter =
@@ -940,8 +942,8 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
         else
           mod_name = iter->name;
         mod_names.push_back(mod_name);
-        // auto item = std::vector<std::string>({ "", mod_name });
-        // root->appendChild(item);
+        auto item = new DeployerModInfo(false, mod_name, mod_name);
+        root->appendChild(item);
       }
     }
     bool separate_dirs = false;
@@ -953,15 +955,16 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       has_ignored_files = depl->getNumIgnoredFiles() != 0;
     }
     for (auto name  : deployers_[deployer]->getModNames()) {
-      auto item = std::vector<std::string>({ "", name });
+      auto item = new DeployerModInfo { false, name };
       root->appendChild(item);
     }
-    return { deployers_[deployer]->getLoadorder(),
+    return {
+             // deployers_[deployer]->getLoadorder(),
              deployers_[deployer]->getConflictGroups(),
              true,
              {},
-             deployers_[deployer]->getAutoTags(),
-             deployers_[deployer]->getAutoTagMap(),
+             // deployers_[deployer]->getAutoTags(),
+             // deployers_[deployer]->getAutoTagMap(),
              root,
              separate_dirs,
              has_ignored_files,

@@ -36,6 +36,8 @@
 #include <ranges>
 #include <regex>
 
+#include <iostream>
+
 namespace str = std::ranges;
 namespace stv = std::views;
 namespace sfs = std::filesystem;
@@ -1631,6 +1633,7 @@ void MainWindow::onGetDeployerNames(QStringList names, bool is_new)
     remove_deployer_action_->setEnabled(true);
     edit_deployer_action_->setEnabled(true);
     ui->actionbrowse_deployer_files->setEnabled(true);
+    ui->deployer_add_separator_button->setEnabled(true);
     ui->deploy_button->setEnabled(true);
     ui->undeploy_button->setEnabled(true);
   }
@@ -2269,6 +2272,11 @@ void MainWindow::on_deploy_button_clicked()
     emit getExternalChanges(currentApp(), currentDeployer(), true);
 }
 
+void MainWindow::on_deployer_add_separator_button_clicked()
+{
+  std::cout << "Adding separator to deployer list" << std::endl;
+  deployer_model_->addSeparator();
+}
 
 void MainWindow::onAddAppButtonClicked()
 {
@@ -2876,8 +2884,8 @@ void MainWindow::onScrollLists()
 {
   ui->mod_list->scrollTo(ui->mod_list->selectionModel()->currentIndex(),
                          QAbstractItemView::PositionAtCenter);
-  ui->deployer_list->scrollTo(ui->deployer_list->selectionModel()->currentIndex(),
-                              QAbstractItemView::PositionAtCenter);
+  // ui->deployer_list->scrollTo(ui->deployer_list->selectionModel()->currentIndex(),
+                              // QAbstractItemView::PositionAtCenter);
 }
 
 void MainWindow::updateProgress(float progress)
