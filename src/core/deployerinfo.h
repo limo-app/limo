@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 #include "treeitem.h"
-#include "DeployerEntry.hpp"
+#include "deployerentry.hpp"
 
 /*!
  * \brief Stores a \ref Deployer "deployer's" installed mods and load order.

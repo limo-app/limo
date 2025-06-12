@@ -7,7 +7,7 @@
     A container for items of data supplied by the simple tree model.
 */
 
-#include "core/DeployerEntry.hpp"
+#include "core/deployerentry.hpp"
 #include "treeitem.h"
 #include <utility>
 

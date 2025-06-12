@@ -1,6 +1,7 @@
 #ifndef DEPLOYERENTRY_H
 #define DEPLOYERENTRY_H
 
+#include <json/value.h>
 #include <string>
 #include <vector>
 
@@ -10,6 +11,7 @@ public:
       : isSeparator(isSeparator), name(name) {}
   bool isSeparator;
   std::string name;
+  Json::Value toJson();
 };
 
 class DeployerModInfo : public DeployerEntry {
