@@ -1,4 +1,5 @@
 #include "moddedapplication.h"
+#include "core/deployerinfo.h"
 #include "deployerfactory.h"
 #include "installer.h"
 #include "parseerror.h"
@@ -6,6 +7,7 @@
 #include "reversedeployer.h"
 #include <algorithm>
 #include <fstream>
+#include <memory>
 #include <ranges>
 #include <regex>
 
@@ -855,6 +857,7 @@ int ModdedApplication::verifyStagingDir(sfs::path staging_dir)
 
 DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
 {
+  auto *root = new TreeItem<DeployerEntry>(new DeployerEntry(true, "Root"), nullptr);
   if(!(deployers_[deployer]->isAutonomous()))
   {
     std::map<std::string, int> mods_per_tag;
@@ -870,8 +873,10 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
     manual_tags.reserve(loadorder.size());
     for(const auto& [id, e] : loadorder)
     {
-      mod_names.push_back(
-        std::ranges::find_if(installed_mods_, [id = id](auto& mod) { return mod.id == id; })->name);
+      auto mod_name = std::ranges::find_if(installed_mods_, [id = id](auto& mod) { return mod.id == id; })->name;
+      auto item = new DeployerModInfo(false, mod_name, "", id);
+      root->appendChild(item);
+      mod_names.push_back(mod_name);
       if(manual_tag_map_.contains(id))
         manual_tags.push_back(manual_tag_map_.at(id));
       else
@@ -889,13 +894,14 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       else
         mods_per_tag[tag.getName()] = tag.getNumMods();
     }
-    return { mod_names,
-             loadorder,
+    return {
+             // loadorder,
              deployers_[deployer]->getConflictGroups(),
              false,
-             manual_tags,
-             auto_tags,
+             // manual_tags,
+             // auto_tags,
              mods_per_tag,
+             root,
              false,
              false,
              deployers_[deployer]->supportsSorting(),
@@ -903,6 +909,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->supportsModConflicts(),
              deployers_[deployer]->supportsFileConflicts(),
              deployers_[deployer]->supportsFileBrowsing(),
+             deployers_[deployer]->supportsExpandableItems(),
              deployers_[deployer]->getType(),
              deployers_[deployer]->idsAreSourceReferences(),
              {},
@@ -917,19 +924,28 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
     if(deployers_[deployer]->idsAreSourceReferences())
     {
       mod_names.reserve(loadorder.size());
-      for(const auto& [id, _] : loadorder)
+      auto names = deployers_[deployer]->getModNames();
+      for(int i = 0; i < loadorder.size(); i++)
       {
+        int id = std::get<0>(loadorder[i]);
+        std::string mod_name;
         if(id == -1)
         {
-          mod_names.push_back("Vanilla");
+          mod_name = "Vanilla";
+          mod_names.push_back(mod_name);
+          auto item = new DeployerModInfo(false, names[i], mod_name);
+          root->appendChild(item);
           continue;
         }
         auto iter =
           std::ranges::find_if(installed_mods_, [id = id](auto& mod) { return mod.id == id; });
         if(iter == installed_mods_.end())
-          mod_names.push_back("Vanilla");
+          mod_name = "Vanilla";
         else
-          mod_names.push_back(iter->name);
+          mod_name = iter->name;
+        mod_names.push_back(mod_name);
+        auto item = new DeployerModInfo(false, names[i], mod_name);
+        root->appendChild(item);
       }
     }
     bool separate_dirs = false;
@@ -940,13 +956,14 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       separate_dirs = depl->usesSeparateDirs();
       has_ignored_files = depl->getNumIgnoredFiles() != 0;
     }
-    return { deployers_[deployer]->getModNames(),
-             deployers_[deployer]->getLoadorder(),
+    return {
+             // deployers_[deployer]->getLoadorder(),
              deployers_[deployer]->getConflictGroups(),
              true,
              {},
-             deployers_[deployer]->getAutoTags(),
-             deployers_[deployer]->getAutoTagMap(),
+             // deployers_[deployer]->getAutoTags(),
+             // deployers_[deployer]->getAutoTagMap(),
+             root,
              separate_dirs,
              has_ignored_files,
              deployers_[deployer]->supportsSorting(),
@@ -954,6 +971,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->supportsModConflicts(),
              deployers_[deployer]->supportsFileConflicts(),
              deployers_[deployer]->supportsFileBrowsing(),
+             deployers_[deployer]->supportsExpandableItems(),
              deployers_[deployer]->getType(),
              deployers_[deployer]->idsAreSourceReferences(),
              mod_names,

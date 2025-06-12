@@ -917,6 +917,11 @@ bool Deployer::supportsFileBrowsing() const
   return true;
 }
 
+bool Deployer::supportsExpandableItems() const
+{
+  return false;
+}
+
 bool Deployer::idsAreSourceReferences() const
 {
   return false;
