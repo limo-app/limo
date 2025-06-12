@@ -924,14 +924,16 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
     if(deployers_[deployer]->idsAreSourceReferences())
     {
       mod_names.reserve(loadorder.size());
-      for(const auto& [id, _] : loadorder)
+      auto names = deployers_[deployer]->getModNames();
+      for(int i = 0; i < loadorder.size(); i++)
       {
+        int id = std::get<0>(loadorder[i]);
         std::string mod_name;
         if(id == -1)
         {
           mod_name = "Vanilla";
           mod_names.push_back(mod_name);
-          auto item = new DeployerModInfo(false, mod_name, mod_name);
+          auto item = new DeployerModInfo(false, names[i], mod_name);
           root->appendChild(item);
           continue;
         }
@@ -942,7 +944,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
         else
           mod_name = iter->name;
         mod_names.push_back(mod_name);
-        auto item = new DeployerModInfo(false, mod_name, mod_name);
+        auto item = new DeployerModInfo(false, names[i], mod_name);
         root->appendChild(item);
       }
     }
@@ -953,10 +955,6 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       auto depl = static_cast<ReverseDeployer*>(deployers_[deployer].get());
       separate_dirs = depl->usesSeparateDirs();
       has_ignored_files = depl->getNumIgnoredFiles() != 0;
-    }
-    for (auto name  : deployers_[deployer]->getModNames()) {
-      auto item = new DeployerModInfo { false, name };
-      root->appendChild(item);
     }
     return {
              // deployers_[deployer]->getLoadorder(),
