@@ -874,7 +874,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
     for(const auto& [id, e] : loadorder)
     {
       auto mod_name = std::ranges::find_if(installed_mods_, [id = id](auto& mod) { return mod.id == id; })->name;
-      auto item = new DeployerModInfo(false, mod_name);
+      auto item = new DeployerModInfo(false, mod_name, "", id);
       root->appendChild(item);
       mod_names.push_back(mod_name);
       if(manual_tag_map_.contains(id))
