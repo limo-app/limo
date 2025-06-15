@@ -389,7 +389,7 @@ std::vector<ModInfo> ModdedApplication::getModInfo() const
   return mod_info;
 }
 
-std::vector<std::tuple<int, bool>> ModdedApplication::getLoadorder(int deployer) const
+std::vector<DeployerEntry *> ModdedApplication::getLoadorder(int deployer) const
 {
   return deployers_[deployer]->getLoadorder();
 }
@@ -682,10 +682,10 @@ void ModdedApplication::removeModFromGroup(int mod_id,
         deployers_[depl]->setProfile(prof);
         auto loadorder = deployers_[depl]->getLoadorder();
         auto iter = str::find_if(
-          loadorder, [mod_id](const auto& tuple) { return std::get<0>(tuple) == mod_id; });
+          loadorder, [mod_id](const auto& entry) { return entry->id == mod_id; });
         if(iter != loadorder.end())
         {
-          deployers_[depl]->addMod(active_group_members_[group], std::get<1>(*iter), false);
+          deployers_[depl]->addMod(active_group_members_[group], static_cast<DeployerModInfo *>(*iter)->enabled, false);
           deployers_[depl]->changeLoadorder(loadorder.size(), iter - loadorder.begin());
           update_targets[depl].push_back(prof);
           weights.push_back(loadorder.size());
@@ -871,19 +871,19 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
     manual_tags.reserve(loadorder.size());
     std::vector<std::vector<std::string>> auto_tags;
     manual_tags.reserve(loadorder.size());
-    for(const auto& [id, e] : loadorder)
+    for(const auto& entry : loadorder)
     {
-      auto mod_name = std::ranges::find_if(installed_mods_, [id = id](auto& mod) { return mod.id == id; })->name;
-      auto item = new DeployerModInfo(false, mod_name, "", id);
+      auto mod_name = std::ranges::find_if(installed_mods_, [&entry](auto& mod) { return mod.id == entry->id; })->name;
+      auto item = new DeployerModInfo(false, mod_name, "", entry->id);
       root->appendChild(item);
       mod_names.push_back(mod_name);
-      if(manual_tag_map_.contains(id))
-        manual_tags.push_back(manual_tag_map_.at(id));
+      if(manual_tag_map_.contains(entry->id))
+        manual_tags.push_back(manual_tag_map_.at(entry->id));
       else
         manual_tags.push_back({});
 
-      if(auto_tag_map_.contains(id))
-        auto_tags.push_back(auto_tag_map_.at(id));
+      if(auto_tag_map_.contains(entry->id))
+        auto_tags.push_back(auto_tag_map_.at(entry->id));
       else
         auto_tags.push_back({});
     }
@@ -927,7 +927,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       auto names = deployers_[deployer]->getModNames();
       for(int i = 0; i < loadorder.size(); i++)
       {
-        int id = std::get<0>(loadorder[i]);
+        int id = loadorder[i]->id;
         std::string mod_name;
         if(id == -1)
         {
@@ -1641,10 +1641,11 @@ void ModdedApplication::updateSettings(bool write)
         auto loadorder = deployers_[depl]->getLoadorder();
         for(int mod = 0; mod < loadorder.size(); mod++)
         {
-          json_settings_["deployers"][depl]["profiles"][prof]["loadorder"][mod]["id"] =
-            std::get<0>(loadorder[mod]);
-          json_settings_["deployers"][depl]["profiles"][prof]["loadorder"][mod]["enabled"] =
-            std::get<1>(loadorder[mod]);
+          // json_settings_["deployers"][depl]["profiles"][prof]["loadorder"][mod]["id"] =
+          //   std::get<0>(loadorder[mod]);
+          // json_settings_["deployers"][depl]["profiles"][prof]["loadorder"][mod]["enabled"] =
+          //   std::get<1>(loadorder[mod]);
+          json_settings_["deployers"][depl]["profiles"][prof]["loadorder"] = NULL;
         }
         auto conflict_groups = deployers_[depl]->getConflictGroups();
         for(int group = 0; group < conflict_groups.size(); group++)
@@ -1936,18 +1937,18 @@ void ModdedApplication::updateDeployerGroups(std::optional<ProgressNode*> progre
       deployers_[depl]->setProfile(profile);
       std::vector<bool> completed_groups(active_group_members_.size());
       std::fill(completed_groups.begin(), completed_groups.end(), false);
-      for(const auto& [mod_id, _] : deployers_[depl]->getLoadorder())
+      for(const auto& entry : deployers_[depl]->getLoadorder())
       {
-        if(!group_map_.contains(mod_id))
+        if(!group_map_.contains(entry->id))
           continue;
-        const int group = group_map_[mod_id];
+        const int group = group_map_[entry->id];
         if(!completed_groups[group])
         {
           completed_groups[group] = true;
-          if(deployers_[depl]->swapMod(mod_id, active_group_members_[group]))
+          if(deployers_[depl]->swapMod(entry->id, active_group_members_[group]))
             update_targets[depl].push_back(profile);
         }
-        else if(deployers_[depl]->removeMod(mod_id))
+        else if(deployers_[depl]->removeMod(entry->id))
           update_targets[depl].push_back(profile);
       }
     }

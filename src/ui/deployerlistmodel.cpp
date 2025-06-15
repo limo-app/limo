@@ -56,38 +56,47 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
 {
   const int row = index.row();
   const int col = index.column();
+  auto data = static_cast<DeployerEntry *>(deployer_info_.root->child(row)->data());
   if(role == Qt::BackgroundRole)
   {
-    if(col == status_col)
-      return QBrush(static_cast<DeployerModInfo *>(deployer_info_.root->child(row)->data())->enabled  ? colors::GREEN : colors::GRAY);
+    if(col == status_col && !data->isSeparator)
+      return QBrush(static_cast<DeployerModInfo *>(data)->enabled  ? colors::GREEN : colors::GRAY);
+    return QBrush(colors::WHITE);
   }
   if(role == Qt::ForegroundRole)
   {
     if(col == status_col)
       return QBrush(QColor(255, 255, 255));
-    if(!text_colors_.contains(static_cast<DeployerModInfo *>(deployer_info_.root->child(row)->data())->id))
+    if(!text_colors_.contains(static_cast<DeployerModInfo *>(data)->id))
       return QApplication::palette().text();
-    return text_colors_.at(static_cast<DeployerModInfo *>(deployer_info_.root->child(row)->data())->id);
+    return text_colors_.at(static_cast<DeployerModInfo *>(data)->id);
   }
   if(role == Qt::TextAlignmentRole && col == status_col)
     return Qt::AlignCenter;
   if(role == Qt::DisplayRole)
   {
     if(col == status_col)
-      return QString(static_cast<DeployerModInfo *>(deployer_info_.root->child(row)->data())->enabled ? "Enabled" : "Disabled");
+    {
+      if (!data->isSeparator)
+        return QString(static_cast<DeployerModInfo *>(data)->enabled ? "Enabled" : "Disabled");
+      return QString("");
+    }
     if(col == name_col)
     {
-      return deployer_info_.root->child(row)->data()->name.c_str();
+      return data->name.c_str();
     }
     if(col == id_col)
     {
-      const int id = static_cast<DeployerModInfo *>(deployer_info_.root->child(row)->data())->id;
-      if(!deployer_info_.ids_are_source_references)
-        return id;
-      if(id == -1)
-        // return deployer_info_.source_mod_names_[row].c_str();
-        return static_cast<DeployerModInfo *>(deployer_info_.root->child(row)->data())->sourceName.c_str();
-      return std::format("{} [{}]", deployer_info_.source_mod_names_[row], id).c_str();
+      if (!data->isSeparator) {
+        const int id = static_cast<DeployerModInfo *>(data)->id;
+        if(!deployer_info_.ids_are_source_references)
+          return id;
+        if(id == -1)
+          // return deployer_info_.source_mod_names_[row].c_str();
+          return static_cast<DeployerModInfo *>(data)->sourceName.c_str();
+        return std::format("{} [{}]", deployer_info_.source_mod_names_[row], id).c_str();
+      }
+      return QString("");
     }
     if(col == tags_col)
     {
@@ -101,15 +110,21 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
     }
   }
   if(role == mod_status_role)
-    return static_cast<DeployerModInfo *>(deployer_info_.root->child(row)->data())->enabled;
+  {
+    if (!data->isSeparator) {
+      return static_cast<DeployerModInfo *>(data)->enabled;
+    } else {
+      return false;
+    }
+  }
   if(role == ModListModel::mod_id_role)
   {
-    if(!deployer_info_.ids_are_source_references)
-      return static_cast<DeployerModInfo *>(deployer_info_.root->child(row)->data())->id;
+    if(!deployer_info_.ids_are_source_references && !data->isSeparator)
+      return static_cast<DeployerModInfo *>(data)->id;
     return row;
   }
   if(role == ModListModel::mod_name_role)
-    return deployer_info_.root->child(row)->data()->name.c_str();
+    return data->name.c_str();
   if(role == mod_tags_role)
   {
     QStringList tags;
@@ -121,10 +136,10 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
     return deployer_info_.ids_are_source_references;
   if(role == source_mod_name_role)
   {
-    if(deployer_info_.ids_are_source_references)
-      return static_cast<DeployerModInfo *>(deployer_info_.root->child(row)->data())->sourceName.c_str();
+    if(deployer_info_.ids_are_source_references && !data->isSeparator)
+      return static_cast<DeployerModInfo *>(data)->sourceName.c_str();
     else
-      return deployer_info_.root->child(row)->data()->name.c_str();
+      return data->name.c_str();
   }
   if(role == valid_mod_actions_role)
   {
@@ -235,7 +250,7 @@ void DeployerListModel::addSeparator()
   emit layoutAboutToBeChanged();
   if (deployer_info_.supports_expandable) {
     this->deployer_info_.root->appendChild(
-      new DeployerEntry { true, "Separator"}
+      new DeployerEntry (true, "Separator")
     );
   }
   emit layoutChanged();

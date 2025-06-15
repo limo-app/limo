@@ -6,6 +6,7 @@
 #pragma once
 
 #include "conflictinfo.h"
+#include "core/deployerentry.hpp"
 #include "filechangechoices.h"
 #include "log.h"
 #include "progressnode.h"
@@ -96,12 +97,12 @@ public:
    * \brief Setter for the load order used for deployment.
    * \param loadorder The new load order.
    */
-  void setLoadorder(const std::vector<std::tuple<int, bool>>& loadorder);
+  void setLoadorder(const std::vector<DeployerEntry *>& loadorder);
   /*!
    * \brief Getter for the current mod load order.
    * \return The load order.
    */
-  virtual std::vector<std::tuple<int, bool>> getLoadorder() const;
+  virtual std::vector<DeployerEntry *> getLoadorder() const;
   /*!
    * \brief Returns the type of this deployer, i.e. SIMPLEDEPLOYER
    * \return The type.
@@ -410,7 +411,7 @@ protected:
   /*! \brief The currently active profile. */
   int current_profile_ = 0;
   /*! \brief One load order per profile consisting of tuples of mod ids and their enabled status. */
-  std::vector<std::vector<std::tuple<int, bool>>> loadorders_;
+  std::vector<std::vector<DeployerEntry *>> loadorders_;
   /*!
    * \brief For every profile: Groups of mods which conflict with each other. The last
    * group contains mods with no conflicts.
