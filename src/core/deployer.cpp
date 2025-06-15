@@ -147,8 +147,9 @@ void Deployer::setModStatus(int mod_id, bool status)
     return;
   auto iter = std::find_if(loadorders_[current_profile_].begin(),
                            loadorders_[current_profile_].end(),
-                           [mod_id, status](const auto& t) { return t->id == mod_id; });
-  static_cast<DeployerModInfo *>(*iter)->enabled = status;
+                           [mod_id](const auto& t) { return t->id == mod_id; });
+  auto deployer_mod = static_cast<DeployerModInfo *>(*iter);
+  deployer_mod->enabled = status;
   return;
 }
 

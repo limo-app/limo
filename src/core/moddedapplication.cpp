@@ -873,8 +873,9 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
     manual_tags.reserve(loadorder.size());
     for(const auto& entry : loadorder)
     {
-      auto mod_name = std::ranges::find_if(installed_mods_, [&entry](auto& mod) { return mod.id == entry->id; })->name;
-      auto item = new DeployerModInfo(false, mod_name, "", entry->id);
+      auto mod_info = static_cast<DeployerModInfo *>(entry);
+      auto mod_name = std::ranges::find_if(installed_mods_, [&mod_info](auto& mod) { return mod.id == mod_info->id; })->name;
+      auto item = new DeployerModInfo(false, mod_name, "", mod_info->id, mod_info->enabled);
       root->appendChild(item);
       mod_names.push_back(mod_name);
       if(manual_tag_map_.contains(entry->id))

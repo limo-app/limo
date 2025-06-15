@@ -18,7 +18,7 @@ public:
 class DeployerModInfo : public DeployerEntry {
 public:
   DeployerModInfo(bool isSeparator, const std::string& name, const std::string& sourceName = "", int id = -1, int enabled = 0)
-      : DeployerEntry(isSeparator, name, id), sourceName(sourceName), enabled(enabled) {}
+      : DeployerEntry(isSeparator, name, id), sourceName(sourceName), enabled(enabled), manual_tags(std::vector<std::string>()), auto_tags(std::vector<std::string>()) {}
   std::string sourceName;
   int enabled;
   std::vector<std::string> manual_tags;
