@@ -195,12 +195,12 @@ int ReverseDeployer::getNumMods() const
   return current_loadorder_.size();
 }
 
-std::vector<std::tuple<int, bool>> ReverseDeployer::getLoadorder() const
+std::vector<DeployerEntry *> ReverseDeployer::getLoadorder() const
 {
-  std::vector<std::tuple<int, bool>> loadorder;
+  std::vector<DeployerEntry *> loadorder;
   loadorder.reserve(current_loadorder_.size());
   for(const auto& [i, enabled] : str::enumerate_view(current_loadorder_ | std::views::values))
-    loadorder.emplace_back(i, enabled);
+    loadorder.emplace_back(new DeployerModInfo(i, "", "", enabled));
   return loadorder;
 }
 

@@ -167,9 +167,9 @@ int PluginDeployer::getNumMods() const
   return plugins_.size();
 }
 
-std::vector<std::tuple<int, bool>> PluginDeployer::getLoadorder() const
+std::vector<DeployerEntry *> PluginDeployer::getLoadorder() const
 {
-  std::vector<std::tuple<int, bool>> loadorder;
+  std::vector<DeployerEntry *> loadorder;
   loadorder.reserve(plugins_.size());
   for(const auto& [plugin, enabled] : plugins_)
   {
@@ -177,7 +177,7 @@ std::vector<std::tuple<int, bool>> PluginDeployer::getLoadorder() const
     int id = -1;
     if(iter != source_mods_.end())
       id = iter->second;
-    loadorder.emplace_back(id, enabled);
+    loadorder.emplace_back(new DeployerModInfo(false, plugin, "", id, enabled));
   }
   return loadorder;
 }

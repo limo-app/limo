@@ -24,4 +24,5 @@ inline const QColor GRAY{ 0xbab0ac };
 inline const QColor RED{ 0xd62728 };
 /*! \brief Tableau light red. */
 inline const QColor LIGHT_RED{ 0xe15759 };
+inline const QColor WHITE{ 0xffffff };
 }
