@@ -929,12 +929,13 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       for(int i = 0; i < loadorder.size(); i++)
       {
         int id = loadorder[i]->id;
+        auto mod_info = static_cast<DeployerModInfo *>(loadorder[i]);
         std::string mod_name;
         if(id == -1)
         {
           mod_name = "Vanilla";
           mod_names.push_back(mod_name);
-          auto item = new DeployerModInfo(false, names[i], mod_name);
+          auto item = new DeployerModInfo(false, names[i], mod_name, mod_info->id, mod_info->enabled);
           root->appendChild(item);
           continue;
         }
@@ -945,7 +946,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
         else
           mod_name = iter->name;
         mod_names.push_back(mod_name);
-        auto item = new DeployerModInfo(false, names[i], mod_name);
+        auto item = new DeployerModInfo(false, names[i], mod_name, mod_info->id, mod_info->enabled);
         root->appendChild(item);
       }
     }
