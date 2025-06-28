@@ -36,6 +36,8 @@
 #include <ranges>
 #include <regex>
 
+#include <iostream>
+
 namespace str = std::ranges;
 namespace stv = std::views;
 namespace sfs = std::filesystem;
@@ -118,9 +120,9 @@ void MainWindow::closeEvent(QCloseEvent* event)
   settings.setValue("ask_remove_profile", ask_remove_profile_);
   settings.setValue("ask_remove_backup_target", ask_remove_backup_target_);
   settings.setValue("ask_remove_tool", ask_remove_tool_);
-  settings.setValue("mod_list_sort_column",
-                    ui->mod_list->horizontalHeader()->sortIndicatorSection());
-  settings.setValue("mod_list_sort_order", ui->mod_list->horizontalHeader()->sortIndicatorOrder());
+  // settings.setValue("mod_list_sort_column",
+  //                   ui->mod_list->horizontalHeader()->sortIndicatorSection());
+  // settings.setValue("mod_list_sort_order", ui->mod_list->horizontalHeader()->sortIndicatorOrder());
   ipc_server_->shutdown();
   event->accept();
 }
@@ -1631,6 +1633,7 @@ void MainWindow::onGetDeployerNames(QStringList names, bool is_new)
     remove_deployer_action_->setEnabled(true);
     edit_deployer_action_->setEnabled(true);
     ui->actionbrowse_deployer_files->setEnabled(true);
+    ui->deployer_add_separator_button->setEnabled(true);
     ui->deploy_button->setEnabled(true);
     ui->undeploy_button->setEnabled(true);
   }
@@ -1655,7 +1658,7 @@ void MainWindow::onGetDeployerNames(QStringList names, bool is_new)
 void MainWindow::onModListContextMenu(QPoint pos)
 {
   auto idx = mod_list_proxy_->mapToSource(ui->mod_list->indexAt(pos));
-  pos.setY(pos.y() + ui->mod_list->verticalHeader()->sizeHint().height() + 6);
+  // pos.setY(pos.y() + ui->mod_list->verticalHeader()->sizeHint().height() + 6);
 
   if(idx.row() < 0)
     return;
@@ -1738,8 +1741,8 @@ void MainWindow::onDeployerListContextMenu(QPoint pos)
   if(!has_visible_actions)
     return;
   auto idx = ui->deployer_list->indexAt(pos);
-  pos.setY(pos.y() + ui->deployer_list->horizontalHeader()->sizeHint().height());
-  pos.setX(pos.x() + ui->deployer_list->verticalHeader()->sizeHint().width());
+  // pos.setY(pos.y() + ui->deployer_list->horizontalHeader()->sizeHint().height());
+  // pos.setX(pos.x() + ui->deployer_list->verticalHeader()->sizeHint().width());
   if(idx.row() >= 0)
     deployer_list_menu_->exec(ui->deployer_list->mapToGlobal(pos));
 }
@@ -2141,7 +2144,7 @@ void MainWindow::onBackupTargetAdded(int app_id,
 void MainWindow::onBackupListContextMenu(QPoint pos)
 {
   auto idx = ui->backup_list->indexAt(pos);
-  pos.setY(pos.y() + ui->backup_list->verticalHeader()->sizeHint().height() + 6);
+  // pos.setY(pos.y() + ui->backup_list->verticalHeader()->sizeHint().height() + 6);
   if(idx.row() >= 0 && idx.row() < backup_list_model_->rowCount() - 1)
   {
     const QString target_name = idx.data(BackupListModel::target_name_role).toString();
@@ -2269,6 +2272,11 @@ void MainWindow::on_deploy_button_clicked()
     emit getExternalChanges(currentApp(), currentDeployer(), true);
 }
 
+void MainWindow::on_deployer_add_separator_button_clicked()
+{
+  std::cout << "Adding separator to deployer list" << std::endl;
+  deployer_model_->addSeparator();
+}
 
 void MainWindow::onAddAppButtonClicked()
 {
@@ -2876,8 +2884,8 @@ void MainWindow::onScrollLists()
 {
   ui->mod_list->scrollTo(ui->mod_list->selectionModel()->currentIndex(),
                          QAbstractItemView::PositionAtCenter);
-  ui->deployer_list->scrollTo(ui->deployer_list->selectionModel()->currentIndex(),
-                              QAbstractItemView::PositionAtCenter);
+  // ui->deployer_list->scrollTo(ui->deployer_list->selectionModel()->currentIndex(),
+                              // QAbstractItemView::PositionAtCenter);
 }
 
 void MainWindow::updateProgress(float progress)

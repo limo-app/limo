@@ -183,7 +183,10 @@ void DeployerListProxyModel::updateFilter(bool invalidate)
   for(int row = 0; row < rowCount(); row++)
   {
     const int mod_id =
-      sourceModel()->data(mapToSource(index(row, 0)), ModListModel::mod_id_role).toInt();
+      sourceModel()->data(
+        mapToSource(index(row, 0)),
+        ModListModel::mod_id_role
+      ).toInt();
     const int group = conflict_groups_[mod_id];
     if(group == no_conflict_group_)
     {

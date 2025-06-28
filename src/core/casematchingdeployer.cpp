@@ -179,3 +179,8 @@ void CaseMatchingDeployer::adaptLoadorderFiles(const std::vector<int>& loadorder
       (*progress_node)->child(1).advance();
   }
 }
+
+bool CaseMatchingDeployer::supportsExpandableItems() const
+{
+  return true;
+}

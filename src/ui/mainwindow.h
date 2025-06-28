@@ -692,6 +692,8 @@ public slots:
 private slots:
   /*! \brief Deploys all mods for the currently active ModdedApplication. */
   void on_deploy_button_clicked();
+  /*! \brief Adds a separator to the deployer for the currently active ModdedApplication. */
+  void on_deployer_add_separator_button_clicked();
   /*! \brief Shows a dialog to add a new ModdedApplication. */
   void onAddAppButtonClicked();
   /*! \brief Updates the currently active ModdedApplication. */
