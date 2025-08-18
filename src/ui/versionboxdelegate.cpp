@@ -2,6 +2,7 @@
 #include "backuplistmodel.h"
 #include "modlistmodel.h"
 #include "modlistview.h"
+#include "qmodelindexutils.h"
 #include "ui/colors.h"
 #include <QApplication>
 #include <QComboBox>
@@ -9,7 +10,6 @@
 #include <QHeaderView>
 #include <QLineEdit>
 #include <QPainter>
-
 
 VersionBoxDelegate::VersionBoxDelegate(ModListProxyModel* proxy, QObject* parent) :
   QStyledItemDelegate{ parent }, proxy_model_(proxy),
@@ -118,7 +118,7 @@ void VersionBoxDelegate::paint(QPainter* painter,
   box.currentText = model_index.data().toString();
   box.editable = true;
   box.state |= QStyle::State_Enabled;
-  const int mouse_row = parent_view_->getHoverRow();
+  const auto mouse_row = parent_view_->getHoverRow();
   if(!is_backup_delegate_ &&
      !parent_view_->selectionModel()->rowIntersectsSelection(view_index.row()))
   {
@@ -136,7 +136,7 @@ void VersionBoxDelegate::paint(QPainter* painter,
       option.palette.color(parent_view_->hasFocus() ? QPalette::Active : QPalette::Inactive,
                            QPalette::Highlight));
   }
-  else if(mouse_row == view_index.row())
+  else if(sameRow(mouse_row, view_index))
   {
     const float color_ratio = 0.8;
     auto hl_color = option.palette.color(QPalette::Highlight);

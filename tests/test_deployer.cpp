@@ -1,9 +1,9 @@
 #include "../src/core/casematchingdeployer.h"
 #include "../src/core/deployer.h"
+#include "matcher.h"
 #include "test_utils.h"
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
-#include <iostream>
 #include <set>
 #include <ranges>
 
@@ -89,8 +89,8 @@ TEST_CASE("Loadorder is being changed", "[deployer]")
   depl.addMod(2, true);
   depl.addMod(0, true);
   depl.addMod(1, true);
-  depl.changeLoadorder(1, 0);
-  depl.changeLoadorder(1, 2);
+  depl.swapChild(1, 0);
+  depl.swapChild(1, 2);
   depl.deploy();
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "mod012", true);
 }
@@ -106,7 +106,7 @@ TEST_CASE("Profiles", "[deployer]")
   depl.setProfile(1);
   depl.addMod(0, true);
   depl.addMod(2, true);
-  depl.changeLoadorder(0, 1);
+  depl.swapChild(0, 1);
   depl.deploy();
   SECTION("Copy profile")
   verifyDirsAreEqual(DATA_DIR / "app", DATA_DIR / "target" / "mod012", true);
@@ -163,20 +163,33 @@ TEST_CASE("Conflict groups are created", "[deployer]")
 
 TEST_CASE("Mods are sorted", "[deployer]")
 {
+  // Arrange
+  auto expectedEntry0 = std::make_shared<DeployerModInfo>(false, "mod 0", "", 0, true);
+  auto expectedEntry1 = std::make_shared<DeployerModInfo>(false, "mod 1", "", 1, true);
+  auto expectedEntry2 = std::make_shared<DeployerModInfo>(false, "mod 2", "", 2, true);
+  auto expectedEntry3 = std::make_shared<DeployerModInfo>(false, "mod 3", "", 3, true);
+  auto expectedEntry4 = std::make_shared<DeployerModInfo>(false, "mod 4", "", 4, true);
+  auto expectedEntry5 = std::make_shared<DeployerModInfo>(false, "mod 5", "", 5, true);
+  auto expectedEntry6 = std::make_shared<DeployerModInfo>(false, "mod 6", "", 6, true);
+  auto expectedEntry7 = std::make_shared<DeployerModInfo>(false, "mod 7", "", 7, true);
+  std::vector<std::weak_ptr<DeployerEntry>> expectedEntries = {
+    expectedEntry5,
+    expectedEntry0,
+    expectedEntry2,
+    expectedEntry1,
+    expectedEntry3,
+    expectedEntry6,
+    expectedEntry4,
+    expectedEntry7
+  };
+
   Deployer depl(DATA_DIR / "source" / "conflicts", DATA_DIR / "app", "");
   depl.addProfile();
   for(int i : { 5, 6, 0, 7, 4, 2, 1, 3 })
     depl.addMod(i, true);
   depl.sortModsByConflicts();
-  REQUIRE_THAT(depl.getLoadorder(),
-               Catch::Matchers::UnorderedEquals(std::vector<std::tuple<int, bool>>{ { 5, true },
-                                                                                    { 0, true },
-                                                                                    { 2, true },
-                                                                                    { 1, true },
-                                                                                    { 3, true },
-                                                                                    { 6, true },
-                                                                                    { 4, true },
-                                                                                    { 7, true } }));
+  REQUIRE_THAT(depl.getLoadorder()->getTraversalItems(),
+               EqualsDeployerEntryVector(expectedEntries));
 }
 
 TEST_CASE("Case matching deployer", "[deployer]")

@@ -51,6 +51,11 @@ public:
    * \return True.
    */
   virtual bool isCaseInvariant() const override;
+  /*!
+   * \brief Returns whether or not this deployer type supports expandable items.
+   * \return True if supported.
+   */
+  virtual bool supportsExpandableItems() const override;
 
 private:
   /*!

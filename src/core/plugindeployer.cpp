@@ -45,28 +45,14 @@ std::map<int, unsigned long> PluginDeployer::deploy(const std::vector<int>& load
   return {};
 }
 
-void PluginDeployer::changeLoadorder(int from_index, int to_index)
+void PluginDeployer::swapChild(int from_index, int to_index)
 {
-  if(to_index == from_index)
+  if(to_index == from_index || to_index < 0 || to_index >= plugins_.size())
     return;
-  if(to_index < 0 || to_index >= plugins_.size())
-    return;
-  if(to_index < from_index)
-    std::rotate(plugins_.begin() + to_index,
-                plugins_.begin() + from_index,
-                plugins_.begin() + from_index + 1);
-  else
-    std::rotate(plugins_.begin() + from_index,
-                plugins_.begin() + from_index + 1,
-                plugins_.begin() + to_index + 1);
+  iter_swap(plugins_.begin() + to_index, plugins_.begin() + from_index);
   if(tags_.size() == plugins_.size())
   {
-    if(to_index < from_index)
-      std::rotate(
-        tags_.begin() + to_index, tags_.begin() + from_index, tags_.begin() + from_index + 1);
-    else
-      std::rotate(
-        tags_.begin() + from_index, tags_.begin() + from_index + 1, tags_.begin() + to_index + 1);
+    iter_swap(tags_.begin() + to_index, tags_.begin() + from_index);
   }
   writePluginTags();
   writePlugins();
@@ -162,22 +148,21 @@ void PluginDeployer::setConflictGroups(const std::vector<std::vector<int>>& newC
          "This will have no effect.");
 }
 
-int PluginDeployer::getNumMods() const
+int PluginDeployer::getNumMods()
 {
   return plugins_.size();
 }
 
-std::vector<std::tuple<int, bool>> PluginDeployer::getLoadorder() const
+std::shared_ptr<TreeItem<DeployerEntry>> PluginDeployer::getLoadorder()
 {
-  std::vector<std::tuple<int, bool>> loadorder;
-  loadorder.reserve(plugins_.size());
+  auto loadorder = std::make_shared<TreeItem<DeployerEntry>>(std::make_shared<DeployerEntry>(true, "Root"), nullptr);
   for(const auto& [plugin, enabled] : plugins_)
   {
     auto iter = source_mods_.find(plugin);
     int id = -1;
     if(iter != source_mods_.end())
       id = iter->second;
-    loadorder.emplace_back(id, enabled);
+    loadorder->emplace_back(make_shared<DeployerModInfo>(false, plugin, "", id, enabled));
   }
   return loadorder;
 }
@@ -198,7 +183,7 @@ bool PluginDeployer::removeMod(int mod_id)
   return false;
 }
 
-bool PluginDeployer::hasMod(int mod_id) const
+bool PluginDeployer::hasMod(int mod_id)
 {
   return false;
 }
@@ -214,7 +199,7 @@ bool PluginDeployer::swapMod(int old_id, int new_id)
 std::vector<ConflictInfo> PluginDeployer::getFileConflicts(
   int mod_id,
   bool show_disabled,
-  std::optional<ProgressNode*> progress_node) const
+  std::optional<ProgressNode*> progress_node)
 {
   if(progress_node)
   {

@@ -1,7 +1,5 @@
 #include "test_utils.h"
 #include <fstream>
-#include <iostream>
-
 
 std::vector<std::string> getFiles(sfs::path dir, bool get_contents = false)
 {
@@ -65,3 +63,4 @@ void verifyFilesAreEqual(sfs::path first_file, sfs::path second_file)
   file.close();
   REQUIRE(content_first_file == content_second_file);
 }
+

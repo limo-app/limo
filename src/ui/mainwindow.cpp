@@ -36,6 +36,8 @@
 #include <ranges>
 #include <regex>
 
+#include <iostream>
+
 namespace str = std::ranges;
 namespace stv = std::views;
 namespace sfs = std::filesystem;
@@ -118,9 +120,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
   settings.setValue("ask_remove_profile", ask_remove_profile_);
   settings.setValue("ask_remove_backup_target", ask_remove_backup_target_);
   settings.setValue("ask_remove_tool", ask_remove_tool_);
-  settings.setValue("mod_list_sort_column",
-                    ui->mod_list->horizontalHeader()->sortIndicatorSection());
-  settings.setValue("mod_list_sort_order", ui->mod_list->horizontalHeader()->sortIndicatorOrder());
   ipc_server_->shutdown();
   event->accept();
 }
@@ -204,8 +203,8 @@ void MainWindow::setupConnections()
           app_manager_, &ApplicationManager::uninstallMods);
   connect(this, &MainWindow::setModStatus,
           app_manager_, &ApplicationManager::setModStatus);
-  connect(this, &MainWindow::changeLoadorder,
-          app_manager_, &ApplicationManager::changeLoadorder);
+  connect(this, &MainWindow::commitChanges,
+          app_manager_, &ApplicationManager::commitChanges);
   connect(this, &MainWindow::deployMods,
           app_manager_, &ApplicationManager::deployMods);
   connect(this, &MainWindow::addApplication,
@@ -225,7 +224,7 @@ void MainWindow::setupConnections()
   connect(this, &MainWindow::removeApplication,
           app_manager_, &ApplicationManager::removeApplication);
   connect(this, &MainWindow::removeModFromDeployer,
-          app_manager_, &ApplicationManager::removeModFromDeployer);
+          app_manager_, &ApplicationManager::removeNodeFromDeployer);
   connect(app_manager_, &ApplicationManager::completedOperations,
           this, &MainWindow::onCompletedOperations);
   connect(this, &MainWindow::changeModName,
@@ -460,6 +459,7 @@ void MainWindow::setupLists()
   deployer_list_proxy_->setFilterCaseSensitivity(Qt::CaseInsensitive);
   deployer_list_proxy_->setFilterRole(Qt::DisplayRole);
   ui->deployer_list->setAcceptDrops(true);
+  ui->deployer_list->setDragEnabled(true);
   ui->deployer_list->setDropIndicatorShown(true);
   ui->deployer_list->setEnableDragReorder(true);
 
@@ -1631,6 +1631,7 @@ void MainWindow::onGetDeployerNames(QStringList names, bool is_new)
     remove_deployer_action_->setEnabled(true);
     edit_deployer_action_->setEnabled(true);
     ui->actionbrowse_deployer_files->setEnabled(true);
+    ui->deployer_add_separator_button->setEnabled(true);
     ui->deploy_button->setEnabled(true);
     ui->undeploy_button->setEnabled(true);
   }
@@ -1655,7 +1656,6 @@ void MainWindow::onGetDeployerNames(QStringList names, bool is_new)
 void MainWindow::onModListContextMenu(QPoint pos)
 {
   auto idx = mod_list_proxy_->mapToSource(ui->mod_list->indexAt(pos));
-  pos.setY(pos.y() + ui->mod_list->verticalHeader()->sizeHint().height() + 6);
 
   if(idx.row() < 0)
     return;
@@ -1738,8 +1738,6 @@ void MainWindow::onDeployerListContextMenu(QPoint pos)
   if(!has_visible_actions)
     return;
   auto idx = ui->deployer_list->indexAt(pos);
-  pos.setY(pos.y() + ui->deployer_list->horizontalHeader()->sizeHint().height());
-  pos.setX(pos.x() + ui->deployer_list->verticalHeader()->sizeHint().width());
   if(idx.row() >= 0)
     deployer_list_menu_->exec(ui->deployer_list->mapToGlobal(pos));
 }
@@ -1924,12 +1922,10 @@ void MainWindow::onGetModConflicts(std::unordered_set<int> conflicts)
   ui->reset_filter_button->setHidden(false);
 }
 
-void MainWindow::onModMoved(int from, int to)
+void MainWindow::onModMoved()
 {
-  if(from == to)
-    return;
   deployer_list_slider_pos_ = ui->deployer_list->verticalScrollBar()->sliderPosition();
-  emit changeLoadorder(currentApp(), currentDeployer(), from, to);
+  emit commitChanges(currentApp(), currentDeployer());
   emit getDeployerInfo(currentApp(), currentDeployer());
 }
 
@@ -2141,7 +2137,7 @@ void MainWindow::onBackupTargetAdded(int app_id,
 void MainWindow::onBackupListContextMenu(QPoint pos)
 {
   auto idx = ui->backup_list->indexAt(pos);
-  pos.setY(pos.y() + ui->backup_list->verticalHeader()->sizeHint().height() + 6);
+  // pos.setY(pos.y() + ui->backup_list->verticalHeader()->sizeHint().height() + 6);
   if(idx.row() >= 0 && idx.row() < backup_list_model_->rowCount() - 1)
   {
     const QString target_name = idx.data(BackupListModel::target_name_role).toString();
@@ -2190,7 +2186,6 @@ void MainWindow::resizeModListColumns()
 
 void MainWindow::resizeDeployerListColumns()
 {
-  ui->deployer_list->setColumnWidth(DeployerListModel::status_col, 60);
   ui->deployer_list->resizeColumnToContents(DeployerListModel::name_col);
   ui->deployer_list->resizeColumnToContents(DeployerListModel::id_col);
 }
@@ -2269,6 +2264,12 @@ void MainWindow::on_deploy_button_clicked()
     emit getExternalChanges(currentApp(), currentDeployer(), true);
 }
 
+void MainWindow::on_deployer_add_separator_button_clicked()
+{
+  deployer_model_->addSeparator();
+  emit commitChanges(currentApp(), currentDeployer());
+  emit getDeployerInfo(currentApp(), currentDeployer());
+}
 
 void MainWindow::onAddAppButtonClicked()
 {
@@ -2431,7 +2432,9 @@ void MainWindow::on_actionremove_from_deployer_triggered()
   setBusyStatus(true);
   emit removeModFromDeployer(currentApp(),
                              currentDeployer(),
-                             deployer_model_->data(index, ModListModel::mod_id_role).toInt());
+                             index.internalPointer());
+                             // deployer_model_->data(index, ModListModel::mod_id_role).toInt());
+  // emit deployer_list_proxy_->dataChanged(index, index);
   emit getDeployerInfo(currentApp(), currentDeployer());
 }
 

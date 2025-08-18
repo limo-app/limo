@@ -1,5 +1,6 @@
 #include "../src/core/openmwarchivedeployer.h"
 #include "../src/core/openmwplugindeployer.h"
+#include "matcher.h"
 #include "test_utils.h"
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
@@ -25,6 +26,30 @@ void resetOpenMwFiles()
 
 TEST_CASE("State is read", "[openmw]")
 {
+  auto expectedEntry0 = std::make_shared<DeployerModInfo>(false, "mod 0", "", -1, true);
+  auto expectedEntry1 = std::make_shared<DeployerModInfo>(false, "mod 1", "", -1, true);
+  auto expectedEntry2 = std::make_shared<DeployerModInfo>(false, "mod 2", "", -1, true);
+  auto expectedEntry3 = std::make_shared<DeployerModInfo>(false, "mod 3", "", -1, true);
+  auto expectedEntry4 = std::make_shared<DeployerModInfo>(false, "mod 4", "", -1, true);
+  auto expectedEntry5 = std::make_shared<DeployerModInfo>(false, "mod 5", "", -1, true);
+  auto expectedEntry6 = std::make_shared<DeployerModInfo>(false, "mod 6", "", -1, true);
+  auto expectedEntry7 = std::make_shared<DeployerModInfo>(false, "mod 7", "", -1, true);
+  std::vector<std::weak_ptr<DeployerEntry>> expectedEntries0 = {
+    expectedEntry0,
+    expectedEntry1,
+    expectedEntry2,
+  };
+  std::vector<std::weak_ptr<DeployerEntry>> expectedEntries1 = {
+    expectedEntry0,
+    expectedEntry1,
+    expectedEntry2,
+    expectedEntry3,
+    expectedEntry4,
+    expectedEntry5,
+    expectedEntry6,
+    expectedEntry7,
+  };
+
   resetOpenMwFiles();
   
   OpenMwArchiveDeployer a_depl(
@@ -32,9 +57,8 @@ TEST_CASE("State is read", "[openmw]")
   REQUIRE(a_depl.getNumMods() == 3);
   REQUIRE_THAT(a_depl.getModNames(),
                Catch::Matchers::Equals(std::vector<std::string>{ "Morrowind.bsa", "b.bsa", "a.bsa" }));
-  REQUIRE_THAT(a_depl.getLoadorder(),
-               Catch::Matchers::Equals(
-                 std::vector<std::tuple<int, bool>>{ { -1, true }, { -1, true }, { -1, true } }));
+  REQUIRE_THAT(a_depl.getLoadorder()->getTraversalItems(),
+              EqualsDeployerEntryVector(expectedEntries0));
   
   OpenMwPluginDeployer p_depl(
     DATA_DIR / "target" / "openmw" / "source", DATA_DIR / "target" / "openmw" / "target", "");
@@ -46,14 +70,11 @@ TEST_CASE("State is read", "[openmw]")
     auto loadorder = p_depl.getModNames();
     auto iter = str::find(loadorder, name);
     if(iter != loadorder.end())
-      p_depl.changeLoadorder(iter - loadorder.begin(), i);
+      p_depl.swapChild(iter - loadorder.begin(), i);
   }
   REQUIRE_THAT(p_depl.getModNames(),
                Catch::Matchers::Equals(mod_names));
-  REQUIRE_THAT(p_depl.getLoadorder(),
-               Catch::Matchers::Equals(
-                 std::vector<std::tuple<int, bool>>{ { -1, true }, { -1, true }, { -1, true }, { -1, true },
-                                                     { -1, true }, { -1, true }, { -1, true }, { -1, true } }));
+  REQUIRE_THAT(p_depl.getLoadorder()->getTraversalItems(), EqualsDeployerEntryVector(expectedEntries1));
   
   verifyFilesAreEqual(DATA_DIR / "target" / "openmw" / "target" / "openmw.cfg", DATA_DIR / "target" / "openmw" / "0" / "openmw.cfg");
 }
@@ -74,12 +95,12 @@ TEST_CASE("Load order can be edited", "[openmw]")
     auto loadorder = p_depl.getModNames();
     auto iter = str::find(loadorder, name);
     if(iter != loadorder.end())
-      p_depl.changeLoadorder(iter - loadorder.begin(), i);
+      p_depl.swapChild(iter - loadorder.begin(), i);
   }
   
-  a_depl.changeLoadorder(1, 2);
-  p_depl.changeLoadorder(1, 3);
-  p_depl.changeLoadorder(2, 1);
+  a_depl.swapChild(1, 2);
+  p_depl.swapChild(1, 3);
+  p_depl.swapChild(2, 1);
   verifyFilesAreEqual(DATA_DIR / "target" / "openmw" / "target" / "openmw.cfg", DATA_DIR / "target" / "openmw" / "1" / "openmw.cfg");
   
   a_depl.setModStatus(1, false);
@@ -95,8 +116,8 @@ TEST_CASE("Load order can be edited", "[openmw]")
   
   REQUIRE_THAT(a_depl.getModNames(), Catch::Matchers::Equals(a_depl_2.getModNames()));
   REQUIRE_THAT(p_depl.getModNames(), Catch::Matchers::Equals(p_depl_2.getModNames()));
-  REQUIRE_THAT(a_depl.getLoadorder(), Catch::Matchers::Equals(a_depl_2.getLoadorder()));
-  REQUIRE_THAT(p_depl.getLoadorder(), Catch::Matchers::Equals(p_depl_2.getLoadorder()));
+  REQUIRE_THAT(a_depl.getLoadorder()->getTraversalItems(), EqualsDeployerEntryVector(a_depl_2.getLoadorder()->getTraversalItems()));
+  REQUIRE_THAT(p_depl.getLoadorder()->getTraversalItems(), EqualsDeployerEntryVector(p_depl_2.getLoadorder()->getTraversalItems()));
 }
 
 TEST_CASE("Profiles are managed", "[openmw]")
@@ -115,7 +136,7 @@ TEST_CASE("Profiles are managed", "[openmw]")
     auto loadorder = p_depl.getModNames();
     auto iter = str::find(loadorder, name);
     if(iter != loadorder.end())
-      p_depl.changeLoadorder(iter - loadorder.begin(), i);
+      p_depl.swapChild(iter - loadorder.begin(), i);
   }
   
   a_depl.addProfile(-1);
@@ -124,9 +145,9 @@ TEST_CASE("Profiles are managed", "[openmw]")
   p_depl.addProfile(0);
   a_depl.setProfile(1);
   p_depl.setProfile(1);
-  a_depl.changeLoadorder(1, 2);
-  p_depl.changeLoadorder(1, 3);
-  p_depl.changeLoadorder(2, 1);
+  a_depl.swapChild(1, 2);
+  p_depl.swapChild(1, 3);
+  p_depl.swapChild(2, 1);
   verifyFilesAreEqual(DATA_DIR / "target" / "openmw" / "target" / "openmw.cfg", DATA_DIR / "target" / "openmw" / "1" / "openmw.cfg");
   
   a_depl.addProfile(1);

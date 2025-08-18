@@ -98,16 +98,12 @@ void ReverseDeployer::unDeploy(std::optional<ProgressNode*> progress_node)
   deployed_loadorder_.clear();
 }
 
-void ReverseDeployer::changeLoadorder(int from_index, int to_index)
+void ReverseDeployer::swapChild(int from_index, int to_index)
 {
   log_(
     Log::LOG_DEBUG,
-    "WARNING: You are trying to change the load order of a reverse deployer." "This will have " "no"
-                                                                                                " e"
-                                                                                                "ff"
-                                                                                                "ec"
-                                                                                                "t"
-                                                                                                ".");
+    "WARNING: You are trying to change the load order of a reverse deployer."
+    "This will have no effect.");
 }
 
 void ReverseDeployer::setModStatus(int mod_id, bool status)
@@ -190,17 +186,18 @@ void ReverseDeployer::setProfile(int profile)
 
 void ReverseDeployer::setConflictGroups(const std::vector<std::vector<int>>& newConflict_groups) {}
 
-int ReverseDeployer::getNumMods() const
+int ReverseDeployer::getNumMods()
 {
   return current_loadorder_.size();
 }
 
-std::vector<std::tuple<int, bool>> ReverseDeployer::getLoadorder() const
+std::shared_ptr<TreeItem<DeployerEntry>> ReverseDeployer::getLoadorder()
 {
-  std::vector<std::tuple<int, bool>> loadorder;
-  loadorder.reserve(current_loadorder_.size());
+  std::shared_ptr<TreeItem<DeployerEntry>> loadorder = std::make_shared<TreeItem<DeployerEntry>>(
+    std::make_shared<DeployerEntry>(true, "Root"),
+    nullptr);
   for(const auto& [i, enabled] : str::enumerate_view(current_loadorder_ | std::views::values))
-    loadorder.emplace_back(i, enabled);
+    loadorder->emplace_back(std::make_shared<DeployerModInfo>(i, "", "", enabled));
   return loadorder;
 }
 
@@ -226,7 +223,7 @@ bool ReverseDeployer::removeMod(int mod_id)
   return false;
 }
 
-bool ReverseDeployer::hasMod(int mod_id) const
+bool ReverseDeployer::hasMod(int mod_id)
 {
   return false;
 }
@@ -243,7 +240,7 @@ bool ReverseDeployer::swapMod(int old_id, int new_id)
 std::vector<ConflictInfo> ReverseDeployer::getFileConflicts(
   int mod_id,
   bool show_disabled,
-  std::optional<ProgressNode*> progress_node) const
+  std::optional<ProgressNode*> progress_node)
 {
   if(progress_node)
   {

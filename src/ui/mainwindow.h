@@ -593,7 +593,7 @@ public slots:
    * \param from Original mod position.
    * \param to New mod position.
    */
-  void onModMoved(int from, int to);
+  void onModMoved();
   /*!
    * \brief Updates the profile combo box with new profile names.
    * \param names The new names.
@@ -692,6 +692,8 @@ public slots:
 private slots:
   /*! \brief Deploys all mods for the currently active ModdedApplication. */
   void on_deploy_button_clicked();
+  /*! \brief Adds a separator to the deployer for the currently active ModdedApplication. */
+  void on_deployer_add_separator_button_clicked();
   /*! \brief Shows a dialog to add a new ModdedApplication. */
   void onAddAppButtonClicked();
   /*! \brief Updates the currently active ModdedApplication. */
@@ -1167,7 +1169,7 @@ signals:
    * \param deployer The target Deployer
    * \param mod_id Id of the mod to be removed.
    */
-  void removeModFromDeployer(int app_id, int deployer, int mod_id);
+  void removeModFromDeployer(int app_id, int deployer, void *node_ptr);
   /*!
    * \brief Enables or disables the given mod in the load order for given Deployer
    * for given \ref ModdedApplication "application".
@@ -1186,6 +1188,7 @@ signals:
    * \param to_index Destination index.
    */
   void changeLoadorder(int app_id, int deployer, int from_idx, int to_idx);
+  void commitChanges(int app_id, int deployer);
   /*!
    * \brief Deploys mods using all Deployer objects of one \ref ModdedApplication "application".
    * \param app_id The target \ref ModdedApplication "application".

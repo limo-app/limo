@@ -66,10 +66,11 @@ std::map<int, unsigned long> Deployer::deploy(const std::vector<int>& loadorder,
 std::map<int, unsigned long> Deployer::deploy(std::optional<ProgressNode*> progress_node)
 {
   std::vector<int> loadorder;
-  for(auto const& [id, enabled] : loadorders_[current_profile_])
+  for(auto const& lo : *loadorders_[current_profile_])
   {
-    if(enabled)
-      loadorder.push_back(id);
+    auto mod_info = std::static_pointer_cast<DeployerModInfo>(lo.lock());
+    if(!mod_info->isSeparator && mod_info->enabled)
+      loadorder.push_back(mod_info->id);
   }
   return deploy(loadorder, progress_node);
 }
@@ -80,16 +81,48 @@ void Deployer::unDeploy(std::optional<ProgressNode*> progress_node)
   deploy({}, progress_node);
 }
 
-void Deployer::setLoadorder(const std::vector<std::tuple<int, bool>>& loadorder)
+void Deployer::setLoadorder(const std::shared_ptr<TreeItem<DeployerEntry>> loadorder)
 {
   loadorders_[current_profile_] = loadorder;
 }
 
-std::vector<std::tuple<int, bool>> Deployer::getLoadorder() const
+void Deployer::setLoadorder(Json::Value entry, std::shared_ptr<TreeItem<DeployerEntry>> current)
+{
+  if(entry.isObject())
+  {
+    if (entry.isMember("status")) {
+      current->emplace_back(
+        make_shared<DeployerModInfo>(false, std::string(""), "", entry["id"].asInt(),
+                            entry["status"].asBool()));
+    }
+    else if (entry.isMember("name")){
+      auto data = make_shared<DeployerEntry>(true, entry["name"].asString());
+      data->isExpanded = entry["expanded"].asBool();
+      current->emplace_back(data);
+      for (const auto& sub_entry : entry["children"])
+      {
+        setLoadorder(sub_entry, current->back());
+      }
+    }
+  }
+}
+
+void Deployer::setLoadorder(Json::Value loadorder)
+{
+  if (!loadorder["children"].isNull() && loadorder["children"].isArray())
+  {
+    for (const auto& entry : loadorder["children"])
+    {
+      setLoadorder(entry, loadorders_[current_profile_]);
+    }
+  }
+}
+
+std::shared_ptr<TreeItem<DeployerEntry>> Deployer::getLoadorder()
 {
   if(loadorders_.empty() || current_profile_ < 0 || current_profile_ >= loadorders_.size() ||
-     loadorders_[current_profile_].empty())
-    return std::vector<std::tuple<int, bool>>{};
+     loadorders_[current_profile_]->empty())
+    return std::make_shared<TreeItem<DeployerEntry>>(std::make_shared<DeployerEntry>(true, "Root"), nullptr);
   return loadorders_[current_profile_];
 }
 
@@ -98,44 +131,49 @@ std::string Deployer::getType() const
   return type_;
 }
 
-void Deployer::changeLoadorder(int from_index, int to_index)
+void Deployer::swapChild(int from_index, int to_index)
 {
-  if(to_index == from_index)
+  if(to_index == from_index || to_index < 0 || to_index >= loadorders_[current_profile_]->size())
     return;
-  if(to_index < 0 || to_index >= loadorders_[current_profile_].size())
+  loadorders_[current_profile_]->swapChild(from_index, to_index);
+}
+
+void Deployer::swapNodes (std::shared_ptr<TreeItem<DeployerEntry>> node_a,
+                                 std::shared_ptr<TreeItem<DeployerEntry>> node_b)
+{
+  if(node_a == node_b || !node_a || !node_b)
     return;
-  if(to_index < from_index)
-  {
-    std::rotate(loadorders_[current_profile_].begin() + to_index,
-                loadorders_[current_profile_].begin() + from_index,
-                loadorders_[current_profile_].begin() + from_index + 1);
-  }
-  else
-  {
-    std::rotate(loadorders_[current_profile_].begin() + from_index,
-                loadorders_[current_profile_].begin() + from_index + 1,
-                loadorders_[current_profile_].begin() + to_index + 1);
-  }
+  loadorders_[current_profile_]->swapNodes(node_a, node_b);
 }
 
 bool Deployer::addMod(int mod_id, bool enabled, bool update_conflicts)
 {
   if(hasMod(mod_id))
     return false;
-  loadorders_[current_profile_].emplace_back(mod_id, enabled);
+  loadorders_[current_profile_]->emplace_back(
+    std::make_shared<DeployerModInfo>(false, "", "", mod_id, enabled));
   if(update_conflicts && auto_update_conflict_groups_)
+    updateConflictGroups();
+  return true;
+}
+
+bool Deployer::removeNode(void *node_ptr)
+{
+  auto item = static_cast<TreeItem<DeployerEntry>*>(node_ptr)->shared_from_this();
+  item->parent()->remove(item);
+  if(auto_update_conflict_groups_)
     updateConflictGroups();
   return true;
 }
 
 bool Deployer::removeMod(int mod_id)
 {
-  auto iter = std::find_if(loadorders_[current_profile_].begin(),
-                           loadorders_[current_profile_].end(),
-                           [mod_id](auto elem) { return std::get<0>(elem) == mod_id; });
-  if(iter == loadorders_[current_profile_].end())
+  auto iter = std::find_if(loadorders_[current_profile_]->begin(),
+                           loadorders_[current_profile_]->end(),
+                           [mod_id](auto entry) { return entry.lock()->id == mod_id; });
+  if(iter == loadorders_[current_profile_]->end())
     return false;
-  loadorders_[current_profile_].erase(iter);
+  loadorders_[current_profile_]->erase(*iter);
   if(auto_update_conflict_groups_)
     updateConflictGroups();
   return true;
@@ -143,35 +181,42 @@ bool Deployer::removeMod(int mod_id)
 
 void Deployer::setModStatus(int mod_id, bool status)
 {
-  auto iter = std::find_if(loadorders_[current_profile_].begin(),
-                           loadorders_[current_profile_].end(),
-                           [mod_id, status](const auto& t) { return std::get<0>(t) == mod_id; });
-  std::get<1>(*iter) = status;
+  if (mod_id < 0) // Separator
+    return;
+  auto iter = std::find_if(loadorders_[current_profile_]->begin(),
+                           loadorders_[current_profile_]->end(),
+                           [mod_id](const auto& entry) { return entry.lock()->id == mod_id; })->lock();
+  auto deployer_mod = static_pointer_cast<DeployerModInfo>(iter);
+  if (deployer_mod != nullptr && !deployer_mod->isSeparator)
+    deployer_mod->enabled = status;
   return;
 }
 
-bool Deployer::hasMod(int mod_id) const
+bool Deployer::hasMod(int mod_id)
 {
-  return std::find_if(loadorders_[current_profile_].begin(),
-                      loadorders_[current_profile_].end(),
-                      [mod_id](const auto& tuple) { return std::get<0>(tuple) == mod_id; }) !=
-         loadorders_[current_profile_].end();
+  return std::find_if(loadorders_[current_profile_]->begin(),
+                      loadorders_[current_profile_]->end(),
+                      [mod_id](const auto& entry) { return entry.lock()->id == mod_id; }) !=
+         loadorders_[current_profile_]->end();
 }
 
 std::vector<ConflictInfo> Deployer::getFileConflicts(
   int mod_id,
   bool show_disabled,
-  std::optional<ProgressNode*> progress_node) const
+  std::optional<ProgressNode*> progress_node)
 {
   std::vector<ConflictInfo> conflicts;
   if(!checkModPathExistsAndMaybeLogError(mod_id))
     return conflicts;
   std::vector<std::string> mod_files = getModFiles(mod_id, false);
   std::vector<int> loadorder;
-  for(const auto& [id, enabled] : loadorders_[current_profile_])
+  for(const auto& entry_weak : loadorders_[current_profile_]->getTraversalItems())
   {
-    if(enabled || show_disabled)
-      loadorder.push_back(id);
+    auto entry = static_pointer_cast<DeployerModInfo>(entry_weak.lock());
+    if (!entry->isSeparator) {
+      if(entry->enabled || show_disabled)
+        loadorder.push_back(entry->id);
+    }
   }
 
   if(progress_node)
@@ -201,9 +246,9 @@ std::vector<ConflictInfo> Deployer::getFileConflicts(
   return conflicts;
 }
 
-int Deployer::getNumMods() const
+int Deployer::getNumMods()
 {
-  return loadorders_[current_profile_].size();
+  return loadorders_[current_profile_]->size();
 }
 
 const std::filesystem::path& Deployer::destPath() const
@@ -223,17 +268,19 @@ std::unordered_set<int> Deployer::getModConflicts(int mod_id,
   std::vector<std::string> mod_files = getModFiles(mod_id, false);
   if(!checkModPathExistsAndMaybeLogError(mod_id))
     return conflicts;
+  auto what = loadorders_[current_profile_];
   if(progress_node)
-    (*progress_node)->setTotalSteps(loadorders_[current_profile_].size());
-  for(const auto& [cur_id, _] : loadorders_[current_profile_])
+    (*progress_node)->setTotalSteps(loadorders_[current_profile_]->size());
+  for(const auto &entry_weak : *loadorders_[current_profile_])
   {
-    if(!checkModPathExistsAndMaybeLogError(cur_id))
+    auto entry = static_pointer_cast<DeployerModInfo>(entry_weak.lock());
+    if(entry->isSeparator || !checkModPathExistsAndMaybeLogError(entry->id))
       continue;
     for(const auto& path : mod_files)
     {
-      if(sfs::exists(source_path_ / std::to_string(cur_id) / path))
+      if(sfs::exists(source_path_ / std::to_string(entry->id) / path))
       {
-        conflicts.insert(cur_id);
+        conflicts.insert(entry->id);
         break;
       }
     }
@@ -247,7 +294,8 @@ void Deployer::addProfile(int source)
 {
   if(source < 0 || source >= loadorders_.size())
   {
-    loadorders_.push_back(std::vector<std::tuple<int, bool>>{});
+    auto root = std::make_shared<TreeItem<DeployerEntry>>(std::make_shared<DeployerEntry>(true, "Root"), nullptr);
+    loadorders_.push_back(root);
     conflict_groups_.push_back(std::vector<std::vector<int>>{});
   }
   else
@@ -353,12 +401,15 @@ std::pair<int, std::string> Deployer::verifyDirectories()
 
 bool Deployer::swapMod(int old_id, int new_id)
 {
-  auto iter = std::find_if(loadorders_[current_profile_].begin(),
-                           loadorders_[current_profile_].end(),
-                           [old_id](auto elem) { return std::get<0>(elem) == old_id; });
-  if(iter == loadorders_[current_profile_].end() || std::get<0>(*iter) == new_id)
+  if (old_id == new_id)
     return false;
-  *iter = { new_id, std::get<1>(*iter) };
+  auto weak_iter = std::find_if(loadorders_[current_profile_]->begin(),
+                           loadorders_[current_profile_]->end(),
+                           [old_id](auto entry) { return entry.lock()->id == old_id; });
+  auto shared_iter = weak_iter->lock();
+  if(weak_iter == loadorders_[current_profile_]->end())
+    return false;
+  shared_iter->id = new_id;
   if(auto_update_conflict_groups_)
     updateConflictGroups();
   return true;
@@ -367,16 +418,15 @@ bool Deployer::swapMod(int old_id, int new_id)
 void Deployer::sortModsByConflicts(std::optional<ProgressNode*> progress_node)
 {
   updateConflictGroups(progress_node);
-  std::vector<std::tuple<int, bool>> new_loadorder;
-  new_loadorder.reserve(loadorders_[current_profile_].size());
+  auto new_loadorder = std::make_shared<TreeItem<DeployerEntry>>(std::make_shared<DeployerEntry>(true, "Root"), nullptr);
   int i = 0;
   for(const auto& group : conflict_groups_[current_profile_])
   {
     for(int mod_id : group)
     {
-      auto entry = str::find_if(loadorders_[current_profile_],
-                                [mod_id](auto t) { return std::get<0>(t) == mod_id; });
-      new_loadorder.emplace_back(mod_id, std::get<1>(*entry));
+      auto entry = str::find_if(*loadorders_[current_profile_],
+                                [mod_id](auto entry) { return entry.lock()->id == mod_id; })->lock();
+      new_loadorder->emplace_back(entry);
     }
     i++;
   }
@@ -634,28 +684,29 @@ void Deployer::updateConflictGroups(std::optional<ProgressNode*> progress_node)
   std::vector<int> non_conflicting;
   // create groups
   if(progress_node)
-    (*progress_node)->setTotalSteps(loadorders_[current_profile_].size());
-  for(const auto& [mod_id, _] : loadorders_[current_profile_])
+    (*progress_node)->setTotalSteps(loadorders_[current_profile_]->getTraversalItems().size());
+  for(const auto& entry_weak : loadorders_[current_profile_]->getTraversalItems())
   {
-    if(!checkModPathExistsAndMaybeLogError(mod_id))
+    auto entry = entry_weak.lock();
+    if(entry->isSeparator || !checkModPathExistsAndMaybeLogError(entry->id))
       continue;
-    std::string base_path = (source_path_ / std::to_string(mod_id)).string();
+    std::string base_path = (source_path_ / std::to_string(entry->id)).string();
     for(const auto& dir_entry : sfs::recursive_directory_iterator(base_path))
     {
       if(dir_entry.is_directory())
         continue;
       const auto relative_path = pu::getRelativePath(dir_entry.path(), base_path);
       if(!file_map.contains(relative_path))
-        file_map[relative_path] = mod_id;
+        file_map[relative_path] = entry->id;
       else
       {
         int other_id = file_map[relative_path];
         auto contains_id = [other_id](const auto& s) { return str::find(s, other_id) != s.end(); };
         auto group_iter = str::find_if(groups, contains_id);
         if(group_iter != groups.end())
-          group_iter->insert(mod_id);
+          group_iter->insert(entry->id);
         else
-          groups.push_back({ other_id, mod_id });
+          groups.push_back({ other_id, entry->id });
       }
     }
     if(progress_node)
@@ -694,20 +745,23 @@ void Deployer::updateConflictGroups(std::optional<ProgressNode*> progress_node)
   }
   std::vector<std::vector<int>> sorted_groups(merged_groups.size() + 1, std::vector<int>());
   // sort mods
-  for(const auto& [mod_id, _] : loadorders_[current_profile_])
+  for(const auto& entry_weak : *loadorders_[current_profile_])
   {
+    auto entry = entry_weak.lock();
+    if (entry->isSeparator)
+      continue;
     bool is_in_group = false;
     for(int i = 0; i < merged_groups.size(); i++)
     {
-      if(merged_groups[i].contains(mod_id))
+      if(merged_groups[i].contains(entry->id))
       {
-        sorted_groups[i].push_back(mod_id);
+        sorted_groups[i].push_back(entry->id);
         is_in_group = true;
         break;
       }
     }
     if(!is_in_group)
-      sorted_groups[sorted_groups.size() - 1].push_back(mod_id);
+      sorted_groups[sorted_groups.size() - 1].push_back(entry->id);
   }
   conflict_groups_[current_profile_] = sorted_groups;
   log_(Log::LOG_INFO, std::format("Deployer '{}': Conflict groups updated", name_));
@@ -736,11 +790,12 @@ void Deployer::setAutoUpdateConflictGroups(bool status)
 
 std::optional<bool> Deployer::getModStatus(int mod_id)
 {
-  auto iter = str::find_if(loadorders_[current_profile_],
-                           [mod_id](auto t) { return std::get<0>(t) == mod_id; });
-  if(iter == loadorders_[current_profile_].end())
+  auto iter = str::find_if(loadorders_[current_profile_]->begin(),
+                            loadorders_[current_profile_]->end(),
+                           [mod_id](auto entry) { return entry.lock()->id == mod_id; });
+  if(iter == loadorders_[current_profile_]->end())
     return {};
-  return { std::get<1>(*iter) };
+  return { static_pointer_cast<DeployerModInfo>((*iter).lock())->enabled };
 }
 
 std::vector<std::vector<std::string>> Deployer::getAutoTags()
@@ -917,6 +972,11 @@ bool Deployer::supportsFileBrowsing() const
   return true;
 }
 
+bool Deployer::supportsExpandableItems() const
+{
+  return false;
+}
+
 bool Deployer::idsAreSourceReferences() const
 {
   return false;
@@ -930,7 +990,7 @@ std::vector<std::pair<std::string, std::string>> Deployer::getModActions() const
 std::vector<std::vector<int>> Deployer::getValidModActions() const
 {
   std::vector<std::vector<int>> valid_actions;
-  for(int _ = 0; _ < loadorders_[current_profile_].size(); _++)
+  for(int _ = 0; _ < loadorders_[current_profile_]->size(); _++)
     valid_actions.push_back({});
   return valid_actions;
 }

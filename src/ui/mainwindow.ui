@@ -467,15 +467,21 @@
                   <property name="sortingEnabled">
                    <bool>true</bool>
                   </property>
-                  <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-                   <bool>true</bool>
-                  </attribute>
-                  <attribute name="horizontalHeaderStretchLastSection">
-                   <bool>true</bool>
-                  </attribute>
-                  <attribute name="verticalHeaderVisible">
-                   <bool>false</bool>
-                  </attribute>
+                  <property name="headerHidden">
+                    <bool>false</bool>
+                  </property>
+                  <property name="rootIsDecorated">
+                    <bool>true</bool>
+                  </property>
+                  <property name="uniformRowHeights">
+                    <bool>true</bool>
+                  </property>
+                  <property name="itemsExpandable">
+                    <bool>true</bool>
+                  </property>
+                  <property name="animated">
+                    <bool>true</bool>
+                  </property>
                  </widget>
                 </item>
                </layout>
@@ -852,6 +858,16 @@
                  </property>
                 </widget>
                </item>
+               <item row="0" column="3">
+                <widget class="QPushButton" name="deployer_add_separator_button">
+                 <property name="toolTip">
+                  <string>Add a category or separator to this deployer</string>
+                 </property>
+                 <property name="text">
+                  <string>Add separator</string>
+                 </property>
+                </widget>
+               </item>
                <item row="0" column="6">
                 <widget class="QPushButton" name="deploy_button">
                  <property name="toolTip">
@@ -966,9 +982,6 @@
                      <property name="selectionBehavior">
                       <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
                      </property>
-                     <attribute name="horizontalHeaderStretchLastSection">
-                      <bool>true</bool>
-                     </attribute>
                     </widget>
                    </item>
                   </layout>
@@ -1160,15 +1173,6 @@
               <property name="alternatingRowColors">
                <bool>true</bool>
               </property>
-              <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-               <bool>false</bool>
-              </attribute>
-              <attribute name="horizontalHeaderStretchLastSection">
-               <bool>true</bool>
-              </attribute>
-              <attribute name="verticalHeaderVisible">
-               <bool>false</bool>
-              </attribute>
              </widget>
             </item>
            </layout>
@@ -1646,7 +1650,7 @@
  <customwidgets>
   <customwidget>
    <class>ModListView</class>
-   <extends>QTableView</extends>
+   <extends>QTreeView</extends>
    <header location="global">ui/modlistview.h</header>
   </customwidget>
   <customwidget>

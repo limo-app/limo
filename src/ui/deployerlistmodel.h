@@ -6,14 +6,13 @@
 #pragma once
 
 #include "../core/deployerinfo.h"
-#include <QAbstractTableModel>
+#include <QAbstractItemModel>
 #include <QColor>
-
 
 /*!
  * \brief Manages and provides access to the data displayed in the deployer list.
  */
-class DeployerListModel : public QAbstractTableModel
+class DeployerListModel : public QAbstractItemModel
 {
   Q_OBJECT
 
@@ -24,14 +23,12 @@ public:
    */
   explicit DeployerListModel(QObject* parent = nullptr);
 
-  /*! \brief Index of the mod status column. */
-  static constexpr int status_col = 0;
   /*! \brief Index of the mod name column. */
-  static constexpr int name_col = 1;
+  static constexpr int name_col = 0;
   /*! \brief Index of the mod id column. */
-  static constexpr int id_col = 2;
+  static constexpr int id_col = 1;
   /*! \brief Index of the tags column. */
-  static constexpr int tags_col = 3;
+  static constexpr int tags_col = 2;
 
   /*! \brief Role representing the activation status of a mod. */
   static constexpr int mod_status_role = 300;
@@ -100,11 +97,20 @@ public:
    */
   bool usesUnsafeSorting() const;
 
+  QModelIndex index(int row, int column, const QModelIndex &parent) const override;
+  QModelIndex parent(const QModelIndex &index) const override;
+  bool hasChildren(const QModelIndex &parent) const override;
+  bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+  void addSeparator();
+  Qt::ItemFlags flags(const QModelIndex &index) const override;
+
 private:
   /*! \brief Contains all mods managed by this model. */
   DeployerInfo deployer_info_;
   /*! \brief Maps mod ids to the color used to display their names. */
   std::map<int, QBrush> text_colors_;
-  /*! \brief For every mod: A vector containing every tag added to that mod. */
-  std::vector<std::vector<std::string>> tags_;
+  QStringList collectTags(std::shared_ptr<TreeItem<DeployerEntry>> item) const;
 };
+
+Q_DECLARE_METATYPE(DeployerEntry *);
+

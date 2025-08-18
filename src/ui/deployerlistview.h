@@ -28,6 +28,7 @@ public:
    * \param enabled Mew state.
    */
   void setEnableDragReorder(bool enabled);
+  void setModel(QAbstractItemModel* model) override;
 
 protected:
   /*!
@@ -54,10 +55,15 @@ protected:
    * \param event The source event.
    */
   void mouseMoveEvent(QMouseEvent* event) override;
+  void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles) override;
+  void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
   /*! \brief Toggles drag and drop support. */
   bool enable_drag_reorder_ = false;
+  void onExpanded(const QModelIndex &);
+  void onCollapsed(const QModelIndex &);
+  void expandSeparators(const QModelIndex & = QModelIndex());
 
 signals:
   /*!
@@ -65,5 +71,5 @@ signals:
    * \param Original mod row.
    * \param New mod row.
    */
-  void modMoved(int from_row, int to_row);
+  void modMoved();
 };

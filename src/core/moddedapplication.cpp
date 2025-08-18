@@ -1,4 +1,5 @@
 #include "moddedapplication.h"
+#include "core/deployerinfo.h"
 #include "deployerfactory.h"
 #include "installer.h"
 #include "parseerror.h"
@@ -6,6 +7,7 @@
 #include "reversedeployer.h"
 #include <algorithm>
 #include <fstream>
+#include <memory>
 #include <ranges>
 #include <regex>
 
@@ -237,9 +239,8 @@ void ModdedApplication::uninstallMods(const std::vector<int>& mod_ids,
   updateSettings(true);
 }
 
-void ModdedApplication::changeLoadorder(int deployer, int from_index, int to_index)
+void ModdedApplication::commitChanges()
 {
-  deployers_[deployer]->changeLoadorder(from_index, to_index);
   updateSettings(true);
 }
 
@@ -260,6 +261,26 @@ void ModdedApplication::addModToDeployer(int deployer,
       (*progress_node)->advance();
     }
     splitMod(mod_id, deployer);
+    updateSettings(true);
+  }
+}
+
+void ModdedApplication::removeNodeFromDeployer(int deployer,
+                                              void *node_ptr,
+                                              bool update_conflicts,
+                                              std::optional<ProgressNode*> progress_node)
+{
+  if(!deployers_[deployer]->isAutonomous())
+  {
+    const bool was_removed = deployers_[deployer]->removeNode(node_ptr);
+    ProgressNode node(progress_callback_);
+    if(update_conflicts && was_removed)
+      deployers_[deployer]->updateConflictGroups(progress_node ? progress_node : &node);
+    else if(progress_node)
+    {
+      (*progress_node)->setTotalSteps(1);
+      (*progress_node)->advance();
+    }
     updateSettings(true);
   }
 }
@@ -387,7 +408,7 @@ std::vector<ModInfo> ModdedApplication::getModInfo() const
   return mod_info;
 }
 
-std::vector<std::tuple<int, bool>> ModdedApplication::getLoadorder(int deployer) const
+std::shared_ptr<TreeItem<DeployerEntry>> ModdedApplication::getLoadorder(int deployer) const
 {
   return deployers_[deployer]->getLoadorder();
 }
@@ -678,13 +699,14 @@ void ModdedApplication::removeModFromGroup(int mod_id,
       for(int prof = 0; prof < profile_names_.size(); prof++)
       {
         deployers_[depl]->setProfile(prof);
-        auto loadorder = deployers_[depl]->getLoadorder();
+        auto loadorder = deployers_[depl]->getLoadorder()->getTraversal();
         auto iter = str::find_if(
-          loadorder, [mod_id](const auto& tuple) { return std::get<0>(tuple) == mod_id; });
-        if(iter != loadorder.end())
+          loadorder, [mod_id](const auto& entry) { return entry.lock()->getData()->id == mod_id; });
+        if(iter != loadorder.end() && !iter->lock()->getData()->isSeparator)
         {
-          deployers_[depl]->addMod(active_group_members_[group], std::get<1>(*iter), false);
-          deployers_[depl]->changeLoadorder(loadorder.size(), iter - loadorder.begin());
+          deployers_[depl]->addMod(active_group_members_[group], static_pointer_cast<DeployerModInfo>(iter->lock()->getData())->enabled, false);
+          // This swap causes a segfault
+          deployers_[depl]->swapNodes(loadorder.back().lock(), iter->lock());
           update_targets[depl].push_back(prof);
           weights.push_back(loadorder.size());
         }
@@ -855,32 +877,41 @@ int ModdedApplication::verifyStagingDir(sfs::path staging_dir)
 
 DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
 {
+  auto root = std::make_shared<TreeItem<DeployerEntry>>(std::make_shared<DeployerEntry>(true, "Root"));
   if(!(deployers_[deployer]->isAutonomous()))
   {
     std::map<std::string, int> mods_per_tag;
     for(const auto& tag : manual_tags_)
       mods_per_tag[tag.getName()] = tag.getNumMods();
 
-    const auto loadorder = deployers_[deployer]->getLoadorder();
+    auto loadorder = deployers_[deployer]->getLoadorder();
     std::vector<std::string> mod_names;
-    mod_names.reserve(loadorder.size());
-    std::vector<std::vector<std::string>> manual_tags;
-    manual_tags.reserve(loadorder.size());
-    std::vector<std::vector<std::string>> auto_tags;
-    manual_tags.reserve(loadorder.size());
-    for(const auto& [id, e] : loadorder)
+    mod_names.reserve(loadorder->size());
+    for(auto& entry_weak : loadorder->getTraversalItems())
     {
-      mod_names.push_back(
-        std::ranges::find_if(installed_mods_, [id = id](auto& mod) { return mod.id == id; })->name);
-      if(manual_tag_map_.contains(id))
-        manual_tags.push_back(manual_tag_map_.at(id));
-      else
-        manual_tags.push_back({});
+      auto entry = static_pointer_cast<DeployerModInfo>(entry_weak.lock());
+      if (entry->isSeparator) continue;
+      auto mod_name = std::ranges::find_if(installed_mods_, [&entry](auto& mod) { return mod.id == entry->id; })->name;
+      entry->name = mod_name;
+      mod_names.push_back(mod_name);
+      if(manual_tag_map_.contains(entry->id))
+      {
+        auto map = manual_tag_map_.at(entry->id);
+        entry->manual_tags.insert(entry->manual_tags.end(),
+                      map.begin(), map.end());
+        std::sort(entry->manual_tags.begin(), entry->manual_tags.end());
+        auto last = std::unique(entry->manual_tags.begin(), entry->manual_tags.end());
+        entry->manual_tags.erase(last, entry->manual_tags.end());
+      }
 
-      if(auto_tag_map_.contains(id))
-        auto_tags.push_back(auto_tag_map_.at(id));
-      else
-        auto_tags.push_back({});
+      if(auto_tag_map_.contains(entry->id)) {
+        auto map = auto_tag_map_.at(entry->id);
+        entry->auto_tags.insert(entry->auto_tags.end(),
+                            map.begin(), map.end());
+        std::sort(entry->auto_tags.begin(), entry->auto_tags.end());
+        auto last = std::unique(entry->auto_tags.begin(), entry->auto_tags.end());
+        entry->auto_tags.erase(last, entry->auto_tags.end());
+      }
     }
     for(const auto& tag : auto_tags_)
     {
@@ -889,13 +920,11 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       else
         mods_per_tag[tag.getName()] = tag.getNumMods();
     }
-    return { mod_names,
-             loadorder,
+    return {
              deployers_[deployer]->getConflictGroups(),
              false,
-             manual_tags,
-             auto_tags,
              mods_per_tag,
+             loadorder,
              false,
              false,
              deployers_[deployer]->supportsSorting(),
@@ -903,6 +932,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->supportsModConflicts(),
              deployers_[deployer]->supportsFileConflicts(),
              deployers_[deployer]->supportsFileBrowsing(),
+             deployers_[deployer]->supportsExpandableItems(),
              deployers_[deployer]->getType(),
              deployers_[deployer]->idsAreSourceReferences(),
              {},
@@ -912,24 +942,34 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
   }
   else
   {
-    const auto loadorder = deployers_[deployer]->getLoadorder();
+    auto loadorder = *deployers_[deployer]->getLoadorder();
     std::vector<std::string> mod_names;
     if(deployers_[deployer]->idsAreSourceReferences())
     {
       mod_names.reserve(loadorder.size());
-      for(const auto& [id, _] : loadorder)
+      auto names = deployers_[deployer]->getModNames();
+      for(int i = 0; i < loadorder.size(); i++)
       {
+        int id = loadorder[i]->getData()->id;
+        auto mod_info = static_pointer_cast<DeployerModInfo>(loadorder[i]->getData());
+        std::string mod_name;
         if(id == -1)
         {
-          mod_names.push_back("Vanilla");
+          mod_name = "Vanilla";
+          mod_names.push_back(mod_name);
+          auto item = make_shared<DeployerModInfo>(false, names[i], mod_name, mod_info->id, mod_info->enabled);
+          root->emplace_back(item);
           continue;
         }
         auto iter =
           std::ranges::find_if(installed_mods_, [id = id](auto& mod) { return mod.id == id; });
         if(iter == installed_mods_.end())
-          mod_names.push_back("Vanilla");
+          mod_name = "Vanilla";
         else
-          mod_names.push_back(iter->name);
+          mod_name = iter->name;
+        mod_names.push_back(mod_name);
+        auto item = make_shared<DeployerModInfo>(false, names[i], mod_name, mod_info->id, mod_info->enabled);
+        root->emplace_back(item);
       }
     }
     bool separate_dirs = false;
@@ -940,13 +980,11 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
       separate_dirs = depl->usesSeparateDirs();
       has_ignored_files = depl->getNumIgnoredFiles() != 0;
     }
-    return { deployers_[deployer]->getModNames(),
-             deployers_[deployer]->getLoadorder(),
+    return {
              deployers_[deployer]->getConflictGroups(),
              true,
              {},
-             deployers_[deployer]->getAutoTags(),
-             deployers_[deployer]->getAutoTagMap(),
+             std::move(root),
              separate_dirs,
              has_ignored_files,
              deployers_[deployer]->supportsSorting(),
@@ -954,6 +992,7 @@ DeployerInfo ModdedApplication::getDeployerInfo(int deployer)
              deployers_[deployer]->supportsModConflicts(),
              deployers_[deployer]->supportsFileConflicts(),
              deployers_[deployer]->supportsFileBrowsing(),
+             deployers_[deployer]->supportsExpandableItems(),
              deployers_[deployer]->getType(),
              deployers_[deployer]->idsAreSourceReferences(),
              mod_names,
@@ -1621,13 +1660,7 @@ void ModdedApplication::updateSettings(bool write)
         deployers_[depl]->setProfile(prof);
         json_settings_["deployers"][depl]["profiles"][prof]["name"] = profile_names_[prof];
         auto loadorder = deployers_[depl]->getLoadorder();
-        for(int mod = 0; mod < loadorder.size(); mod++)
-        {
-          json_settings_["deployers"][depl]["profiles"][prof]["loadorder"][mod]["id"] =
-            std::get<0>(loadorder[mod]);
-          json_settings_["deployers"][depl]["profiles"][prof]["loadorder"][mod]["enabled"] =
-            std::get<1>(loadorder[mod]);
-        }
+        json_settings_["deployers"][depl]["profiles"][prof]["loadorder"] = loadorder->toJson();
         auto conflict_groups = deployers_[depl]->getConflictGroups();
         for(int group = 0; group < conflict_groups.size(); group++)
         {
@@ -1804,18 +1837,26 @@ void ModdedApplication::updateState(bool read)
         deployers_[depl]->addProfile();
         deployers_[depl]->setProfile(prof);
         Json::Value loadorder = deployers[depl]["profiles"][prof]["loadorder"];
-        for(int mod = 0; mod < loadorder.size(); mod++)
+
+        // Check if the config is using the new loadorder format or not for backwards compatibility
+        if (!loadorder.isNull() && loadorder.isArray())
         {
-          int mod_id = loadorder[mod]["id"].asInt();
-          if(std::find_if(installed_mods_.begin(),
-                          installed_mods_.end(),
-                          [mod_id](const Mod& m)
-                          { return m.id == mod_id; }) == installed_mods_.end())
-            throw ParseError("Unknown mod id in deployers: " + std::to_string(mod_id) + " in \"" +
-                             (staging_dir_ / CONFIG_FILE_NAME).string() + "\"");
-          if(!group_map_.contains(mod_id) || active_group_members_[group_map_[mod_id]] == mod_id &&
-                                               !(deployers_[depl]->isAutonomous()))
-            deployers_[depl]->addMod(mod_id, loadorder[mod]["enabled"].asBool(), false);
+          for(int mod = 0; mod < loadorder.size(); mod++)
+          {
+            int mod_id = loadorder[mod]["id"].asInt();
+            if(std::find_if(installed_mods_.begin(),
+                            installed_mods_.end(),
+                            [mod_id](const Mod& m)
+                            { return m.id == mod_id; }) == installed_mods_.end())
+              throw ParseError("Unknown mod id in deployers: " + std::to_string(mod_id) + " in \"" +
+                              (staging_dir_ / CONFIG_FILE_NAME).string() + "\"");
+            if(!group_map_.contains(mod_id) || active_group_members_[group_map_[mod_id]] == mod_id &&
+                                                !(deployers_[depl]->isAutonomous()))
+              deployers_[depl]->addMod(mod_id, loadorder[mod]["enabled"].asBool(), false);
+          }
+        }
+        else {
+          deployers_[depl]->setLoadorder(loadorder);
         }
         Json::Value conflict_groups_json = deployers[depl]["profiles"][prof]["conflict_groups"];
         std::vector<std::vector<int>> conflict_groups;
@@ -1918,18 +1959,19 @@ void ModdedApplication::updateDeployerGroups(std::optional<ProgressNode*> progre
       deployers_[depl]->setProfile(profile);
       std::vector<bool> completed_groups(active_group_members_.size());
       std::fill(completed_groups.begin(), completed_groups.end(), false);
-      for(const auto& [mod_id, _] : deployers_[depl]->getLoadorder())
+      for(const auto& entry_weak : *deployers_[depl]->getLoadorder())
       {
-        if(!group_map_.contains(mod_id))
+        auto entry = entry_weak.lock();
+        if(!group_map_.contains(entry->id))
           continue;
-        const int group = group_map_[mod_id];
+        const int group = group_map_[entry->id];
         if(!completed_groups[group])
         {
           completed_groups[group] = true;
-          if(deployers_[depl]->swapMod(mod_id, active_group_members_[group]))
+          if(deployers_[depl]->swapMod(entry->id, active_group_members_[group]))
             update_targets[depl].push_back(profile);
         }
-        else if(deployers_[depl]->removeMod(mod_id))
+        else if(deployers_[depl]->removeMod(entry->id))
           update_targets[depl].push_back(profile);
       }
     }

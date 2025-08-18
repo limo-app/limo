@@ -1,0 +1,16 @@
+QTreeView::item {
+    background: palette(base);
+}
+
+QTreeView::item:alternate {
+    alternate-background-color: palette(alternate-base);
+}
+
+QTreeView::item:selected {
+    background: palette(highlight);
+    color: palette(highlighted-text);
+}
+
+QTreeView::item:hover {
+    background: palette(light);
+}

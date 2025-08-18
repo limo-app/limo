@@ -65,7 +65,7 @@ public:
    * \param from_index Index of mod to be moved.
    * \param to_index Destination index.
    */
-  void changeLoadorder(int from_index, int to_index) override;
+  void swapChild(int from_index, int to_index) override;
   /*!
    * \brief Enables or disables the given mod in the load order. Saves changes to disk.
    * \param mod_id Mod to be edited.
@@ -107,12 +107,12 @@ public:
    * \brief Returns the number of managed files.
    * \return The number of plugins.
    */
-  int getNumMods() const override;
+  int getNumMods() override;
   /*!
    * \brief Getter for the current plugin load order.
    * \return The load order.
    */
-  std::vector<std::tuple<int, bool>> getLoadorder() const override;
+  std::shared_ptr<TreeItem<DeployerEntry>> getLoadorder() override;
   /*!
    * \brief Does nothing since this deployer manages its own mods.
    * \param mod_id Ignored.
@@ -133,7 +133,7 @@ public:
    * \param mod_id Ignores
    * \return False.
    */
-  bool hasMod(int mod_id) const override;
+  bool hasMod(int mod_id) override;
   /*!
    * \brief Does nothing since this deployer manages its own mods.
    * \param old_id Ignored.
@@ -151,7 +151,7 @@ public:
   std::vector<ConflictInfo> getFileConflicts(
     int mod_id,
     bool show_disabled = false,
-    std::optional<ProgressNode*> progress_node = {}) const override;
+    std::optional<ProgressNode*> progress_node = {}) override;
   /*!
    * \brief Checks for conflicts with other mods.
    * Two mods are conflicting if they share at least one record.

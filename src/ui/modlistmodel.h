@@ -78,6 +78,7 @@ public:
   static constexpr int mod_size_role = 274;
   /*! \brief Role representing the version of a mod. */
   static constexpr int mod_version_role = 275;
+  static constexpr int expansion_role = 276;
 
   /*!
    * \brief Returns the horizontal header section names.

@@ -6,6 +6,8 @@
 #pragma once
 
 #include "conflictinfo.h"
+#include "deployerentry.hpp"
+#include "treeitem.h"
 #include "filechangechoices.h"
 #include "log.h"
 #include "progressnode.h"
@@ -96,12 +98,13 @@ public:
    * \brief Setter for the load order used for deployment.
    * \param loadorder The new load order.
    */
-  void setLoadorder(const std::vector<std::tuple<int, bool>>& loadorder);
+  void setLoadorder(const std::shared_ptr<TreeItem<DeployerEntry>> loadorder);
+  void setLoadorder(Json::Value loadorder);
   /*!
    * \brief Getter for the current mod load order.
    * \return The load order.
    */
-  virtual std::vector<std::tuple<int, bool>> getLoadorder() const;
+  virtual std::shared_ptr<TreeItem<DeployerEntry>> getLoadorder();
   /*!
    * \brief Returns the type of this deployer, i.e. SIMPLEDEPLOYER
    * \return The type.
@@ -112,7 +115,8 @@ public:
    * \param from_index Index of mod to be moved.
    * \param to_index Destination index.
    */
-  virtual void changeLoadorder(int from_index, int to_index);
+  virtual void swapChild(int from_index, int to_index);
+  virtual void swapNodes(std::shared_ptr<TreeItem<DeployerEntry>> nodeA, std::shared_ptr<TreeItem<DeployerEntry>> nodeB);
   /*!
    * \brief Appends a new mod to the load order.
    * \param mod_id Id of the mod to be added.
@@ -126,6 +130,7 @@ public:
    * \param mod_id Id of the mod to be removed.
    * \return True iff the mod has been removed.
    */
+  virtual bool removeNode(void *node_ptr);
   virtual bool removeMod(int mod_id);
   /*!
    * \brief Enables or disables the given mod in the load order.
@@ -138,7 +143,7 @@ public:
    * \param mod_id Mod to be checked.
    * \return True is mod is in load order, else false.
    */
-  virtual bool hasMod(int mod_id) const;
+  virtual bool hasMod(int mod_id);
   /*!
    * \brief Checks for file conflicts of given mod with all other mods in the load order.
    * \param mod_id Mod to be checked.
@@ -149,12 +154,12 @@ public:
   virtual std::vector<ConflictInfo> getFileConflicts(
     int mod_id,
     bool show_disabled = false,
-    std::optional<ProgressNode*> progress_node = {}) const;
+    std::optional<ProgressNode*> progress_node = {});
   /*!
    * \brief Returns the number of mods in the load order.
    * \return The number of mods.
    */
-  virtual int getNumMods() const;
+  virtual int getNumMods();
   /*!
    * \brief Getter for path to deployment target directory.
    * \return The path.
@@ -346,6 +351,11 @@ public:
    */
   virtual bool supportsFileBrowsing() const;
   /*!
+   * \brief Returns whether or not this deployer type supports expandable items.
+   * \return True if supported.
+   */
+  virtual bool supportsExpandableItems() const;
+  /*!
    * \brief Returns whether or not this deployer type uses mod ids as references to
    * source mods. This is usually done by autonomous deployers.
    * \return False
@@ -405,7 +415,7 @@ protected:
   /*! \brief The currently active profile. */
   int current_profile_ = 0;
   /*! \brief One load order per profile consisting of tuples of mod ids and their enabled status. */
-  std::vector<std::vector<std::tuple<int, bool>>> loadorders_;
+  std::vector<std::shared_ptr<TreeItem<DeployerEntry>>> loadorders_;
   /*!
    * \brief For every profile: Groups of mods which conflict with each other. The last
    * group contains mods with no conflicts.
@@ -487,4 +497,5 @@ protected:
    * \param directory Directory from which to remove the file.
    */
   void removeManagedDirFile(const std::filesystem::path& directory) const;
+  void setLoadorder(Json::Value entry, std::shared_ptr<TreeItem<DeployerEntry>> current);
 };

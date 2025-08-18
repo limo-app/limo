@@ -16,6 +16,8 @@ set(TEST_SOURCES
         test_tool.cpp
         test_utils.cpp
         test_utils.h
+        matcher.cpp
+        matcher.h
         tests.cpp
 )
 

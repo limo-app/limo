@@ -1,12 +1,11 @@
 #include "../src/core/deployer.h"
 #include "../src/core/reversedeployer.h"
 #include "../src/core/pathutils.h"
+#include "matcher.h"
 #include "test_utils.h"
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
 #include <iostream>
-#include <set>
-#include <ranges>
 
 namespace sfs = std::filesystem;
 
@@ -89,12 +88,16 @@ TEST_CASE("Managed files are updated", "[revdepl]")
 TEST_CASE("Deployed files are ignored", "[revdepl]")
 {
   resetDirs();
+  std::cout << "Resetting directories..." << std::endl;
   Deployer depl(DATA_DIR / "source" / "revdepl" / "data",
                 DATA_DIR / "target" / "revdepl" / "target",
                 "depl");
+  std::cout << "Adding profile..." << std::endl;
   depl.addProfile();
+  std::cout << "Adding mod..." << std::endl;
   depl.addMod(0);
   depl.deploy();
+  std::cout << "Files deployed." << std::endl;
   
   std::vector<std::string> managed_target;
   for(const auto& dir_entry : 

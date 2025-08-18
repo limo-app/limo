@@ -31,7 +31,7 @@ TEST_CASE("Plugins are found", "[bg3]")
     auto loadorder = depl.getModNames();
     auto iter = str::find(loadorder, name);
     if(iter != loadorder.end())
-      depl.changeLoadorder(iter - loadorder.begin(), i);
+      depl.swapChild(iter - loadorder.begin(), i);
   }
   REQUIRE_THAT(depl.getModNames(), 
                Catch::Matchers::Equals(mod_names));
@@ -50,10 +50,10 @@ TEST_CASE("Loadorder can be modified", "[bg3]")
     auto loadorder = depl.getModNames();
     auto iter = str::find(loadorder, name);
     if(iter != loadorder.end())
-      depl.changeLoadorder(iter - loadorder.begin(), i);
+      depl.swapChild(iter - loadorder.begin(), i);
   }
-  depl.changeLoadorder(3, 0);
-  depl.changeLoadorder(2, 1);
+  depl.swapChild(3, 0);
+  depl.swapChild(2, 1);
   depl.setModStatus(2, false);
 
   verifyFilesAreEqual(DATA_DIR / "target" / "bg3" / "target" / "modsettings.lsx",
@@ -76,13 +76,13 @@ TEST_CASE("Profiles are managed", "[bg3]")
     auto loadorder = depl.getModNames();
     auto iter = str::find(loadorder, name);
     if(iter != loadorder.end())
-      depl.changeLoadorder(iter - loadorder.begin(), i);
+      depl.swapChild(iter - loadorder.begin(), i);
   }
   
   depl.addProfile(0);
   depl.setProfile(1);
-  depl.changeLoadorder(3, 0);
-  depl.changeLoadorder(2, 1);
+  depl.swapChild(3, 0);
+  depl.swapChild(2, 1);
   depl.setModStatus(2, false);
   verifyFilesAreEqual(DATA_DIR / "target" / "bg3" / "target" / "modsettings.lsx",
                       DATA_DIR / "target" / "bg3" / "2" / "modsettings.lsx");

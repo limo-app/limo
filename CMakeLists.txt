@@ -37,39 +37,39 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets Svg Network)
 
 # libunrar
 if(NOT DEFINED LIBUNRAR_INCLUDE_DIR)
-    if(IS_FLATPAK)
-        set(LIBUNRAR_INCLUDE_DIR "/app/include/unrar")
+  if(IS_FLATPAK)
+    set(LIBUNRAR_INCLUDE_DIR "/app/include/unrar")
+  else()
+    if(USE_SYSTEM_LIBUNRAR)
+      find_file(LIBUNRAR_DLL_PATH "unrar/dll.hpp" REQUIRED)
+      cmake_path(GET LIBUNRAR_DLL_PATH PARENT_PATH LIBUNRAR_INCLUDE_DIR)
     else()
-        if(USE_SYSTEM_LIBUNRAR)
-            find_file(LIBUNRAR_DLL_PATH "unrar/dll.hpp" REQUIRED)
-            cmake_path(GET LIBUNRAR_DLL_PATH PARENT_PATH LIBUNRAR_INCLUDE_DIR)
-        else()
-            set(LIBUNRAR_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/unrar")
-        endif()
+      set(LIBUNRAR_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/unrar")
     endif()
+  endif()
 endif()
 if(NOT DEFINED LIBUNRAR_PATH)
-    if(IS_FLATPAK)
-        set(LIBUNRAR_PATH "/app/lib/libunrar.a")
+  if(IS_FLATPAK)
+    set(LIBUNRAR_PATH "/app/lib/libunrar.a")
+  else()
+    if(USE_SYSTEM_LIBUNRAR)
+      find_library(LIBUNRAR_PATH libunrar.a)
+      if(${LIBUNRAR_PATH} STREQUAL "LIBUNRAR_PATH-NOTFOUND")
+        find_library(LIBUNRAR_PATH libunrar.so REQUIRED)
+      endif()
     else()
-        if(USE_SYSTEM_LIBUNRAR)
-            find_library(LIBUNRAR_PATH libunrar.a)
-            if(${LIBUNRAR_PATH} STREQUAL "LIBUNRAR_PATH-NOTFOUND")
-                find_library(LIBUNRAR_PATH libunrar.so REQUIRED)
-            endif()
-        else()
-            set(LIBUNRAR_PATH "${PROJECT_SOURCE_DIR}/unrar/libunrar.a")
-        endif()
+      set(LIBUNRAR_PATH "${PROJECT_SOURCE_DIR}/unrar/libunrar.a")
     endif()
+  endif()
 endif()
 
 # libloot
 if(NOT DEFINED LIBLOOT_INCLUDE_DIR)
-    find_file(LIBLOOT_API_PATH "loot/api.h" REQUIRED)
-    cmake_path(GET LIBLOOT_API_PATH PARENT_PATH LIBLOOT_INCLUDE_DIR)
+  find_file(LIBLOOT_API_PATH "loot/api.h" REQUIRED)
+  cmake_path(GET LIBLOOT_API_PATH PARENT_PATH LIBLOOT_INCLUDE_DIR)
 endif()
 if(NOT DEFINED LIBLOOT_PATH)
-    find_library(LIBLOOT_PATH libloot.so REQUIRED)
+  find_library(LIBLOOT_PATH libloot.so REQUIRED)
 endif()
 
 # lz4
@@ -176,6 +176,10 @@ set(CORE_SOURCES
         src/core/versionchangelog.h
         src/core/wildcardmatching.cpp
         src/core/wildcardmatching.h
+        src/core/treeitem.t.hpp
+        src/core/treeitem.h
+        src/core/deployerentry.hpp
+        src/core/deployerentry.cpp
 )
 
 add_library(core OBJECT ${CORE_SOURCES})
@@ -337,18 +341,25 @@ set(PROJECT_SOURCES
         src/ui/validatinglineedit.h
         src/ui/versionboxdelegate.cpp
         src/ui/versionboxdelegate.h
+        src/ui/qmodelindexutils.h
+)
+
+qt_add_resources(QSS_RESOURCES
+    styles/styles.qrc
 )
 
 # Set install target so app config files can be found
 if(NOT DEFINED LIMO_INSTALL_PREFIX)
-    set(LIMO_INSTALL_PREFIX "/usr/local")
+  set(LIMO_INSTALL_PREFIX "/usr/local")
 endif()
 
 configure_file(src/core/consts.h.in
                ${PROJECT_SOURCE_DIR}/src/core/consts.h)
 
 add_executable(Limo
-    ${PROJECT_SOURCES})
+    ${PROJECT_SOURCES}
+    ${QSS_RESOURCES}
+)
 
 target_include_directories(Limo PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
@@ -362,28 +373,28 @@ install(PROGRAMS ${CMAKE_BINARY_DIR}/Limo
     DESTINATION bin RENAME limo)
 
 if(IS_FLATPAK)
-    install(FILES flatpak/io.github.limo_app.limo.png
+  install(FILES flatpak/io.github.limo_app.limo.png
             DESTINATION /app/share/icons/hicolor/512x512/apps)
-    install(FILES flatpak/io.github.limo_app.limo.metainfo.xml
+  install(FILES flatpak/io.github.limo_app.limo.metainfo.xml
             DESTINATION /app/share/metainfo)
-    install(FILES flatpak/io.github.limo_app.limo.desktop
+  install(FILES flatpak/io.github.limo_app.limo.desktop
             DESTINATION /app/share/applications)
-    install(DIRECTORY steam_app_configs
+  install(DIRECTORY steam_app_configs
             DESTINATION /app/share/limo)
-    install(FILES install_files/changelogs.json
+  install(FILES install_files/changelogs.json
             DESTINATION /app/share/limo)
 else()
-    install(DIRECTORY steam_app_configs
+  install(DIRECTORY steam_app_configs
             DESTINATION ${LIMO_INSTALL_PREFIX}/share/limo)
-    install(FILES install_files/limo.png
+  install(FILES install_files/limo.png
             DESTINATION ${LIMO_INSTALL_PREFIX}/share/icons/hicolor/512x512/apps)
-    install(FILES install_files/limo.desktop
+  install(FILES install_files/limo.desktop
             DESTINATION ${LIMO_INSTALL_PREFIX}/share/applications)
-    install(FILES install_files/changelogs.json
+  install(FILES install_files/changelogs.json
             DESTINATION ${LIMO_INSTALL_PREFIX}/share/limo)
 endif()
 
 if (BUILD_TESTING)
-    enable_testing()
-    add_subdirectory(tests)
+  enable_testing()
+  add_subdirectory(tests)
 endif()

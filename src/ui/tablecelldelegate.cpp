@@ -1,13 +1,15 @@
 #include "tablecelldelegate.h"
 #include "modlistmodel.h"
+#include "qmodelindexutils.h"
 #include <QApplication>
 #include <QPainter>
-
 
 TableCellDelegate::TableCellDelegate(QSortFilterProxyModel* proxy, QObject* parent) :
   QStyledItemDelegate{ parent }, proxy_model_(proxy),
   parent_view_(static_cast<ModListView*>(parent))
-{}
+{
+  indentation_shift = 0-parent_view_->indentation();
+}
 
 void TableCellDelegate::paint(QPainter* painter,
                               const QStyleOptionViewItem& option,
@@ -18,53 +20,30 @@ void TableCellDelegate::paint(QPainter* painter,
   QRect rect = option.rect;
   cell.rect = rect;
   const bool is_even_row = view_index.row() % 2 == 0;
-  const int mouse_row = parent_view_->getHoverRow();
+  const auto mouse_row = parent_view_->getHoverRow();
   const bool row_is_selected =
-    parent_view_->selectionModel()->rowIntersectsSelection(view_index.row());
-  if(row_is_selected)
+    parent_view_->selectionModel()->rowIntersectsSelection(view_index.row(), view_index.parent());
+
+  QStyleOptionViewItem opt = option;
+  initStyleOption(&opt, view_index);
+  if(parent_view_->isInDragDrop() &&
+    sameRow(mouse_row, view_index) &&
+    parent_view_->getMouseRegion() != parent_view_->ROW_REGION.UPPER &&
+    parent_view_->getMouseRegion() != parent_view_->ROW_REGION.LOWER)
   {
-    cell.palette.setBrush(
-      QPalette::Base,
-      option.palette.color(parent_view_->hasFocus() ? QPalette::Active : QPalette::Inactive,
-                           QPalette::Highlight));
+    opt.backgroundBrush = option.palette.brush(
+      parent_view_->hasFocus() ? QPalette::Active : QPalette::Inactive,
+      QPalette::Highlight);
   }
-  else if(mouse_row == view_index.row() && !parent_view_->isInDragDrop())
-  {
-    const float color_ratio = 0.8;
-    auto hl_color = option.palette.color(QPalette::Highlight);
-    auto bg_color = option.palette.color(is_even_row ? QPalette::Base : QPalette::AlternateBase);
-    auto mix_color = hl_color;
-    mix_color.setRed(hl_color.red() * (1 - color_ratio) + bg_color.red() * color_ratio);
-    mix_color.setGreen(hl_color.green() * (1 - color_ratio) + bg_color.green() * color_ratio);
-    mix_color.setBlue(hl_color.blue() * (1 - color_ratio) + bg_color.blue() * color_ratio);
-    cell.palette.setBrush(QPalette::Base, QBrush(mix_color));
+  bool isLeaf = !view_index.model()->hasChildren(view_index);
+  if (isLeaf && view_index.column() == 0) {
+      // For leaf nodes, adjust checkbox position to match indented items
+      opt.rect.adjust(indentation_shift, 0, 0, 0);
   }
-  else if(!is_even_row)
-    cell.palette.setBrush(QPalette::Base, option.palette.alternateBase());
-  QPixmap map(rect.width(), rect.height());
-  map.fill(cell.palette.color(QPalette::Base));
-  painter->drawPixmap(rect, map);
+  opt.widget->style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter);
+
   auto icon_var = model_index.data(ModListModel::icon_role);
-  if(icon_var.isNull())
-  {
-    auto fg_brush_var = view_index.data(Qt::ForegroundRole);
-    auto old_pen = painter->pen();
-    if(row_is_selected)
-      painter->setPen(option.palette.color(QPalette::HighlightedText));
-    else if(!fg_brush_var.isNull())
-      painter->setPen(fg_brush_var.value<QBrush>().color());
-    auto icon_rect = rect;
-    icon_rect.setLeft(rect.left() + 3);
-    icon_rect.setBottom(rect.bottom() - 1);
-    QApplication::style()->drawItemText(painter,
-                                        icon_rect,
-                                        Qt::AlignLeft | Qt::AlignVCenter,
-                                        option.palette,
-                                        true,
-                                        model_index.data().toString());
-    painter->setPen(old_pen);
-  }
-  else
+  if(!icon_var.isNull())
   {
     auto icon = icon_var.value<QIcon>();
     const int icon_width = 16;
@@ -75,18 +54,66 @@ void TableCellDelegate::paint(QPainter* painter,
   }
   if(parent_view_->isInDragDrop())
   {
-    if(parent_view_->mouseInUpperHalfOfRow() && mouse_row == view_index.row() ||
-       !parent_view_->mouseInUpperHalfOfRow() && mouse_row + 1 == view_index.row())
-      painter->drawLine(rect.topLeft(), rect.topRight());
-    else if(!parent_view_->mouseInUpperHalfOfRow() && mouse_row == view_index.row() ||
-            parent_view_->mouseInUpperHalfOfRow() && mouse_row - 1 == view_index.row())
-      painter->drawLine(rect.bottomLeft(), rect.bottomRight());
+    if (parent_view_->getMouseRegion() != parent_view_->ROW_REGION.HOTSPOT) {
+      bool MOUSE_IN_UPPER = parent_view_->getMouseRegion() == parent_view_->ROW_REGION.UPPER;
+      bool MOUSE_IN_LOWER = parent_view_->getMouseRegion() == parent_view_->ROW_REGION.LOWER;
+      if((MOUSE_IN_UPPER && sameRow(mouse_row, view_index)) ||
+            (MOUSE_IN_LOWER && sameRow(parent_view_->indexBelow(mouse_row), view_index)))
+        painter->drawLine(rect.topLeft(), rect.topRight());
+      if((MOUSE_IN_LOWER && sameRow(mouse_row, view_index)) ||
+            (MOUSE_IN_UPPER && sameRow(parent_view_->indexAbove(mouse_row), view_index)))
+        painter->drawLine(rect.bottomLeft(), rect.bottomRight());
+    }
   }
-  if(!parent_view_->selectionModel()->rowIntersectsSelection(view_index.row()) &&
+  if(!parent_view_->selectionModel()->rowIntersectsSelection(view_index.row(), view_index.parent()) &&
      parent_view_->selectionModel()->currentIndex().row() == view_index.row())
   {
     QStyleOptionFocusRect indicator;
     indicator.rect = option.rect;
     QApplication::style()->drawPrimitive(QStyle::PE_FrameFocusRect, &indicator, painter);
   }
+}
+
+bool TableCellDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
+                                   const QStyleOptionViewItem& option,
+                                   const QModelIndex& index)
+{
+    Q_ASSERT(event);
+    Q_ASSERT(model);
+
+    // make sure that the item is checkable
+    Qt::ItemFlags flags = model->flags(index);
+    if (!(flags & Qt::ItemIsUserCheckable) || !(option.state & QStyle::State_Enabled)
+        || !(flags & Qt::ItemIsEnabled))
+        return false;
+
+    // make sure that we have a check state
+    QVariant value = index.data(Qt::CheckStateRole);
+    if (!value.isValid())
+        return false;
+
+    QStyle *style = option.widget->style();
+
+    // make sure that we have the right event type
+    if ((event->type() == QEvent::MouseButtonRelease)
+        || (event->type() == QEvent::MouseButtonDblClick)
+        || (event->type() == QEvent::MouseButtonPress)) {
+        QStyleOptionViewItem viewOpt(option);
+        initStyleOption(&viewOpt, index);
+        QRect checkRect = style->subElementRect(QStyle::SE_ItemViewItemCheckIndicator,
+                                                &viewOpt, option.widget)
+                                                .adjusted(indentation_shift, 0, indentation_shift, 0);
+        QMouseEvent *me = static_cast<QMouseEvent*>(event);
+        if (me->button() != Qt::LeftButton || !checkRect.contains(me->pos()))
+            return false;
+        if ((event->type() == QEvent::MouseButtonPress)
+            || (event->type() == QEvent::MouseButtonDblClick))
+            return true;
+    } else {
+        return false;
+    }
+
+    Qt::CheckState state = static_cast<Qt::CheckState>(value.toInt());
+    state = (state == Qt::Checked) ? Qt::Unchecked : Qt::Checked;
+    return model->setData(index, state, Qt::CheckStateRole);
 }

@@ -37,9 +37,14 @@ public:
              const QStyleOptionViewItem& option,
              const QModelIndex& view_index) const override;
 
+  bool editorEvent(QEvent* event, QAbstractItemModel* model,
+                      const QStyleOptionViewItem& option,
+                      const QModelIndex& index) override;
+
 protected:
   /*! \brief Proxy model used to sort or filter the underlying model. */
   QSortFilterProxyModel* proxy_model_ = nullptr;
   /*! \brief Convenience pointer to parent view. Points to the same address as this->parent. */
   ModListView* parent_view_;
+  int indentation_shift;
 };

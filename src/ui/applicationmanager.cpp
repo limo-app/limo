@@ -472,10 +472,10 @@ void ApplicationManager::uninstallMods(int app_id,
   emit completedOperations(std::format("Mod{} removed", mod_ids.size() == 1 ? "" : "s").c_str());
 }
 
-void ApplicationManager::changeLoadorder(int app_id, int deployer, int from_idx, int to_idx)
+void ApplicationManager::commitChanges(int app_id, int deployer)
 {
   if(appIndexIsValid(app_id) && deployerIndexIsValid(app_id, deployer))
-    handleExceptions<&ModdedApplication::changeLoadorder>(app_id, deployer, from_idx, to_idx);
+    handleExceptions<&ModdedApplication::commitChanges>(app_id);
 }
 
 void ApplicationManager::updateModDeployers(int app_id,
@@ -487,11 +487,11 @@ void ApplicationManager::updateModDeployers(int app_id,
   emit completedOperations("Deployers updated");
 }
 
-void ApplicationManager::removeModFromDeployer(int app_id, int deployer, int mod_id)
+void ApplicationManager::removeNodeFromDeployer(int app_id, int deployer, void *node_ptr)
 {
   if(appIndexIsValid(app_id) && deployerIndexIsValid(app_id, deployer))
-    handleExceptions<&ModdedApplication::removeModFromDeployer>(
-      app_id, deployer, mod_id, true, std::optional<ProgressNode*>{});
+    handleExceptions<&ModdedApplication::removeNodeFromDeployer>(
+      app_id, deployer, node_ptr, true, std::optional<ProgressNode*>{});
   emit completedOperations("Deployers updated");
 }
 
