@@ -17,7 +17,7 @@
     {
       "type": "Loot Deployer",
       "name": "Plugins",
-      "target_dir": "$STEAM_PREFIX_PATH$/users/steamuser/Local Settings/Application Data/Skyrim Special Edition",
+      "target_dir": "$STEAM_PREFIX_PATH$/users/steamuser/Local Settings/Application Data/Skyrim VR",
       "deploy_mode": "hard link",
       "source_dir": "$STEAM_INSTALL_PATH$/Data"
     }
