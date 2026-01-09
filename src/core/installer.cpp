@@ -12,6 +12,22 @@
 namespace sfs = std::filesystem;
 namespace pu = path_utils;
 
+bool Installer::sourceIsArchive(const sfs::path& source_path)
+{
+    struct archive* source;
+    source = archive_read_new();
+    archive_read_support_filter_all(source);
+    archive_read_support_format_all(source);
+
+    if(archive_read_open_filename(source, source_path.c_str(), 10240) != ARCHIVE_OK){
+        return false;
+    }
+    if(archive_read_free(source) != ARCHIVE_OK){
+        return false;
+    }
+
+    return true;
+}
 
 void Installer::extract(const sfs::path& source_path,
                         const sfs::path& dest_path,
@@ -26,6 +42,16 @@ void Installer::extract(const sfs::path& source_path,
       sfs::rename(source_path, dest_path);
     else
       sfs::copy(source_path, dest_path, sfs::copy_options::recursive);
+    return;
+  }
+
+  // for singular, non-archive files, just create the temp directory and copy the file to it
+  if(!sourceIsArchive(source_path)){
+    const std::string base_file_name = source_path.filename();
+    const std::filesystem::path new_dest = dest_path / base_file_name;
+
+    sfs::create_directories(dest_path);
+    sfs::copy(source_path, new_dest);
     return;
   }
 
@@ -219,6 +245,13 @@ std::vector<std::pair<sfs::path, bool>> Installer::getArchiveFileNames(const sfs
       file_names.emplace_back(pu::getRelativePath(dir_entry.path(), path), sfs::is_directory(path));
     return file_names;
   }
+
+  // for singular, non-archive files, return data without trying to extract it
+  if(!sourceIsArchive(path)){
+    file_names.emplace_back(pu::getRelativePath(path, path.parent_path()), sfs::is_directory(path));
+    return file_names;
+  }
+
   struct archive* source;
   struct archive_entry* entry;
   source = archive_read_new();

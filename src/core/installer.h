@@ -63,6 +63,13 @@ public:
   inline static const std::vector<std::string> INSTALLER_TYPES{ SIMPLEINSTALLER, FOMODINSTALLER };
 
   /*!
+  * \brief Checks if the given path is a supported archive filetype
+  * \param source_path Path to the file.
+  * \return bool true if supported archive file, otherwise false
+  */
+  static bool sourceIsArchive(const std::filesystem::path& source_path);
+
+  /*!
    * \brief Extracts the given archive to the given directory.
    * \param source Path to the archive.
    * \param destination Destination directory for extraction.
