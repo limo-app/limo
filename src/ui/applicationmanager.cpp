@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QSettings>
 #include <QUrl>
+#include <cstdint>
 #include <regex>
 
 namespace sfs = std::filesystem;

@@ -5,6 +5,7 @@
 #include <QIcon>
 #include <QPainter>
 #include <QTableView>
+#include <iomanip>
 
 
 ModListModel::ModListModel(ModListProxyModel* proxy, QObject* parent) :

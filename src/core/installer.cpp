@@ -3,6 +3,7 @@
 #include "pathutils.h"
 #include <archive.h>
 #include <archive_entry.h>
+#include <cstdint>
 #include <filesystem>
 #include <ranges>
 #include <regex>

@@ -8,6 +8,7 @@
 #include <QSettings>
 #include <QSpacerItem>
 #include <algorithm>
+#include <iomanip>
 #include <ranges>
 #include <sstream>
 

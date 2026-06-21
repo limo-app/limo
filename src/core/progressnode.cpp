@@ -1,4 +1,5 @@
 #include "progressnode.h"
+#include <cstdint>
 #include <limits>
 #include <numeric>
 
