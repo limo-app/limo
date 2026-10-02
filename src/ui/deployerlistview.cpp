@@ -12,7 +12,7 @@ DeployerListView::DeployerListView(QWidget* parent) : ModListView(parent)
 
 void DeployerListView::mousePressEvent(QMouseEvent* event)
 {
-  const auto index = indexAt(event->pos());
+  const auto index = indexAt(event->position().toPoint());
   const int event_row = index.row();
   const int prev_row = selectionModel()->currentIndex().row();
   selectionModel()->clearSelection();
@@ -27,7 +27,7 @@ void DeployerListView::mousePressEvent(QMouseEvent* event)
 
 void DeployerListView::mouseReleaseEvent(QMouseEvent* event)
 {
-  const auto index = indexAt(event->pos());
+  const auto index = indexAt(event->position().toPoint());
   const int event_row = index.row();
   const int event_col = index.column();
 
@@ -74,7 +74,7 @@ void DeployerListView::mouseReleaseEvent(QMouseEvent* event)
 
 void DeployerListView::mouseMoveEvent(QMouseEvent* event)
 {
-  const int row = indexAt(event->pos()).row();
+  const int row = indexAt(event->position().toPoint()).row();
   if(QGuiApplication::mouseButtons().testFlag(Qt::LeftButton) && enable_drag_reorder_ &&
      mouse_down_row_ != -1)
   {
@@ -82,7 +82,7 @@ void DeployerListView::mouseMoveEvent(QMouseEvent* event)
     is_in_drag_drop_ = true;
   }
   bool mouse_in_upper_half = true;
-  if(event->pos().y() > rowViewportPosition(row) + rowHeight(row) / 2)
+  if(event->position().toPoint().y() > rowViewportPosition(row) + rowHeight(row) / 2)
     mouse_in_upper_half = false;
   if(mouse_in_upper_half != mouse_in_upper_half_of_row_)
   {

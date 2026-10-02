@@ -12,7 +12,7 @@ FomodCheckBox::FomodCheckBox(const QString& text,
   setText(text);
 }
 
-void FomodCheckBox::enterEvent(QEvent* event)
+void FomodCheckBox::enterEvent(QEnterEvent* event)
 {
   description_label_->setText(description_);
   QPixmap pixmap(image_path_);

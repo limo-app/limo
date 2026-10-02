@@ -6,7 +6,7 @@ BackupListView::BackupListView(QWidget* parent) : ModListView(parent) {}
 
 void BackupListView::mousePressEvent(QMouseEvent* event)
 {
-  const auto index = indexAt(event->pos());
+  const auto index = indexAt(event->position().toPoint());
   const int event_row = index.row();
   const int event_col = index.column();
   selectionModel()->setCurrentIndex(model()->index(event_row, event_col),
@@ -16,7 +16,7 @@ void BackupListView::mousePressEvent(QMouseEvent* event)
 
 void BackupListView::mouseReleaseEvent(QMouseEvent* event)
 {
-  const auto index = indexAt(event->pos());
+  const auto index = indexAt(event->position().toPoint());
   const int event_row = index.row();
   const int event_col = index.column();
   const bool is_valid_row =
@@ -36,14 +36,14 @@ void BackupListView::mouseReleaseEvent(QMouseEvent* event)
   }
   else if(is_valid_row && event_col == BackupListModel::backup_col &&
           event->button() == Qt::LeftButton &&
-          columnViewportPosition(event_col) + columnWidth(event_col) - 18 < event->x() &&
+          columnViewportPosition(event_col) + columnWidth(event_col) - 18 < static_cast<int>(event->position().x()) &&
           static_cast<BackupListModel*>(model())->isEditable())
     edit(model()->index(event_row, event_col));
 }
 
 void BackupListView::mouseDoubleClickEvent(QMouseEvent* event)
 {
-  const auto index = indexAt(event->pos());
+  const auto index = indexAt(event->position().toPoint());
   const int event_row = index.row();
   const int event_col = index.column();
   const bool is_valid_row =
@@ -51,7 +51,7 @@ void BackupListView::mouseDoubleClickEvent(QMouseEvent* event)
   if(event_row == mouse_down_row_ && is_valid_row && event->button() == Qt::LeftButton &&
      (event_col == BackupListModel::target_col ||
       event_col == BackupListModel::backup_col &&
-        columnViewportPosition(event_col) + columnWidth(event_col) - 18 >= event->x()) &&
+        columnViewportPosition(event_col) + columnWidth(event_col) - 18 >= static_cast<int>(event->position().x())) &&
      static_cast<BackupListModel*>(model())->isEditable())
     edit(model()->index(event_row, event_col));
 }

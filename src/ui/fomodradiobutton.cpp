@@ -12,7 +12,7 @@ FomodRadioButton::FomodRadioButton(const QString& text,
   setText(text);
 }
 
-void FomodRadioButton::enterEvent(QEvent* event)
+void FomodRadioButton::enterEvent(QEnterEvent* event)
 {
   description_label_->setText(description_);
   QPixmap pixmap(image_path_);

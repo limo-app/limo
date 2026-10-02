@@ -27,16 +27,12 @@
           ...
         }:
         {
-          # Required for unrar
           _module.args.pkgs = import inputs.nixpkgs {
             inherit system;
             config.allowUnfree = true;
           };
 
-          packages.default = pkgs.limo.overrideAttrs {
-            src = ./.;
-            meta.mainProgram = "limo";
-          };
+          packages.default = pkgs.qt6Packages.callPackage ./nix/package.nix {};
 
           make-shells.default = {
             packages =

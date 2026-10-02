@@ -122,7 +122,7 @@ QVariant DeployerListModel::data(const QModelIndex& index, int role) const
   if(role == valid_mod_actions_role)
   {
     QVariant var;
-    var.setValue<std::vector<int>>(deployer_info_.valid_mod_actions[row]);
+    var.setValue(deployer_info_.valid_mod_actions[row]);
     return var;
   }
   return QVariant();

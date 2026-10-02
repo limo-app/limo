@@ -123,7 +123,7 @@ QVariant ModListModel::data(const QModelIndex& index, int role) const
   if(role == group_members_role)
   {
     QVariant var;
-    var.setValue<std::vector<int>>(groups_.at(active_mods_[row].group));
+    var.setValue(groups_.at(active_mods_[row].group));
     return var;
   }
   if(role == mod_group_role)
@@ -131,13 +131,13 @@ QVariant ModListModel::data(const QModelIndex& index, int role) const
   if(role == deployer_ids_role)
   {
     QVariant var;
-    var.setValue<std::vector<int>>(active_mods_[row].deployer_ids);
+    var.setValue(active_mods_[row].deployer_ids);
     return var;
   }
   if(role == statuses_role)
   {
     QVariant var;
-    var.setValue<std::vector<bool>>(active_mods_[row].deployer_statuses);
+    var.setValue(active_mods_[row].deployer_statuses);
     return var;
   }
   if(role == manual_tags_role)
@@ -163,7 +163,7 @@ QVariant ModListModel::data(const QModelIndex& index, int role) const
   if(role == mod_size_role)
   {
     QVariant var;
-    var.setValue<unsigned long>(active_mods_.at(row).mod.size_on_disk);
+    var.setValue(active_mods_.at(row).mod.size_on_disk);
     return var;
   }
   if(role == mod_version_role)

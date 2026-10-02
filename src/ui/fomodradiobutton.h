@@ -39,7 +39,7 @@ protected:
    * info panel.
    * \param event The source event.
    */
-  void enterEvent(QEvent* event) override;
+  void enterEvent(QEnterEvent* event) override;
 
 private:
   /*! \brief Description of the plugin represented by this button. */

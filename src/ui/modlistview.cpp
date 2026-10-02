@@ -37,7 +37,7 @@ void ModListView::dragMoveEvent(QDragMoveEvent* event)
 
 void ModListView::mousePressEvent(QMouseEvent* event)
 {
-  const auto index = indexAt(event->pos());
+  const auto index = indexAt(event->position().toPoint());
   const int event_row = index.row();
   const int event_col = index.column();
   const auto selection = QItemSelection(model()->index(event_row, 0),
@@ -84,7 +84,7 @@ void ModListView::mousePressEvent(QMouseEvent* event)
 
 void ModListView::mouseReleaseEvent(QMouseEvent* event)
 {
-  const auto index = indexAt(event->pos());
+  const auto index = indexAt(event->position().toPoint());
   const int event_row = index.row();
   const int event_col = index.column();
   if(event_row != mouse_down_row_)
@@ -96,7 +96,7 @@ void ModListView::mouseReleaseEvent(QMouseEvent* event)
                       model()->data(index, ModListModel::mod_name_role).toString());
   }
   else if(event_col == ModListModel::version_col && event->button() == Qt::LeftButton &&
-          columnViewportPosition(event_col) + columnWidth(event_col) - 18 < event->x() &&
+          columnViewportPosition(event_col) + columnWidth(event_col) - 18 < static_cast<int>(event->position().x()) &&
           static_cast<ModListProxyModel*>(model())->isEditable())
     edit(model()->index(event_row, event_col));
 }
@@ -181,19 +181,19 @@ int ModListView::getHoverRow() const
 
 void ModListView::mouseMoveEvent(QMouseEvent* event)
 {
-  const int row = indexAt(event->pos()).row();
+  const int row = indexAt(event->position().toPoint()).row();
   updateMouseHoverRow(row);
 }
 
 void ModListView::mouseDoubleClickEvent(QMouseEvent* event)
 {
-  const auto index = indexAt(event->pos());
+  const auto index = indexAt(event->position().toPoint());
   const int event_row = index.row();
   const int event_col = index.column();
   if(event->button() == Qt::LeftButton && event_row == mouse_down_row_ &&
      (event_col == ModListModel::name_col ||
       event_col == ModListModel::version_col &&
-        columnViewportPosition(event_col) + columnWidth(event_col) - 18 >= event->x()) &&
+        columnViewportPosition(event_col) + columnWidth(event_col) - 18 >= static_cast<int>(event->position().x())) &&
      static_cast<ModListProxyModel*>(model())->isEditable())
     edit(model()->index(event_row, event_col));
 }

@@ -1029,7 +1029,9 @@ void MainWindow::runConcurrent(QString command, QString name, QString type, bool
                   .toStdString());
       delete watcher;
     });
-  auto future = QtConcurrent::run(this, &MainWindow::runCommand, command, ignore_flatpak);
+  auto future = QtConcurrent::run([this, command, ignore_flatpak]() {
+    return runCommand(command, ignore_flatpak);
+  });
   watcher->setFuture(future);
 }
 
@@ -2206,7 +2208,7 @@ void MainWindow::setupProgressBar()
   layout->insertSpacing(0, 375);
   layout->addWidget(progress_bar_);
   layout->setSpacing(0);
-  layout->setMargin(0);
+  layout->setContentsMargins(0, 0, 0, 0);
   layout->setAlignment(Qt::AlignCenter);
   container->setLayout(layout);
   container->setMaximumHeight(15);
