@@ -19,7 +19,7 @@
  */
 int main(int argc, char* argv[])
 {
-  QCoreApplication::setApplicationName("Limo");
+  QCoreApplication::setApplicationName("Limongo");
   QApplication app(argc, argv);
   QIcon::setFallbackSearchPaths(
     QIcon::fallbackSearchPaths()

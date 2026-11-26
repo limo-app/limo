@@ -110,7 +110,8 @@ public:
    */
   void initChangelog();
 
-private:
+
+  private:
   /*! \brief Contains auto-generated ui elements. */
   Ui::MainWindow* ui;
   /*! \brief Index of the app tab. */
@@ -145,6 +146,8 @@ private:
   QString search_term_ = "";
   /*! \brief Context menu for ui->mod_list. */
   QMenu* mod_list_menu_;
+  /*! \brief Manual tag menu for mod_list_menu_. */
+  QMenu* manual_tag_list_menu_;
   /*! \brief Context menu for ui->deployer_list. */
   QMenu* deployer_list_menu_;
   /*! \brief Context menu for ui->backup_list. */
@@ -272,6 +275,8 @@ private:
   std::map<std::string, int> num_mods_per_manual_tag_;
   /*! \brief Pointers to all checkboxes used to filter the mod list by manual tags. */
   std::vector<TagCheckBox*> manual_tag_cbs_;
+  /*! \brief Pointers to all checkboxes used to show in the "Manage tags" action. */
+  std::vector<TagCheckBox*> manual_tag_rightclick_cbs_;
   /*! \brief Pointers to all checkboxes used to filter the deployer list by tags. */
   std::vector<TagCheckBox*> depl_tag_cbs_;
   /*!
@@ -688,6 +693,13 @@ public slots:
   void setupFilters();
   /*! \brief Initializes some ui icons. */
   void setupIcons();
+
+  /*! \brief Sets the mod files */
+  void modFilesSelected(const QStringList paths);
+  /*! \brief Sets the mod folder with all its files */
+  void modFolderSelected(const QUrl path);
+  /*! \brief Sets the mod compressed file to extract it*/
+  void modCompressedFilesSelected(const QStringList paths);
 
 private slots:
   /*! \brief Deploys all mods for the currently active ModdedApplication. */
@@ -1112,7 +1124,24 @@ private slots:
    */
   void onModActionTriggered(int action);
 
-signals:
+  void on_btn_newModFile_clicked();
+
+  void on_btn_newModFolder_clicked();
+
+  void on_btn_newModLink_clicked();
+
+  void on_actionGoToWebSource_triggered();
+
+  void on_actionCopy_Web_Source_triggered();
+
+  void on_actionTogTag_Manage_tags_triggered();
+
+  void on_btn_newModCompressed_clicked();
+
+
+  void on_btn_modtabCheckUpdates_clicked();
+
+  signals:
   /*!
    * \brief Creates a vector containing information about all installed mods, stored in ModInfo
    * objects for one \ref ModdedApplication "application".

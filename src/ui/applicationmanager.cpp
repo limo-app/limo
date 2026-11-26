@@ -18,8 +18,10 @@ bool performDownload(ImportModInfo& info, ApplicationManager* app_mgr)
                           std::format("Downloading from : '{}'", info.remote_download_url));
   std::regex url_regex(R"(.*/(.*)\?.*)");
   std::smatch match;
+
   if(!std::regex_match(info.remote_download_url, match, url_regex))
-    throw std::runtime_error(std::format("Invalid download URL \"{}\"", info.remote_download_url));
+      throw std::runtime_error(std::format("Invalid download URL \"{}\"", info.remote_download_url));
+
   sfs::path download_path = info.target_path;
   if(!sfs::exists(download_path))
     sfs::create_directories(download_path);
@@ -950,23 +952,34 @@ void ApplicationManager::downloadMod(ImportModInfo info)
   }
   else
   {
-    auto download_url = handleExceptionsForFunction(
-      static_cast<std::string (*)(const std::string&)>(nexus::Api::getDownloadUrl),
-      info.remote_request_url);
-    if(!download_url)
-    {
-      emit downloadFailed();
-      return;
-    }
-    info.remote_download_url = *download_url;
+      if (info.remote_type != ImportModInfo::gamebanana)
+      {
+          auto download_url = handleExceptionsForFunction(
+              static_cast<std::string (*)(const std::string&)>(nexus::Api::getDownloadUrl),
+              info.remote_request_url);
+          if(!download_url)
+          {
+              emit downloadFailed();
+              return;
+          }
+          info.remote_download_url = *download_url;
+      }
+      else //gamebanana
+      {
+          info.remote_download_url = info.remote_download_url;
+      }
+
   }
   info.remote_download_url = QUrl(info.remote_download_url.c_str()).toEncoded().toStdString();
 
-  auto init_successful = handleExceptionsForFunction(nexus::Api::initModInfo, info);
-  if(!init_successful || !(*init_successful))
+  if (info.remote_type != ImportModInfo::gamebanana)
   {
-    emit downloadFailed();
-    return;
+      auto init_successful = handleExceptionsForFunction(nexus::Api::initModInfo, info);
+      if(!init_successful || !(*init_successful))
+      {
+        emit downloadFailed();
+        return;
+      }
   }
 
   info.target_path = apps_[info.app_id].getDownloadDir();

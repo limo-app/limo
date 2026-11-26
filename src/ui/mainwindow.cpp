@@ -36,6 +36,9 @@
 #include <ranges>
 #include <regex>
 
+#include <QClipboard>
+#include <QWidgetAction>
+
 namespace str = std::ranges;
 namespace stv = std::views;
 namespace sfs = std::filesystem;
@@ -88,7 +91,8 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
   setupIcons();
   setupIpcServer();
   addAction(ui->actionSelect_All);
-  setWindowTitle("Limo");
+  setWindowTitle("Limongo");
+  setWindowIcon(QIcon("resources/logo_small.png"));
   Log::info("Startup complete");
 }
 
@@ -521,10 +525,17 @@ void MainWindow::setupMenus()
                                     ui->actionEdit_Tags_for_mods,   ui->actionUpdate_Tags,
                                     ui->actionEdit_Mod_Sources,     ui->actionShow_Nexus_Page,
                                     ui->actionReinstall_From_Local, ui->actionCheck_For_Updates,
-                                    ui->actionSuppress_Update };
+                                    ui->actionSuppress_Update,
+
+                                    ui->actionGoToWebSource,        ui->actionCopy_Web_Source,
+                                    };
   std::sort(mod_list_actions.begin(), mod_list_actions.end(), sort_actions);
   mod_list_menu_->addActions(mod_list_actions);
 
+  //Add toggle tags menu
+  manual_tag_list_menu_ = mod_list_menu_->addMenu(QIcon::fromTheme("document-properties"), "Toggle tags");
+
+  //Deployer list
   ui->deployer_list->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(ui->deployer_list,
           &ModListView::customContextMenuRequested,
@@ -823,6 +834,10 @@ void MainWindow::setupButtons()
   ui->reset_filter_button->setHidden(true);
 
   ui->export_app_config_button->setIcon(QIcon::fromTheme("document-export"));
+
+  ui->cbb_modWebSource->addItem("Under construction");
+  /*ui->cbb_modWebSource->addItem("Nexus mods");
+  ui->cbb_modWebSource->addItem("Gamebanana");*/
 }
 
 void MainWindow::showEditDeployerDialog(int deployer)
@@ -855,7 +870,7 @@ void MainWindow::importMod()
   setBusyStatus(true);
   if(info.action_type == ImportModInfo::download)
   {
-    if(!initNexusApiKey())
+    if(!info.remote_source.contains("gamebanana") && !initNexusApiKey())
     {
       mod_import_queue_.pop();
       setBusyStatus(false);
@@ -1258,6 +1273,7 @@ void MainWindow::initUiWithoutApps(bool has_apps)
   ui->mod_list->setEnabled(has_apps);
   ui->info_deployer_list->setEnabled(has_apps);
   ui->info_tool_list->setEnabled(has_apps);
+
   // buttons
   ui->check_mod_updates_button->setEnabled(has_apps);
   ui->edit_app_button->setEnabled(has_apps);
@@ -1266,15 +1282,20 @@ void MainWindow::initUiWithoutApps(bool has_apps)
   ui->profile_tool_button->setEnabled(has_apps);
   ui->deploy_button->setEnabled(has_apps);
   ui->undeploy_button->setEnabled(has_apps);
+
   // combo boxes
   ui->deployer_selection_box->setEnabled(has_apps);
   ui->app_selection_box->setEnabled(has_apps);
   ui->profile_selection_box->setEnabled(has_apps);
+
+  ui->cbb_modWebSource->setEnabled(has_apps);
+
   // app tool box
   run_app_action_->setEnabled(has_apps);
   remove_app_action_->setEnabled(has_apps);
   edit_app_action_->setEnabled(has_apps);
   ui->app_tool_button->setDefaultAction(has_apps ? run_app_action_ : add_app_action_);
+
   // other
   ui->app_tab_widget->setEnabled(has_apps);
   ui->search_field->setEnabled(has_apps);
@@ -1360,7 +1381,7 @@ void MainWindow::initRootLevelConditions()
     return;
 
   sfs::path config_path =
-    sfs::path(is_a_flatpak_ ? "/app" : APP_INSTALL_PREFIX) / "share/limo/steam_app_configs";
+    sfs::path(is_a_flatpak_ ? "/app" : APP_INSTALL_PREFIX) / "share/limongo/steam_app_configs";
   // Overwrite for local build
   if(!is_a_flatpak_ && sfs::exists("steam_app_configs"))
     config_path = "steam_app_configs";
@@ -1368,7 +1389,7 @@ void MainWindow::initRootLevelConditions()
   if(!sfs::exists(config_path))
   {
     Log::debug(
-      "Could not find \"steam_app_configs\" directory. " "Make sure Limo is installed correctly");
+      "Could not find \"steam_app_configs\" directory. " "Make sure Limongo is installed correctly");
     return;
   }
 
@@ -1479,7 +1500,7 @@ void MainWindow::onGetModInfo(std::vector<ModInfo> mod_info)
 
 void MainWindow::onGetDeployerInfo(DeployerInfo depl_info)
 {
-  setWindowTitle(ui->app_selection_box->currentText() + " - Limo");
+  setWindowTitle(ui->app_selection_box->currentText() + " - Limongo");
   ui->actionremove_from_deployer->setVisible(!depl_info.is_autonomous);
   ui->actionget_file_conflicts->setVisible(depl_info.supports_file_conflicts);
   ui->actionget_mod_conflicts->setVisible(depl_info.supports_mod_conflicts);
@@ -1705,10 +1726,61 @@ void MainWindow::onModListContextMenu(QPoint pos)
     const bool is_valid_remote = nexus::Api::modUrlIsValid(url);
     ui->actionShow_Nexus_Page->setVisible(is_valid_remote);
     ui->actionCheck_For_Updates->setVisible(is_valid_remote);
+
+    ui->actionGoToWebSource->setVisible(!url.empty());
+    ui->actionCopy_Web_Source->setVisible(!url.empty());
+
     const auto local_path = idx.data(ModListModel::local_source_role).toString().toStdString();
     ui->actionReinstall_From_Local->setVisible(!local_path.empty() &&
                                                std::filesystem::exists(local_path));
     ui->actionSuppress_Update->setVisible(idx.data(ModListModel::has_update_role).toBool());
+
+    //Check the manual mods
+    QList modManualTags = idx.data(ModListModel::manual_tags_role).toList();
+    manual_tag_list_menu_->clear();
+
+    //internal function to add the manual mod checkbox
+    auto addTagCheckbox = [&](const QString &tagName, bool isChecked, auto onToggledCallback)
+    {
+        QCheckBox *checkBox = new QCheckBox(tagName, manual_tag_list_menu_);
+        checkBox->setChecked(isChecked);
+
+        // Add slight padding so it aligns neatly with normal menu items
+        checkBox->setStyleSheet(
+            "QCheckBox  { padding: 4px 8px;  }"
+            );
+
+        QWidgetAction *widgetAction = new QWidgetAction(manual_tag_list_menu_);
+        widgetAction->setDefaultWidget(checkBox);
+        manual_tag_list_menu_->addAction(widgetAction);
+
+        // Connect the checkbox's toggled signal directly to your tag logic
+        connect(checkBox, &QCheckBox::toggled, this, onToggledCallback);
+    };
+
+    // for each manual tag
+    for(const auto& [tag, num_mods] : num_mods_per_manual_tag_)
+    {
+        QString tagname = QString::fromStdString(tag);
+        QVariant qvarText(tagname);
+
+        addTagCheckbox(tagname, modManualTags.contains(qvarText), [this, tagname](bool checked)
+                       {
+                           QStringList tags;
+                           tags.append(tagname);
+
+                           MainWindow::onManualModTagsUpdated(
+                               currentApp()                            //int app_id
+                               ,tags                                   //QStringList tags
+                               ,ui->mod_list->getSelectedModIds()      //std::vector<int> mod_ids
+                               ,checked ? 0 : 1                        //int mode
+                               );
+
+                       });
+    }
+    //Manual tags editor
+    manual_tag_list_menu_->addAction(ui->actionTogTag_Manage_tags);
+
   }
   mod_list_menu_->exec(ui->mod_list->mapToGlobal(pos));
 }
@@ -1785,6 +1857,7 @@ void MainWindow::onGetAppInfo(AppInfo app_info)
   ignore_tool_changes_ = true;
   app_info_ = app_info;
 
+  //Manual tags
   num_mods_per_manual_tag_ = app_info.num_mods_per_manual_tag;
   ui->actionEdit_Tags_for_mods->setVisible(!num_mods_per_manual_tag_.empty());
   for(auto cb : manual_tag_cbs_)
@@ -1803,6 +1876,7 @@ void MainWindow::onGetAppInfo(AppInfo app_info)
     ui->manual_tags_widget->layout()->addWidget(cb);
   }
 
+  //Auto tags
   num_mods_per_auto_tag_ = app_info.num_mods_per_auto_tag;
   auto_tags_ = app_info.auto_tags;
   for(auto cb : auto_tag_cbs_)
@@ -2257,6 +2331,8 @@ void MainWindow::setupIcons()
   ui->actionOverwrite_Backup->setIcon(QIcon::fromTheme("document-revert"));
   ui->actionReinstall_From_Local->setIcon(QIcon::fromTheme("document-revert"));
   ui->actionSuppress_Update->setIcon(QIcon::fromTheme("edit-clear-all"));
+
+  ui->btn_modtabCheckUpdates->setIcon(QIcon::fromTheme("update-none"));
 }
 
 void MainWindow::on_deploy_button_clicked()
@@ -2358,7 +2434,7 @@ void MainWindow::onRemoveAppButtonClicked()
   if(answer == QMessageBox::No)
     return;
   Log::info("Removing application '" + ui->app_selection_box->currentText().toStdString() + "'");
-  QSettings settings{ "Limo" };
+  QSettings settings{ "Limongo" };
   settings.remove(QString::number(currentApp()));
   auto groups = settings.childGroups();
   for(int i = currentApp() + 1; i < ui->app_selection_box->count(); i++)
@@ -3097,7 +3173,7 @@ void MainWindow::onManualModTagsUpdated(int app_id,
 
 void MainWindow::on_actionEdit_Tags_for_mods_triggered()
 {
-  if(ui->app_selection_box->count() == 0 || ui->deployer_selection_box->count() == 0)
+  if(ui->app_selection_box->count() == 0/* || ui->deployer_selection_box->count() == 0*/)
     return;
 
   const auto index = mod_list_proxy_->mapToSource(ui->mod_list->selectionModel()->currentIndex());
@@ -3536,3 +3612,156 @@ void MainWindow::onModActionTriggered(int action)
                       ui->deployer_list->currentIndex().data(ModListModel::mod_id_role).toInt());
   emit getDeployerInfo(currentApp(), currentDeployer());
 }
+
+//Limongo new stuff
+void MainWindow::on_btn_newModFile_clicked()
+{
+    QString starting_dir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    /*if(pathIsValid())
+        starting_dir = ui->path_field->text();*/
+    auto dialog = new QFileDialog;
+    dialog->setWindowTitle("Select mod files");
+    dialog->setFilter(QDir::AllDirs | QDir::Hidden);
+    dialog->setFileMode(QFileDialog::ExistingFiles);
+    dialog->setDirectory(starting_dir);
+    connect(dialog, &QFileDialog::filesSelected, this, &MainWindow::modFilesSelected);
+    dialog->exec();
+}
+
+void MainWindow::modFilesSelected(const QStringList paths)
+{
+    //Copy mods to the app "_download" folder
+
+    std::filesystem::path downloadDir = app_info_.staging_dir + "/_download/newLocalMod";
+
+    if(std::filesystem::exists(downloadDir))
+    {
+        std::filesystem::remove_all(downloadDir);
+    }
+    std::filesystem::create_directories(downloadDir);
+
+    //Copy mod
+    for(const auto &ruta : paths)
+    {
+        std::filesystem::path sourceFilePath = ruta.toStdString();
+        std::filesystem::copy_file(sourceFilePath, downloadDir / sourceFilePath.filename(), std::filesystem::copy_options::overwrite_existing);
+    }
+
+    QUrl newPath;
+    newPath = QUrl::fromLocalFile(QString::fromStdString(downloadDir.string()));
+    QList<QUrl> pathsInQUrl;
+    pathsInQUrl.append(newPath);
+    MainWindow::onModAdded(pathsInQUrl);
+}
+
+void MainWindow::on_btn_newModFolder_clicked()
+{
+    QString starting_dir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    /*if(pathIsValid())
+        starting_dir = ui->path_field->text();*/
+    auto dialog = new QFileDialog;
+    dialog->setWindowTitle("Select mod source directory");
+    dialog->setFilter(QDir::AllDirs | QDir::Hidden);
+    dialog->setFileMode(QFileDialog::Directory);
+    dialog->setDirectory(starting_dir);
+    connect(dialog, &QFileDialog::fileSelected, this, &MainWindow::modFolderSelected);
+    dialog->exec();
+}
+
+void MainWindow::modFolderSelected(const QUrl path)
+{
+    QList<QUrl> Waos;
+    Waos.append(path);
+    MainWindow::onModAdded(Waos);
+}
+
+void MainWindow::on_btn_newModLink_clicked()
+{
+    Log::info("Under construction");
+    return;
+    std::string ModLink =ui-> txt_newModLink->text().toStdString();
+    Log::info("New mod from URL clicked. URL: "+ModLink);
+
+    const bool was_empty = mod_import_queue_.empty();
+
+    ImportModInfo info;
+    info.app_id = currentApp();
+    info.action_type = ImportModInfo::download;
+    info.target_path = ui->info_sdir_label->text().toStdString();
+    info.target_path /= temp_dir_.toStdString();
+
+    info.remote_source = ModLink;
+    info.remote_download_url = ModLink;
+    info.remote_request_url = ModLink;
+
+    if(ModLink.contains("gamebanana"))
+    {
+        info.remote_type = ImportModInfo::gamebanana;
+        Log::info("mod is gamebanana");
+    }
+    else //if(ModLink.contains("gamebanana"))
+    {
+        info.remote_type = ImportModInfo::nexus;
+        Log::info("mod is nexusmods");
+    }
+
+    mod_import_queue_.push(info);
+
+    if(was_empty)
+        importMod();
+}
+
+void MainWindow::on_actionGoToWebSource_triggered()
+{
+    const auto index = mod_list_proxy_->mapToSource(ui->mod_list->selectionModel()->currentIndex());
+    const QString remote_source = index.data(ModListModel::remote_source_role).toString();
+    QDesktopServices::openUrl(QUrl(remote_source));
+}
+
+void MainWindow::on_actionCopy_Web_Source_triggered()
+{
+    const auto index = mod_list_proxy_->mapToSource(ui->mod_list->selectionModel()->currentIndex());
+    const QString remote_source = index.data(ModListModel::remote_source_role).toString();
+
+    QClipboard* cpb = QApplication::clipboard();
+
+    cpb->setText(remote_source);
+}
+
+void MainWindow::on_actionTogTag_Manage_tags_triggered()
+{
+    MainWindow::on_edit_manual_tags_button_clicked();
+    //MainWindow::on_actionEdit_Tags_for_mods_triggered();
+}
+
+void MainWindow::on_btn_newModCompressed_clicked()
+{
+    QString starting_dir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+    /*if(pathIsValid())
+        starting_dir = ui->path_field->text();*/
+    auto dialog = new QFileDialog;
+    dialog->setWindowTitle("Select mod files");
+    dialog->setFilter(QDir::AllDirs | QDir::Hidden);
+    dialog->setFileMode(QFileDialog::ExistingFiles);
+    dialog->setDirectory(starting_dir);
+    connect(dialog, &QFileDialog::filesSelected, this, &MainWindow::modCompressedFilesSelected);
+    dialog->exec();
+}
+
+void MainWindow::modCompressedFilesSelected(const QStringList paths)
+{
+    QList<QUrl> pathsInQUrl;
+    for(const auto &ruta : paths)
+    {
+        QUrl newPath;
+        newPath.setPath(ruta);
+        pathsInQUrl.append(newPath);
+    }
+    MainWindow::onModAdded(pathsInQUrl);
+}
+
+void MainWindow::on_btn_modtabCheckUpdates_clicked()
+{
+    MainWindow::on_check_mod_updates_button_clicked();
+}
+

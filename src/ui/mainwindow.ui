@@ -16,6 +16,10 @@
   <property name="windowTitle">
    <string>Linux Mod Manager</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../../resources/icons.qrc">
+    <normaloff>:/logo.png</normaloff>:/logo.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_3">
     <item row="1" column="0">
@@ -151,7 +155,7 @@
                <item row="0" column="2">
                 <widget class="QPushButton" name="check_mod_updates_button">
                  <property name="text">
-                  <string>Check for Mod Updates</string>
+                  <string>Check for mod updates</string>
                  </property>
                  <property name="icon">
                   <iconset theme="view-refresh"/>
@@ -416,366 +420,512 @@
             <string>Mods</string>
            </attribute>
            <layout class="QGridLayout" name="gridLayout_14">
-            <item row="0" column="0">
-             <widget class="QSplitter" name="splitter_2">
-              <property name="orientation">
-               <enum>Qt::Orientation::Horizontal</enum>
-              </property>
-              <widget class="QWidget" name="mod_list_container" native="true">
-               <layout class="QGridLayout" name="gridLayout_12">
-                <property name="leftMargin">
-                 <number>0</number>
+            <item row="1" column="0">
+             <layout class="QGridLayout" name="frame_ModListFilters">
+              <item row="0" column="0">
+               <widget class="QSplitter" name="splitter_2">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
                 </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>0</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-                <property name="spacing">
-                 <number>1</number>
-                </property>
-                <item row="0" column="0">
-                 <widget class="ModListView" name="mod_list">
-                  <property name="acceptDrops">
-                   <bool>true</bool>
+                <widget class="QWidget" name="mod_list_container" native="true">
+                 <layout class="QGridLayout" name="gridLayout_12">
+                  <property name="leftMargin">
+                   <number>0</number>
                   </property>
-                  <property name="frameShape">
-                   <enum>QFrame::Shape::StyledPanel</enum>
+                  <property name="topMargin">
+                   <number>0</number>
                   </property>
-                  <property name="frameShadow">
-                   <enum>QFrame::Shadow::Sunken</enum>
+                  <property name="rightMargin">
+                   <number>0</number>
                   </property>
-                  <property name="editTriggers">
-                   <set>QAbstractItemView::EditTrigger::DoubleClicked</set>
+                  <property name="bottomMargin">
+                   <number>0</number>
                   </property>
-                  <property name="tabKeyNavigation">
-                   <bool>false</bool>
+                  <property name="spacing">
+                   <number>1</number>
                   </property>
-                  <property name="alternatingRowColors">
-                   <bool>true</bool>
+                  <item row="0" column="0">
+                   <widget class="ModListView" name="mod_list">
+                    <property name="acceptDrops">
+                     <bool>true</bool>
+                    </property>
+                    <property name="frameShape">
+                     <enum>QFrame::Shape::StyledPanel</enum>
+                    </property>
+                    <property name="frameShadow">
+                     <enum>QFrame::Shadow::Sunken</enum>
+                    </property>
+                    <property name="editTriggers">
+                     <set>QAbstractItemView::EditTrigger::DoubleClicked</set>
+                    </property>
+                    <property name="tabKeyNavigation">
+                     <bool>false</bool>
+                    </property>
+                    <property name="alternatingRowColors">
+                     <bool>true</bool>
+                    </property>
+                    <property name="selectionMode">
+                     <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
+                    </property>
+                    <property name="selectionBehavior">
+                     <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+                    </property>
+                    <property name="sortingEnabled">
+                     <bool>true</bool>
+                    </property>
+                    <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+                     <bool>true</bool>
+                    </attribute>
+                    <attribute name="horizontalHeaderStretchLastSection">
+                     <bool>true</bool>
+                    </attribute>
+                    <attribute name="verticalHeaderVisible">
+                     <bool>false</bool>
+                    </attribute>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+                <widget class="QScrollArea" name="mod_filter_scroll_area">
+                 <property name="frameShape">
+                  <enum>QFrame::Shape::NoFrame</enum>
+                 </property>
+                 <property name="frameShadow">
+                  <enum>QFrame::Shadow::Plain</enum>
+                 </property>
+                 <property name="lineWidth">
+                  <number>0</number>
+                 </property>
+                 <property name="widgetResizable">
+                  <bool>true</bool>
+                 </property>
+                 <widget class="QWidget" name="mod_filter_widget">
+                  <property name="geometry">
+                   <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>544</width>
+                    <height>311</height>
+                   </rect>
                   </property>
-                  <property name="selectionMode">
-                   <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
-                  </property>
-                  <property name="selectionBehavior">
-                   <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
-                  </property>
-                  <property name="sortingEnabled">
-                   <bool>true</bool>
-                  </property>
-                  <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-                   <bool>true</bool>
-                  </attribute>
-                  <attribute name="horizontalHeaderStretchLastSection">
-                   <bool>true</bool>
-                  </attribute>
-                  <attribute name="verticalHeaderVisible">
-                   <bool>false</bool>
-                  </attribute>
+                  <layout class="QVBoxLayout" name="verticalLayout_6">
+                   <item>
+                    <widget class="QLabel" name="mod_list_row_count_label">
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_9">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_14">
+                     <item>
+                      <spacer name="horizontalSpacer_23">
+                       <property name="orientation">
+                        <enum>Qt::Orientation::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_16">
+                       <property name="font">
+                        <font>
+                         <bold>false</bold>
+                        </font>
+                       </property>
+                       <property name="text">
+                        <string>Filters</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_24">
+                       <property name="orientation">
+                        <enum>Qt::Orientation::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_14">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="filter_active_mods_cb">
+                     <property name="toolTip">
+                      <string>Filter for mods with deployers</string>
+                     </property>
+                     <property name="text">
+                      <string>Active Mods</string>
+                     </property>
+                     <property name="tristate">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="filter_group_mods_cb">
+                     <property name="toolTip">
+                      <string>Filter for mods in groups</string>
+                     </property>
+                     <property name="text">
+                      <string>Mods in groups</string>
+                     </property>
+                     <property name="tristate">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QCheckBox" name="filter_mods_with_updates_cb">
+                     <property name="toolTip">
+                      <string>Filter for mods with available updates on NexusMods</string>
+                     </property>
+                     <property name="text">
+                      <string>Mods with updates</string>
+                     </property>
+                     <property name="tristate">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_15">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_15">
+                     <item>
+                      <spacer name="horizontalSpacer_26">
+                       <property name="orientation">
+                        <enum>Qt::Orientation::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_17">
+                       <property name="text">
+                        <string>Manual Tags</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <layout class="QHBoxLayout" name="horizontalLayout_16">
+                       <item>
+                        <spacer name="horizontalSpacer_25">
+                         <property name="orientation">
+                          <enum>Qt::Orientation::Horizontal</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>40</width>
+                           <height>20</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                       <item>
+                        <widget class="QPushButton" name="edit_manual_tags_button">
+                         <property name="toolTip">
+                          <string>Edit Manual Tags</string>
+                         </property>
+                         <property name="text">
+                          <string/>
+                         </property>
+                         <property name="icon">
+                          <iconset theme="preferences-other"/>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_16">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QWidget" name="manual_tags_widget" native="true"/>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_8">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_3">
+                     <item>
+                      <spacer name="horizontalSpacer_9">
+                       <property name="orientation">
+                        <enum>Qt::Orientation::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_9">
+                       <property name="text">
+                        <string>Auto Tags</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <layout class="QHBoxLayout" name="horizontalLayout_4">
+                       <item>
+                        <spacer name="horizontalSpacer_10">
+                         <property name="orientation">
+                          <enum>Qt::Orientation::Horizontal</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>40</width>
+                           <height>20</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                       <item>
+                        <widget class="QPushButton" name="update_auto_tags_button">
+                         <property name="toolTip">
+                          <string>Reapply Auto Tags</string>
+                         </property>
+                         <property name="text">
+                          <string/>
+                         </property>
+                         <property name="icon">
+                          <iconset theme="view-refresh"/>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QPushButton" name="edit_auto_tags_button">
+                         <property name="toolTip">
+                          <string>Edit Auto Tags</string>
+                         </property>
+                         <property name="text">
+                          <string/>
+                         </property>
+                         <property name="icon">
+                          <iconset theme="preferences-other"/>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line_7">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QWidget" name="auto_tags_widget" native="true"/>
+                   </item>
+                   <item>
+                    <spacer name="verticalSpacer_2">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Vertical</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>40</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
                  </widget>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QScrollArea" name="mod_filter_scroll_area">
-               <property name="frameShape">
-                <enum>QFrame::Shape::NoFrame</enum>
-               </property>
-               <property name="frameShadow">
-                <enum>QFrame::Shadow::Plain</enum>
-               </property>
-               <property name="lineWidth">
-                <number>0</number>
-               </property>
-               <property name="widgetResizable">
-                <bool>true</bool>
-               </property>
-               <widget class="QWidget" name="mod_filter_widget">
-                <property name="geometry">
-                 <rect>
-                  <x>0</x>
-                  <y>0</y>
-                  <width>539</width>
-                  <height>331</height>
-                 </rect>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_6">
+                </widget>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item row="0" column="0">
+             <widget class="QFrame" name="frame_modButtons">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>80</height>
+               </size>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Shape::StyledPanel</enum>
+              </property>
+              <property name="lineWidth">
+               <number>1</number>
+              </property>
+              <property name="midLineWidth">
+               <number>0</number>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_6">
                  <item>
-                  <widget class="QLabel" name="mod_list_row_count_label">
-                   <property name="text">
-                    <string/>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="Line" name="line_9">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_14">
-                   <item>
-                    <spacer name="horizontalSpacer_23">
-                     <property name="orientation">
-                      <enum>Qt::Orientation::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="label_16">
-                     <property name="font">
-                      <font>
-                       <bold>false</bold>
-                      </font>
-                     </property>
-                     <property name="text">
-                      <string>Filters</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <spacer name="horizontalSpacer_24">
-                     <property name="orientation">
-                      <enum>Qt::Orientation::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <widget class="Line" name="line_14">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QCheckBox" name="filter_active_mods_cb">
+                  <widget class="QPushButton" name="btn_newModFolder">
                    <property name="toolTip">
-                    <string>Filter for mods with deployers</string>
+                    <string>Adds a mod with all the files of the selected folder</string>
                    </property>
                    <property name="text">
-                    <string>Active Mods</string>
-                   </property>
-                   <property name="tristate">
-                    <bool>true</bool>
+                    <string>Add mod from folder</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="filter_group_mods_cb">
+                  <widget class="QPushButton" name="btn_newModCompressed">
+                   <property name="text">
+                    <string>Add mod from compressed files</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_newModFile">
                    <property name="toolTip">
-                    <string>Filter for mods in groups</string>
+                    <string>Adds a mod from one or multiple files</string>
                    </property>
                    <property name="text">
-                    <string>Mods in groups</string>
-                   </property>
-                   <property name="tristate">
-                    <bool>true</bool>
+                    <string>Add mod from files</string>
                    </property>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QCheckBox" name="filter_mods_with_updates_cb">
-                   <property name="toolTip">
-                    <string>Filter for mods with available updates on NexusMods</string>
-                   </property>
-                   <property name="text">
-                    <string>Mods with updates</string>
-                   </property>
-                   <property name="tristate">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="Line" name="line_15">
+                  <spacer name="horizontalSpacer_2">
                    <property name="orientation">
                     <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_15">
-                   <item>
-                    <spacer name="horizontalSpacer_26">
-                     <property name="orientation">
-                      <enum>Qt::Orientation::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="label_17">
-                     <property name="text">
-                      <string>Manual Tags</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <layout class="QHBoxLayout" name="horizontalLayout_16">
-                     <item>
-                      <spacer name="horizontalSpacer_25">
-                       <property name="orientation">
-                        <enum>Qt::Orientation::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="edit_manual_tags_button">
-                       <property name="toolTip">
-                        <string>Edit Manual Tags</string>
-                       </property>
-                       <property name="text">
-                        <string/>
-                       </property>
-                       <property name="icon">
-                        <iconset theme="preferences-other"/>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <widget class="Line" name="line_16">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QWidget" name="manual_tags_widget" native="true"/>
-                 </item>
-                 <item>
-                  <widget class="Line" name="line_8">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_3">
-                   <item>
-                    <spacer name="horizontalSpacer_9">
-                     <property name="orientation">
-                      <enum>Qt::Orientation::Horizontal</enum>
-                     </property>
-                     <property name="sizeHint" stdset="0">
-                      <size>
-                       <width>40</width>
-                       <height>20</height>
-                      </size>
-                     </property>
-                    </spacer>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="label_9">
-                     <property name="text">
-                      <string>Auto Tags</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <layout class="QHBoxLayout" name="horizontalLayout_4">
-                     <item>
-                      <spacer name="horizontalSpacer_10">
-                       <property name="orientation">
-                        <enum>Qt::Orientation::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="update_auto_tags_button">
-                       <property name="toolTip">
-                        <string>Reapply Auto Tags</string>
-                       </property>
-                       <property name="text">
-                        <string/>
-                       </property>
-                       <property name="icon">
-                        <iconset theme="view-refresh"/>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="edit_auto_tags_button">
-                       <property name="toolTip">
-                        <string>Edit Auto Tags</string>
-                       </property>
-                       <property name="text">
-                        <string/>
-                       </property>
-                       <property name="icon">
-                        <iconset theme="preferences-other"/>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <widget class="Line" name="line_7">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Horizontal</enum>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QWidget" name="auto_tags_widget" native="true"/>
-                 </item>
-                 <item>
-                  <spacer name="verticalSpacer_2">
-                   <property name="orientation">
-                    <enum>Qt::Orientation::Vertical</enum>
                    </property>
                    <property name="sizeHint" stdset="0">
                     <size>
-                     <width>20</width>
-                     <height>40</height>
+                     <width>40</width>
+                     <height>20</height>
                     </size>
                    </property>
                   </spacer>
                  </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_modtabCheckUpdates">
+                   <property name="text">
+                    <string>Check for mod updates</string>
+                   </property>
+                   <property name="icon">
+                    <iconset theme="view-refresh"/>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
-               </widget>
-              </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_7">
+                 <item>
+                  <widget class="QComboBox" name="cbb_modWebSource">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLineEdit" name="txt_newModLink">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>500</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="placeholderText">
+                    <string>mod URL</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btn_newModLink">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="toolTip">
+                    <string/>
+                   </property>
+                   <property name="text">
+                    <string>Add mod from URL</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
              </widget>
             </item>
            </layout>
@@ -807,6 +957,39 @@
                  </property>
                 </widget>
                </item>
+               <item row="0" column="4">
+                <spacer name="horizontalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item row="0" column="2">
+                <widget class="QToolButton" name="deployer_tool_button">
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="popupMode">
+                  <enum>QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="5">
+                <widget class="QPushButton" name="undeploy_button">
+                 <property name="toolTip">
+                  <string>Revert mod deployment</string>
+                 </property>
+                 <property name="text">
+                  <string>Undeploy</string>
+                 </property>
+                </widget>
+               </item>
                <item row="0" column="3">
                 <widget class="QPushButton" name="reset_filter_button">
                  <property name="font">
@@ -825,30 +1008,10 @@
                   <bool>false</bool>
                  </property>
                  <property name="text">
-                  <string>Reset Conflicts</string>
+                  <string>Reset conflicts</string>
                  </property>
                  <property name="flat">
                   <bool>false</bool>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="1">
-                <widget class="QComboBox" name="deployer_selection_box">
-                 <property name="sizeAdjustPolicy">
-                  <enum>QComboBox::SizeAdjustPolicy::AdjustToContents</enum>
-                 </property>
-                 <property name="minimumContentsLength">
-                  <number>8</number>
-                 </property>
-                </widget>
-               </item>
-               <item row="0" column="2">
-                <widget class="QToolButton" name="deployer_tool_button">
-                 <property name="text">
-                  <string/>
-                 </property>
-                 <property name="popupMode">
-                  <enum>QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
                  </property>
                 </widget>
                </item>
@@ -862,26 +1025,13 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="4">
-                <spacer name="horizontalSpacer">
-                 <property name="orientation">
-                  <enum>Qt::Orientation::Horizontal</enum>
+               <item row="0" column="1">
+                <widget class="QComboBox" name="deployer_selection_box">
+                 <property name="sizeAdjustPolicy">
+                  <enum>QComboBox::SizeAdjustPolicy::AdjustToContents</enum>
                  </property>
-                 <property name="sizeHint" stdset="0">
-                  <size>
-                   <width>40</width>
-                   <height>20</height>
-                  </size>
-                 </property>
-                </spacer>
-               </item>
-               <item row="0" column="5">
-                <widget class="QPushButton" name="undeploy_button">
-                 <property name="toolTip">
-                  <string>Revert mod deployment</string>
-                 </property>
-                 <property name="text">
-                  <string>Undeploy</string>
+                 <property name="minimumContentsLength">
+                  <number>8</number>
                  </property>
                 </widget>
                </item>
@@ -991,8 +1141,8 @@
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>406</width>
-                     <height>289</height>
+                     <width>415</width>
+                     <height>288</height>
                     </rect>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1197,6 +1347,9 @@
               <number>0</number>
              </property>
              <widget class="QWidget" name="limo_log_tab">
+              <property name="cursor">
+               <cursorShape>ArrowCursor</cursorShape>
+              </property>
               <attribute name="title">
                <string>Limo</string>
               </attribute>
@@ -1293,49 +1446,6 @@
           <number>1</number>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="0" column="3">
-           <widget class="QLabel" name="label_6">
-            <property name="text">
-             <string>Profile:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="5">
-           <widget class="QToolButton" name="profile_tool_button">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="popupMode">
-             <enum>QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="8">
-           <spacer name="search_field_spacer">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="0" column="9">
-           <spacer name="horizontalSpacer_3">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
           <item row="0" column="6">
            <widget class="QLineEdit" name="search_field">
             <property name="placeholderText">
@@ -1345,9 +1455,6 @@
              <bool>true</bool>
             </property>
            </widget>
-          </item>
-          <item row="0" column="4">
-           <widget class="QComboBox" name="profile_selection_box"/>
           </item>
           <item row="0" column="2">
            <widget class="QToolButton" name="app_tool_button">
@@ -1363,6 +1470,19 @@
            <widget class="QLabel" name="label">
             <property name="text">
              <string>Application:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="12">
+           <widget class="QPushButton" name="settings_button">
+            <property name="toolTip">
+             <string>Show Settings</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset theme="preferences-other"/>
             </property>
            </widget>
           </item>
@@ -1389,18 +1509,51 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="12">
-           <widget class="QPushButton" name="settings_button">
-            <property name="toolTip">
-             <string>Show Settings</string>
+          <item row="0" column="3">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Profile:</string>
             </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QComboBox" name="profile_selection_box"/>
+          </item>
+          <item row="0" column="9">
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="5">
+           <widget class="QToolButton" name="profile_tool_button">
             <property name="text">
              <string/>
             </property>
-            <property name="icon">
-             <iconset theme="preferences-other"/>
+            <property name="popupMode">
+             <enum>QToolButton::ToolButtonPopupMode::MenuButtonPopup</enum>
             </property>
            </widget>
+          </item>
+          <item row="0" column="8">
+           <spacer name="search_field_spacer">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </widget>
@@ -1416,7 +1569,7 @@
      <x>0</x>
      <y>0</y>
      <width>1167</width>
-     <height>19</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>
@@ -1642,6 +1795,48 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
+  <action name="actionGoToWebSource">
+   <property name="icon">
+    <iconset theme="applications-internet"/>
+   </property>
+   <property name="text">
+    <string>Go to web source</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens the remote source in the default browser</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="actionCopy_Web_Source">
+   <property name="icon">
+    <iconset theme="edit-copy"/>
+   </property>
+   <property name="text">
+    <string>Copy remote source to clipboard</string>
+   </property>
+   <property name="toolTip">
+    <string>Copy remote source to clipboard</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
+  <action name="actionTogTag_Manage_tags">
+   <property name="icon">
+    <iconset theme="document-properties"/>
+   </property>
+   <property name="text">
+    <string>Manage app manual tags</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens the Manual tag manager</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -1660,6 +1855,8 @@
    <header location="global">ui/backuplistview.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../../resources/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

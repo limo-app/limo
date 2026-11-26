@@ -21,7 +21,9 @@ struct ImportModInfo
     /*! \brief No remote. */
     local = 0,
     /*! \brief NexusMods. */
-    nexus = 1
+    nexus = 1,
+    /*! \brief GameBanana. */
+    gamebanana = 2
   };
 
   /*! \brief Describes what import action should be taken. */

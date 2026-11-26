@@ -1,5 +1,5 @@
 {
-  description = "A flake providing a development environment for Limo";
+  description = "A flake providing a development environment for Limongo";
 
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -33,9 +33,9 @@
             config.allowUnfree = true;
           };
 
-          packages.default = pkgs.limo.overrideAttrs {
+          packages.default = pkgs.limongo.overrideAttrs {
             src = ./.;
-            meta.mainProgram = "limo";
+            meta.mainProgram = "limongo";
           };
 
           make-shells.default = {

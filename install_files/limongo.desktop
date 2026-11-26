@@ -1,0 +1,11 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Type=Application
+Comment=Mod manager with LOOT integration ¡& gamebanana!
+Name=Limongo
+Categories=Utility;FileTools;
+Icon=limongo
+MimeType=x-scheme-handler/nxm;
+Exec=limongo %u
+Terminal=false

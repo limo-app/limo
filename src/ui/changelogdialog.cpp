@@ -17,7 +17,7 @@ ChangelogDialog::ChangelogDialog(bool is_flatpak, QWidget* parent) :
   ui->setupUi(this);
   setWindowTitle("Changelog");
   sfs::path path(is_flatpak ? "/app" : APP_INSTALL_PREFIX);
-  path /= sfs::path("share") / "limo";
+  path /= sfs::path("share") / "limongo";
   if(!is_flatpak && sfs::exists("install_files"))
     path = "install_files";
   path /= "changelogs.json";

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(Limo VERSION 1.2.2 LANGUAGES CXX)
+project(Limongo VERSION 0.5.0 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
@@ -44,6 +44,7 @@ if(NOT DEFINED LIBUNRAR_INCLUDE_DIR)
             find_file(LIBUNRAR_DLL_PATH "unrar/dll.hpp" REQUIRED)
             cmake_path(GET LIBUNRAR_DLL_PATH PARENT_PATH LIBUNRAR_INCLUDE_DIR)
         else()
+            #find_file(LIBUNRAR_DLL_PATH "${PROJECT_SOURCE_DIR}/unrar/dll.hpp" REQUIRED)
             set(LIBUNRAR_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/unrar")
         endif()
     endif()
@@ -176,6 +177,9 @@ set(CORE_SOURCES
         src/core/versionchangelog.h
         src/core/wildcardmatching.cpp
         src/core/wildcardmatching.h
+
+        src/core/gamebanana/gamebanana.h
+        src/core/gamebanana/gamebanana.cpp
 )
 
 add_library(core OBJECT ${CORE_SOURCES})
@@ -340,47 +344,49 @@ set(PROJECT_SOURCES
 )
 
 # Set install target so app config files can be found
-if(NOT DEFINED LIMO_INSTALL_PREFIX)
-    set(LIMO_INSTALL_PREFIX "/usr/local")
+if(NOT DEFINED LIMONGO_INSTALL_PREFIX)
+    set(LIMONGO_INSTALL_PREFIX "/usr/local")
 endif()
 
 configure_file(src/core/consts.h.in
                ${PROJECT_SOURCE_DIR}/src/core/consts.h)
 
-add_executable(Limo
-    ${PROJECT_SOURCES})
+add_executable(Limongo
+    ${PROJECT_SOURCES}
 
-target_include_directories(Limo PRIVATE ${PROJECT_SOURCE_DIR}/src)
+)
 
-target_link_libraries(Limo
+target_include_directories(Limongo PRIVATE ${PROJECT_SOURCE_DIR}/src)
+
+target_link_libraries(Limongo
     PRIVATE core
     PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
     PRIVATE Qt${QT_VERSION_MAJOR}::Svg
     PRIVATE Qt${QT_VERSION_MAJOR}::Network)
 
-install(PROGRAMS ${CMAKE_BINARY_DIR}/Limo
-    DESTINATION bin RENAME limo)
+install(PROGRAMS ${CMAKE_BINARY_DIR}/Limongo
+    DESTINATION bin RENAME limongo)
 
 if(IS_FLATPAK)
-    install(FILES flatpak/io.github.limo_app.limo.png
+    install(FILES flatpak/io.github.Desarrongo.limongo.png
             DESTINATION /app/share/icons/hicolor/512x512/apps)
-    install(FILES flatpak/io.github.limo_app.limo.metainfo.xml
+    install(FILES flatpak/io.github.Desarrongo.limongo.metainfo.xml
             DESTINATION /app/share/metainfo)
-    install(FILES flatpak/io.github.limo_app.limo.desktop
+    install(FILES flatpak/io.github.Desarrongo.limongo.desktop
             DESTINATION /app/share/applications)
     install(DIRECTORY steam_app_configs
-            DESTINATION /app/share/limo)
+            DESTINATION /app/share/limongo)
     install(FILES install_files/changelogs.json
-            DESTINATION /app/share/limo)
+            DESTINATION /app/share/limongo)
 else()
     install(DIRECTORY steam_app_configs
-            DESTINATION ${LIMO_INSTALL_PREFIX}/share/limo)
-    install(FILES install_files/limo.png
-            DESTINATION ${LIMO_INSTALL_PREFIX}/share/icons/hicolor/512x512/apps)
-    install(FILES install_files/limo.desktop
-            DESTINATION ${LIMO_INSTALL_PREFIX}/share/applications)
+            DESTINATION ${LIMONGO_INSTALL_PREFIX}/share/limongo)
+    install(FILES install_files/limongo.png
+            DESTINATION ${LIMONGO_INSTALL_PREFIX}/share/icons/hicolor/512x512/apps)
+    install(FILES install_files/limongo.desktop
+            DESTINATION ${LIMONGO_INSTALL_PREFIX}/share/applications)
     install(FILES install_files/changelogs.json
-            DESTINATION ${LIMO_INSTALL_PREFIX}/share/limo)
+            DESTINATION ${LIMONGO_INSTALL_PREFIX}/share/limongo)
 endif()
 
 if (BUILD_TESTING)
